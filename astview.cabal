@@ -1,0 +1,53 @@
+Name:            astview
+Version:         0.1
+License:         BSD4
+License-File:    LICENSE
+Author:          
+                 Pascal Hof <pascal.hof@udo.edu>, 
+                 Sebastian Menge <sebastian.menge@udo.edu>
+Maintainer:      Sebastian Menge <sebastian.menge@udo.edu>
+Synopsis:        View abstract syntax trees for your custom 
+                 languages and parsers in a graphical (GTK+) 
+                 application
+Description:     
+                 Astview is a graphical viewer for abstract 
+                 syntax trees. It is implemented on the basis 
+                 of scrap-your-boilerplate (i.e. data2tree) 
+                 and works with all parsers that generate trees 
+                 that are instances of the Data.Data class. 
+                 Custom parsers can be dynamically loaded 
+                 (via package hint) at startup.
+
+Category:        Language
+
+Cabal-Version:   >= 1.2
+Build-Type:      Custom
+Data-Files:
+                 data/astview.glade
+                 data/Parsers.hs
+                 data/CsvParser.hs
+                 data/ExprParser.hs
+                 data/HaskellExtParser.hs
+                 data/astview.html
+                 data/style.css
+                 data/LICENSE.unwrapped
+
+Executable         astview
+  Hs-Source-Dirs:  src
+  Main-is:         Main.hs
+  Other-Modules:   Language.Astview.GUI, Language.Astview.Registry
+  Build-Depends:   base>=4
+                   , filepath
+                   , bytestring
+                   , Glob
+                   , containers
+                   , syb
+                   , hint
+                   , glib
+                   , gtk
+                   , glade
+                   , gtksourceview2
+                   , astview-utils
+                   , directory
+                   , mtl
+                   , process
