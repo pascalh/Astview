@@ -1,12 +1,13 @@
 Name:            astview
-Version:         0.1.3
+Version:         0.1.4
 License:         BSD4
 License-File:    LICENSE
 Author:          
                  Pascal Hof <pascal.hof@udo.edu>, 
                  Sebastian Menge <sebastian.menge@udo.edu>
 Maintainer:      Sebastian Menge <sebastian.menge@udo.edu>
-Synopsis:        A GTK-based abstract syntax tree viewer for custom languages and parsers
+Synopsis:        A GTK-based abstract syntax tree viewer for custom 
+                 languages and parsers
 Description:     
                  Astview is a graphical viewer for abstract 
                  syntax trees. It is implemented on the basis 
@@ -15,6 +16,10 @@ Description:
                  that are instances of the Data.Data class. 
                  Custom parsers can be dynamically loaded 
                  (via package hint) at startup.
+                 .
+                 For installation you need gtk2hs and hscolour before. 
+                 The latter will not be automatically installed by 
+                 cabal since it is used by Setup.hs.
 
 Category:        Language
 
