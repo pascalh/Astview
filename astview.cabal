@@ -1,14 +1,12 @@
 Name:            astview
-Version:         0.1
+Version:         0.1.1
 License:         BSD4
 License-File:    LICENSE
 Author:          
                  Pascal Hof <pascal.hof@udo.edu>, 
                  Sebastian Menge <sebastian.menge@udo.edu>
 Maintainer:      Sebastian Menge <sebastian.menge@udo.edu>
-Synopsis:        View abstract syntax trees for your custom 
-                 languages and parsers in a graphical (GTK+) 
-                 application
+Synopsis:        A GTK-based abstract syntax tree viewer for custom languages and parsers
 Description:     
                  Astview is a graphical viewer for abstract 
                  syntax trees. It is implemented on the basis 
@@ -29,6 +27,7 @@ Data-Files:
                  data/ExprParser.hs
                  data/HaskellExtParser.hs
                  data/astview.html
+                 data/astview-tmpl.html
                  data/style.css
                  data/LICENSE.unwrapped
 
@@ -36,7 +35,7 @@ Executable         astview
   Hs-Source-Dirs:  src
   Main-is:         Main.hs
   Other-Modules:   Language.Astview.GUI, Language.Astview.Registry
-  Build-Depends:   base>=4
+  Build-Depends:   base>=4 && <5
                    , filepath
                    , bytestring
                    , Glob
