@@ -30,6 +30,11 @@ Data-Files:
                  data/astview-tmpl.html
                  data/style.css
                  data/LICENSE.unwrapped
+                 data/EX1.hs
+                 data/EX2.hs
+                 data/EX3.hs
+                 data/EX4.hs
+
 
 Executable         astview
   Hs-Source-Dirs:  src
