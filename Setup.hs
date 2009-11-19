@@ -38,7 +38,7 @@ replaceOrEcho s = if not $ match s
   then return [s]
   else do
     putStr $ (extract s)++" "
-    file <- readFile ("data/"++(extract s)++".hs")
+    file <- readFile ("data/"++(extract s)++".hs.txt")
     let replacement = lines $ hscolour CSS defaultColourPrefs False True (extract s) False file
     return (["<!-- Example "++(extract s)++" follows: -->"]
            ++ replacement

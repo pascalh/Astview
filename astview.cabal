@@ -1,5 +1,5 @@
 Name:            astview
-Version:         0.1.1
+Version:         0.1.3
 License:         BSD4
 License-File:    LICENSE
 Author:          
@@ -30,10 +30,10 @@ Data-Files:
                  data/astview-tmpl.html
                  data/style.css
                  data/LICENSE.unwrapped
-                 data/EX1.hs
-                 data/EX2.hs
-                 data/EX3.hs
-                 data/EX4.hs
+                 data/EX1.hs.txt
+                 data/EX2.hs.txt
+                 data/EX3.hs.txt
+                 data/EX4.hs.txt
 
 
 Executable         astview
