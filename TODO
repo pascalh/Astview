@@ -1,0 +1,15 @@
+UI:
+  * dont resize combo-box
+  * save before quit -> really quit
+  * shortcut Ctrl-P visible in Menu
+  * open all subtrees
+
+Code:
+  * GTK dialogs with response 
+
+Features:
+  * maybeAdapter :: ParseResult -> Maybe/Either ParsedFile (ParseError)
+  * srcloc :: Maybe (Either ParsedFile ParsedError-> (Int,Int))
+  * load additional parsers at runtime (user-triggered, open file)
+  * show subtree when subtree is collapsed
+  * generate and load bnfc-parser at runtime
