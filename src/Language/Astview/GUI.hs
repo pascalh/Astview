@@ -495,7 +495,7 @@ actionQuit gui = do
       widgetShowAll dia
       response <- dialogRun dia
       case response of 
-        ResponseYes    -> actionSave gui
+        ResponseYes    -> actionSave gui>>widgetDestroy (window gui)
         ResponseCancel -> return ()
         ResponseNo     -> widgetDestroy (window gui)
       widgetHide dia
