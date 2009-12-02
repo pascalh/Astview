@@ -137,6 +137,7 @@ buildGUI parsers = do
   vbox <- xmlGetWidget xml castToVBox "vboxMain"
   cbox <- comboBoxNewText
   containerAdd vbox cbox
+  boxSetChildPacking vbox cbox PackNatural 2 PackEnd
   mapM_ (comboBoxAppendText cbox . buildLabel) parsers 
 
   -- build compound datatype
