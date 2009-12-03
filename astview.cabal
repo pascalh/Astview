@@ -29,6 +29,7 @@ Data-Files:
                  data/astview.glade
                  data/Parsers.hs
                  data/HigherOrderParse.hs
+                 data/Term2tree.hs
                  data/HaskellParser.hs
                  data/CsvParser.hs
                  data/ExprParser.hs
@@ -62,3 +63,4 @@ Executable         astview
                    , directory
                    , mtl
                    , process
+                   , multirec
