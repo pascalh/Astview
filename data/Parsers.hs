@@ -25,7 +25,8 @@ parsers :: [Parser]
 parsers = [linesAndWords 
           ,csv
           ,expr
-          ,haskellexts]
+          ,haskellexts
+          ]
 
 -- --------------------------------------------------------
 

@@ -28,9 +28,10 @@ Build-Type:      Custom
 Data-Files:
                  data/astview.glade
                  data/Parsers.hs
+                 data/HigherOrderParse.hs
+                 data/HaskellParser.hs
                  data/CsvParser.hs
                  data/ExprParser.hs
-                 data/HaskellExtParser.hs
                  data/astview.html
                  data/astview-tmpl.html
                  data/style.css
@@ -39,6 +40,7 @@ Data-Files:
                  data/EX2.hs.txt
                  data/EX3.hs.txt
                  data/EX4.hs.txt
+
 
 
 Executable         astview
