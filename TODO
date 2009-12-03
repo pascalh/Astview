@@ -5,6 +5,7 @@ UI:
   * open all subtrees
 
 Code:
+  * Add module descriptions (haddock)
   * GTK dialogs with response 
 
 Features:
