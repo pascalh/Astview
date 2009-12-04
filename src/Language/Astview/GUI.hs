@@ -4,17 +4,15 @@ module Language.Astview.GUI where
 import Prelude hiding (writeFile)
 import Data.Maybe(fromJust,isJust)
 import Data.List (find,findIndex)
-import Control.Monad ((=<<),when,liftM,filterM)
+import Control.Monad ((=<<),when)
 import Data.Char (toLower)
 import Control.Monad.Trans (liftIO)
 
 -- io
-import System.IO 
-  (IOMode,withFile,hGetContents,IOMode(..),hPutStr,hClose)
-import System.IO.Error
+import System.IO (withFile,IOMode(..),hPutStr,hClose)
 
 -- state
-import Data.IORef
+import Data.IORef (IORef,newIORef,writeIORef,readIORef)
 
 -- filepath
 import System.FilePath 
