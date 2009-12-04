@@ -16,7 +16,7 @@ import Data.IORef (IORef,newIORef,writeIORef,readIORef)
 
 -- filepath
 import System.FilePath 
-  (takeExtension,splitFileName,pathSeparator,joinPath)
+  ((</>),takeExtension,splitFileName,pathSeparator)
 import System.Directory (doesDirectoryExist)
 
 -- bytestring
@@ -104,7 +104,7 @@ buildGUI parsers = do
   initGUI 
 
   -- load GladeXML
-  Just xml <- xmlNew =<< getDataFileName "data/astview.glade"
+  Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
  
   -- get or create widgets
   window   <- xmlGetWidget xml castToWindow "mainWindow"
@@ -372,7 +372,7 @@ actionSaveAs gui =
     (fileChooserGetCurrentFolder (dlgSave gui)) $
     \path -> do
       name <- entryGetText (entryName gui)
-      let filepath = (path++[pathSeparator]++name)
+      let filepath = path </> name
       writeIORef (rFile gui) filepath
       writeIORef (rChanged gui) False
       writeFile filepath =<< getText gui
@@ -429,16 +429,16 @@ actionDeleteSource gui =
 -- | shows the help dialog
 actionHelp :: GUIAction
 actionHelp gui = do
-  helpfile <- getDataFileName "data/astview.html"
+  helpfile <- getDataFileName ("data" </> "astview.html")
   dir <- getDataDir
-  rawSystem "firefox" [joinPath [dir,helpfile]]
+  rawSystem "firefox" [dir </> helpfile]
   return ()
     
 -- | launches info dialog
 actionAbout :: GUIAction
 actionAbout gui = do
   aboutDialogSetUrlHook (\_ -> return ())
-  licensefile <- getDataFileName "data/LICENSE.unwrapped"
+  licensefile <- getDataFileName ("data" </> "LICENSE.unwrapped")
   contents <- catch 
     (withFile licensefile ReadMode ((fmap BS.unpack) . BS.hGetContents))
     (\ioe -> return $ "Err" ++ (show ioe))
