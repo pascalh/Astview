@@ -17,8 +17,11 @@ import Language.Astview.Parser
 import Language.Astview.DataTree
 
 -- local
-import Language.Astview.GUI
-import Language.Astview.Registry
+import Language.Astview.GUI (buildGUI)
+import Language.Astview.GUIActions 
+  (actionLoadHeadless,actionEmptyGUI)
+import Language.Astview.GUIData (window)
+import Language.Astview.Registry (loadParsers)
 
 -- --------------------------------------------------------
 -- * main ()

@@ -47,7 +47,8 @@ Data-Files:
 Executable         astview
   Hs-Source-Dirs:  src
   Main-is:         Main.hs
-  Other-Modules:   Language.Astview.GUI, Language.Astview.Registry
+  Other-Modules:   Language.Astview.GUI,
+                   Language.Astview.Registry
   Build-Depends:   base>=4 && <5
                    , filepath
                    , bytestring
