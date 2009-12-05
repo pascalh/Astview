@@ -1,5 +1,5 @@
 Name:            astview
-Version:         0.1.4
+Version:         0.1.5
 License:         BSD4
 License-File:    LICENSE
 Author:          
@@ -60,7 +60,7 @@ Executable         astview
                    , gtk
                    , glade
                    , gtksourceview2
-                   , astview-utils
+                   , astview-utils >= 0.1.1
                    , directory
                    , mtl
                    , process

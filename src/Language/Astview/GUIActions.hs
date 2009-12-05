@@ -160,7 +160,7 @@ actionParse parser gui = do
       langManager <- sourceLanguageManagerGetDefault
       maybeLang <- sourceLanguageManagerGetLanguage 
         langManager 
-        (map toLower (name parser))
+        (map toLower $ syntax parser)
       case maybeLang of
         Just l -> do
           sourceBufferSetHighlightSyntax (tb gui) True

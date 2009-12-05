@@ -1,1 +1,4 @@
 // release history with features and fixed and open bugs
+
+0.1.5
+* a particular attribute for parsers to specify syntax hightlighting

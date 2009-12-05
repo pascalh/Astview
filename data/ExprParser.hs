@@ -23,7 +23,7 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (javaStyle)
 import Text.ParserCombinators.Parsec.Expr
 
-expr = Parser "Expr" [".expr"] buildTreeExpr
+expr = Parser "Expr" [] [".expr"] buildTreeExpr
 
 -- Expr
 buildTreeExpr :: String -> Tree String

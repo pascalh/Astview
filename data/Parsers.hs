@@ -32,7 +32,7 @@ parsers = [linesAndWords
 
 -- | Define a custom parser
 linesAndWords :: Parser
-linesAndWords = Parser "Lines and Words" [".law"] treeLinesAndWords
+linesAndWords = Parser "Lines and Words" [] [".law"] treeLinesAndWords
 
 -- | Seperate tree construction from parsing.
 treeLinesAndWords :: String -> Tree String

@@ -21,7 +21,7 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (javaStyle)
 import Text.ParserCombinators.Parsec.Expr
 
-csv = Parser "CSV" ["*.csv"] buildTreeCSV
+csv = Parser "CSV" [] [".csv"] buildTreeCSV
 
 -- CSV
 buildTreeCSV :: String -> Tree String

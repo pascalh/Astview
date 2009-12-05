@@ -19,7 +19,7 @@ import Language.Haskell.Exts.Syntax
 
 import HigherOrderParse
 
-haskellexts = Parser "Haskell" [".hs"] buildTreeH
+haskellexts = Parser "Haskell" "Haskell" [".hs"] buildTreeH
 
 -- higher-order build-tree 
 -- (for syb we need to help the compiler about the type of data2tree)
