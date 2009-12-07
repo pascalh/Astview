@@ -24,11 +24,7 @@ data GUI = GUI {
   , rChanged :: IORef Bool        -- ^ true if file changed
   , rParsers:: IORef [Parser]     -- ^ parsers
   , rCurParser :: IORef Parser    -- ^ current parser
-  , dlgSave :: FileChooserDialog  -- ^ filechooser (save as)
   , dlgAbout :: AboutDialog       -- ^ about dialog
-  , btnSaveSave :: Button         -- ^ save as button of dlg_SaveAs
-  , btnSaveCancel :: Button       -- ^ cancel button of dlg_SaveAs
-  , entryName :: Entry            -- ^ text entry of dlg_SaveAs
   , cbox :: ComboBox
   }
 

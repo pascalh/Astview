@@ -182,29 +182,6 @@ actionSaveWorker gui plain file =
           when (head t == '*') 
                (windowSetTitle (window gui) (tail t))
  
--- |saves file with filename given by textentry
-actionSaveAs :: GUIAction
-actionSaveAs gui =
-  whenJustM
-    (fileChooserGetCurrentFolder (dlgSave gui)) $
-    \path -> do
-      name <- entryGetText (entryName gui)
-      let filepath = path </> name
-      writeIORef (rFile gui) filepath
-      writeIORef (rChanged gui) False
-      writeFile filepath =<< getText gui
-      windowSetTitle (window gui) (name++suffix)
-      widgetHide (dlgSave gui)
-  
--- |updates the textview after selecting a file in save as filechooser
-actionUpdateName :: GUIAction
-actionUpdateName gui = do
-  whenJustM (fileChooserGetFilename (dlgSave gui)) $ \ path -> do
-    isDir <- doesDirectoryExist path
-    when (not isDir) $
-      let (_,file) = splitFileName path in 
-      entrySetText (entryName gui) file
-
 -- -------------------------------------------------------------------
 -- ** editmenu menu actions
 -- -------------------------------------------------------------------
@@ -330,15 +307,30 @@ actionDlgOpenRun gui = do
 -- | launches save dialog
 actionDlgSaveRun :: GUIAction
 actionDlgSaveRun gui = do
-  setupDlgSave gui =<< readIORef (rFile gui)
-  dialogRun (dlgSave gui) >> return ()
-  where
-    -- |sets current directory and filename in dlgSave (setup)
-    setupDlgSave :: GUI -> String -> IO ()
-    setupDlgSave gui s = do 
-      let (dir,file) = splitFileName s
-      fileChooserSetFilename (dlgSave gui) dir
-      entrySetText (entryName gui) file
+  file <- readIORef (rFile gui)
+  dia <- fileChooserDialogNew 
+    (Just "astview") 
+    Nothing 
+    FileChooserActionSave 
+    []
+  dialogAddButton dia stockCancel ResponseCancel
+  dialogAddButton dia stockOpen ResponseOk
+
+  widgetShowAll dia
+  response <- dialogRun dia
+  case response of 
+    ResponseCancel -> return ()
+    ResponseOk     -> 
+      whenJustM
+        (fileChooserGetFilename dia) $ 
+        \file -> do 
+          writeIORef (rFile gui) file
+          writeIORef (rChanged gui) False
+          writeFile file =<< getText gui
+          windowSetTitle 
+            (window gui) 
+            ((snd $ splitFileName file)++suffix)
+  widgetHide dia
 
 -- |applies current parser to current sourcebuffer 
 actionReparse :: GUIAction

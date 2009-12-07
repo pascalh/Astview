@@ -82,11 +82,7 @@ buildGUI parsers = do
     , rChanged=rChanged
     , rParsers=rParsers
     , rCurParser=rCurParser
-    , dlgSave=dlgSave
     , dlgAbout=dlgAbout
-    , btnSaveSave=btnSaveSave
-    , btnSaveCancel=btnSaveCancel
-    , entryName=entryName
     , cbox=cbox
     }
 
@@ -135,11 +131,6 @@ registerMenuAction xml gui (gtkId,guiaction) = do
 -- | adds actions to some widgets
 hooks :: GUI -> IO (ConnectId Window)
 hooks gui = do
-  -- filechooser save
-  onClicked (btnSaveSave gui) (actionSaveAs gui)
-  onClicked (btnSaveCancel gui) (widgetHide (dlgSave gui))
-  onUpdatePreview (dlgSave gui) (actionUpdateName gui) 
-  
   -- textbuffer
   onBufferChanged (tb gui) (actionBufferChanged gui)
   
