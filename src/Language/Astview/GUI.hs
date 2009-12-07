@@ -51,11 +51,7 @@ buildGUI parsers = do
   tb <- buildSourceView 
     =<< xmlGetWidget xml castToScrolledWindow "swSource" 
 
-  dlgSave <-xmlGetWidget xml castToFileChooserDialog "dlgSave"
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-  btnSaveSave <- xmlGetWidget xml castToButton "btnSaveSave"
-  btnSaveCancel <- xmlGetWidget xml castToButton "btnSaveCancel"
-  entryName <- xmlGetWidget xml castToEntry "entryName"
 
   -- storage for current file
   rFile <- newIORef unsavedDoc
