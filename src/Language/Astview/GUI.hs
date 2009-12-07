@@ -51,11 +51,8 @@ buildGUI parsers = do
   tb <- buildSourceView 
     =<< xmlGetWidget xml castToScrolledWindow "swSource" 
 
-  dlgOpen <-xmlGetWidget xml castToFileChooserDialog "dlgOpen"
   dlgSave <-xmlGetWidget xml castToFileChooserDialog "dlgSave"
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-  btnOpenOpen <- xmlGetWidget xml castToButton "btnOpenOpen"
-  btnOpenCancel <- xmlGetWidget xml castToButton "btnOpenCancel"
   btnSaveSave <- xmlGetWidget xml castToButton "btnSaveSave"
   btnSaveCancel <- xmlGetWidget xml castToButton "btnSaveCancel"
   entryName <- xmlGetWidget xml castToEntry "entryName"
@@ -85,11 +82,8 @@ buildGUI parsers = do
     , rChanged=rChanged
     , rParsers=rParsers
     , rCurParser=rCurParser
-    , dlgOpen=dlgOpen
     , dlgSave=dlgSave
     , dlgAbout=dlgAbout
-    , btnOpenOpen=btnOpenOpen 
-    , btnOpenCancel=btnOpenCancel 
     , btnSaveSave=btnSaveSave
     , btnSaveCancel=btnSaveCancel
     , entryName=entryName
@@ -141,10 +135,6 @@ registerMenuAction xml gui (gtkId,guiaction) = do
 -- | adds actions to some widgets
 hooks :: GUI -> IO (ConnectId Window)
 hooks gui = do
-  -- filechooser open
-  onClicked (btnOpenOpen gui) (actionLoadChooser gui)
-  onClicked (btnOpenCancel gui) (widgetHide (dlgOpen gui) )
-  afterFileActivated (dlgOpen gui) (actionLoadChooser gui)
   -- filechooser save
   onClicked (btnSaveSave gui) (actionSaveAs gui)
   onClicked (btnSaveCancel gui) (widgetHide (dlgSave gui))

@@ -120,16 +120,6 @@ activateParser parser gui = do
     Just i -> comboBoxSetActive (cbox gui) i
     Nothing-> return ()
 
--- | gets filename from filechooser and delegates to 
--- actionLoadHeadless
-actionLoadChooser :: GUIAction
-actionLoadChooser gui = do
-  whenJustM
-    (fileChooserGetFilename (dlgOpen gui)) $ 
-    \file -> do
-      actionLoadHeadless file gui
-      widgetHide (dlgOpen gui)
-
 -- | parses the contents of the sourceview with the selected parser
 actionParse :: Parser -> GUIAction
 actionParse parser gui = do
@@ -318,7 +308,24 @@ actionQuit gui = do
 
 -- | launches open dialog
 actionDlgOpenRun :: GUIAction
-actionDlgOpenRun gui = dialogRun (dlgOpen gui) >> return ()
+actionDlgOpenRun gui = do 
+  dia <- fileChooserDialogNew 
+    (Just "astview") 
+    Nothing 
+    FileChooserActionOpen 
+    []
+  dialogAddButton dia stockCancel ResponseCancel
+  dialogAddButton dia stockOpen ResponseOk
+
+  widgetShowAll dia
+  response <- dialogRun dia
+  case response of 
+    ResponseCancel -> return ()
+    ResponseOk     -> 
+      whenJustM
+        (fileChooserGetFilename dia) $ 
+        \file -> actionLoadHeadless file gui
+  widgetHide dia
 
 -- | launches save dialog
 actionDlgSaveRun :: GUIAction
