@@ -6,6 +6,8 @@ code improvements:
   * Add module descriptions (haddock)
   * GTK dialogs with response 
   * restructure GUI to multiple modules
+  * make use of a string substitution package in Setup.hs
+    to create documentations (e.g. Text.Template)
 
 feature requests:
   * srcloc :: Maybe (Either ParsedFile ParsedError-> (Int,Int))

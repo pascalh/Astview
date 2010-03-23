@@ -15,34 +15,37 @@ main = defaultMainWithHooks hooks
 hooks :: UserHooks
 hooks = simpleUserHooks { preConf = myPreConf }
 
-myPreConf :: Args -> ConfigFlags -> IO HookedBuildInfo
-myPreConf args cf = do
-  makedocs 
-  return emptyHookedBuildInfo
-
 -- read template file with markers, call replaceOrEcho for each marker
-makedocs :: IO ()
-makedocs = do
+myPreConf :: Args -> ConfigFlags -> IO HookedBuildInfo
+myPreConf _ _ = do
   putStr "Generating custom html documentation... "
-  file <- readFile "data/astview-tmpl.html"
-  replaced <- mapM replaceOrEcho (lines file)
+  -- file <- readFile "data/astview-tmpl.html"
+  replaced <- mapM replaceOrEcho . lines =<< readFile "data/astview-tmpl.html"
+
   putStrLn " done."
   writeFile "data/astview.html" (unlines . concat $ replaced)
-  return ()
-
+  return emptyHookedBuildInfo
 
 -- echoes the current line, or, if mymatch succeeds:
 -- replaces the line with colourized haskell code.
 replaceOrEcho :: String -> IO [String]
-replaceOrEcho s = if not $ match s 
-  then return [s]
-  else do
-    putStr $ (extract s)++" "
-    file <- readFile ("data/"++(extract s)++".hs.txt")
-    let replacement = lines $ hscolour CSS defaultColourPrefs False True (extract s) False file
-    return (["<!-- Example "++(extract s)++" follows: -->"]
-           ++ replacement
-           ++ ["<!-- Example "++(extract s)++" done. -->"])
+replaceOrEcho s = 
+  if not $ match s 
+    then return [s]
+    else do
+      putStr $ (extract s)++" "
+      file <- readFile ("data/"++(extract s)++".hs.txt")
+      let replacement = lines $ hscolour 
+                  CSS 
+                  defaultColourPrefs 
+                  False 
+                  True 
+                  (extract s) 
+                  False 
+                  file
+      return (["<!-- Example "++(extract s)++" follows: -->"]
+             ++ replacement
+             ++ ["<!-- Example "++(extract s)++" done. -->"])
 
 
 -- interface that delegates to various implementations:
