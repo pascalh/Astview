@@ -31,8 +31,7 @@ import Language.Astview.Registry (loadParsers)
 -- CLI-argument (one file to parse) and finally starts the GTK-GUI
 main :: IO ()
 main = do
-  parsers <- loadParsers
-  gui <- buildGUI parsers
+  gui <- buildGUI =<< loadParsers
 
   -- startup
   args <- getArgs

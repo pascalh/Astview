@@ -142,7 +142,7 @@ hooks gui = do
     let parser = parsers!!i
     writeIORef (rCurParser gui) parser 
     comboBoxSetActive (cbox gui) i
-    actionParse (parser) gui
+    actionParse parser gui
 
   (dlgAbout gui) `onResponse` (\ _ -> widgetHide (dlgAbout gui) )
         

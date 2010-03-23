@@ -21,7 +21,7 @@ import System.IO (withFile,IOMode(..),hPutStr,hClose)
 import Data.IORef (IORef,writeIORef,readIORef)
 
 -- filepath
-import System.FilePath ((</>),takeExtension,splitFileName)
+import System.FilePath ((</>),takeExtension,takeFileName)
 import System.Directory (doesDirectoryExist)
 
 -- bytestring
@@ -99,11 +99,9 @@ actionLoadHeadless file gui =
         file ReadMode (fmap BS.unpack . BS.hGetContents)
       textBufferSetText (tb gui) contents
 
-      let filename = snd $ splitFileName file
-      windowSetTitle (window gui) (filename ++ suffix)
-      let e = takeExtension file
+      windowSetTitle (window gui) ((takeFileName file) ++ suffix)
       whenJust 
-        (find (elem e . exts) parsers) $
+        (find (elem (takeExtension file) . exts) parsers) $
         \parser -> do   
           activateParser parser gui
           actionParse parser gui
@@ -131,8 +129,7 @@ actionParse parser gui = do
   case maybeCol of
     Just col-> treeViewRemoveColumn (tv gui) col
     Nothing -> return (-1)
-  let tree' = (tree parser) plain
-  model <- treeStoreNew [Node "" [tree']]
+  model <- treeStoreNew [Node "" [(tree parser) plain]]
   treeViewSetModel (tv gui) model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
@@ -158,13 +155,12 @@ actionParse parser gui = do
         Nothing-> 
           sourceBufferSetHighlightSyntax (tb gui) False   
 
--- |saves file to url saved in clipboard
+-- |saves file 
 actionSave :: GUIAction
 actionSave gui = do
-  file <- readIORef (rFile gui)
   text <- getText gui
-  actionSaveWorker gui text file
-
+  actionSaveWorker gui text =<< readIORef (rFile gui)
+ 
 -- |saves current file if a file is active or calls "save as"-dialog
 actionSaveWorker :: GUI -> String -> String -> IO ()
 actionSaveWorker gui plain file =
@@ -269,7 +265,7 @@ actionQuit gui = do
       file <- readIORef (rFile gui)
       lbl <- labelNew 
         (Just $ "Save changes to document \""++
-                (snd $ splitFileName file) ++
+                (takeFileName file) ++
                 "\" before closing?")
       boxPackStartDefaults contain lbl
 
@@ -329,7 +325,7 @@ actionDlgSaveRun gui = do
           writeFile file =<< getText gui
           windowSetTitle 
             (window gui) 
-            ((snd $ splitFileName file)++suffix)
+            ((takeFileName file)++suffix)
   widgetHide dia
 
 -- |applies current parser to current sourcebuffer 
