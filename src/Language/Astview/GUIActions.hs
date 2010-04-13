@@ -8,7 +8,7 @@ module Language.Astview.GUIActions where
 import Language.Astview.GUIData 
 
 -- base
-import Prelude hiding (writeFile)
+import Prelude hiding (writeFile,Right)
 import Data.Maybe(fromJust,isJust)
 import Data.List (find,findIndex)
 import Control.Monad ((=<<),when)
@@ -59,6 +59,7 @@ menuActions =
   [("mNew",actionEmptyGUI)
   ,("mOpen",actionDlgOpenRun)
   ,("mParse",actionReparse)
+  ,("mPath",actionGetPath)
   ,("mSave",actionSave)
   ,("mSaveAs",actionDlgSaveRun)
   ,("mCut",actionCutSource)
@@ -187,7 +188,7 @@ actionCutSource :: GUIAction
 actionCutSource gui = do
   actionCopySource gui
   actionDeleteSource gui
- 
+
 -- |copies selected source to clipboard  
 actionCopySource :: GUIAction
 actionCopySource gui = do
@@ -334,6 +335,22 @@ actionReparse gui = do
   parser <- readIORef (rCurParser gui)
   activateParser parser gui
   actionParse parser gui
+
+data Direction 
+  = Down -- ^ go down one level to the leftmost child
+  | Right -- ^ stay at the same level and go to the right
+  deriving Show
+
+actionGetPath :: GUIAction  
+actionGetPath gui = do
+  s <- treeViewGetSelection $ tv gui
+  t <- fmap (tail.head) $ treeSelectionGetSelectedRows s
+  putStr $ show t ++ " : " 
+  putStrLn $ show $ trans t where
+    -- transforms gtk2hs path representation to direction
+    trans :: [Int] -> [Direction]
+    trans (x:xs) = Down : replicate x Right ++ trans xs
+    trans [] = []
 
 -- -------------------------------------------------------------------
 -- ** Helpers

@@ -126,6 +126,19 @@
                         <property name="use_stock">True</property>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="mPath">
+                        <property name="label">Print Path</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image2">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-file</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>
