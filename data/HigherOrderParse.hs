@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-
+{-# LANGUAGE FlexibleInstances #-}
 module HigherOrderParse where
 
 import Data.Tree
@@ -11,6 +11,14 @@ import Data.Tree
 -- result of Either.
 class Result b a | b -> a where
   from :: b -> Either String a
+
+instance Result (Maybe a) a where
+  from (Just a) = Right a
+  from Nothing  = Left "Parse error"
+
+instance (Show b) => Result (Either b a) a where
+  from (Right a) = Right a
+  from (Left e ) = Left $ show e
 
 -- |higher-order build tree
 buildTreeGen :: (Result b a) 
