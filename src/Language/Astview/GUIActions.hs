@@ -66,6 +66,7 @@ menuActions =
   ,("mCopy",actionCopySource)
   ,("mPaste",actionPasteSource)
   ,("mDelete",actionDeleteSource)
+  ,("mSrcLoc",actionJumpToSrcLoc)
   ,("mAbout",actionAbout)
   ,("mShowHelp",actionHelp)
   ,("mQuit",actionQuit)
@@ -211,7 +212,9 @@ actionDeleteSource :: GUIAction
 actionDeleteSource gui = 
   textBufferDeleteSelection (tb gui) False False >> return ()
 
-
+-- |jumps to the node in tree given by current cursor position
+actionJumpToSrcLoc :: GUIAction
+actionJumpToSrcLoc gui = return ()
 
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions
