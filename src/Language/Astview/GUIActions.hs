@@ -131,7 +131,7 @@ actionParse parser gui = do
   case maybeCol of
     Just col-> treeViewRemoveColumn (tv gui) col
     Nothing -> return (-1)
-  model <- treeStoreNew [Node "" [(tree parser) plain]]
+  model <- treeStoreNew [(tree parser) plain]
   treeViewSetModel (tv gui) model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
