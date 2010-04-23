@@ -141,9 +141,9 @@ hooks gui = do
     parsers <- readIORef (rParsers gui)
     let parser = parsers!!i
     writeIORef (rCurParser gui) parser 
-    comboBoxSetActive (cbox gui) i
     actionParse parser gui
-
+    comboBoxSetActive (cbox gui) i
+    
   (dlgAbout gui) `onResponse` (\ _ -> widgetHide (dlgAbout gui) )
         
   (window gui) `on` deleteEvent $ tryEvent $ liftIO $ actionQuit gui

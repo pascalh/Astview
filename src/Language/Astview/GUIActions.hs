@@ -121,7 +121,7 @@ activateParser parser gui = do
     Nothing-> return ()
 
 -- | parses the contents of the sourceview with the selected parser
-actionParse :: Parser -> GUIAction
+actionParse :: Parser -> GUI -> IO (Tree String)
 actionParse parser gui = do
   writeIORef (rCurParser gui) parser
   sourceBufferSetHighlightSyntax (tb gui) True
@@ -131,7 +131,8 @@ actionParse parser gui = do
   case maybeCol of
     Just col-> treeViewRemoveColumn (tv gui) col
     Nothing -> return (-1)
-  model <- treeStoreNew [(tree parser) plain]
+  let t = (tree parser) plain
+  model <- treeStoreNew [t]
   treeViewSetModel (tv gui) model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
@@ -142,7 +143,7 @@ actionParse parser gui = do
     model 
     (\row -> [ cellText := row ] )
   treeViewAppendColumn (tv gui) col 
-  return ()
+  return t
   where 
     setupSyntaxHighlighting :: Parser -> GUIAction
     setupSyntaxHighlighting parser gui = do
@@ -212,9 +213,48 @@ actionDeleteSource :: GUIAction
 actionDeleteSource gui = 
   textBufferDeleteSelection (tb gui) False False >> return ()
 
--- |jumps to the node in tree given by current cursor position
+-- |jumps to the node in tree given by current cursor position. If
+-- cursor position does not match any source location in tree we 
+-- will jump to a source location of the correc line (if existing)
 actionJumpToSrcLoc :: GUIAction
-actionJumpToSrcLoc gui = return ()
+actionJumpToSrcLoc gui = do
+  -- get cursor position
+  -- zero point: line 1, row 0
+  (iter,_) <- textBufferGetSelectionBounds (tb gui)
+  l1 <- textIterGetLine iter
+  r <- textIterGetLineOffset iter
+  let l = l1+1
+  
+  -- reparse and set cursor in treeview
+  parser <- readIORef (rCurParser gui)
+  t <- actionParse parser gui 
+  let sl = sourceLocations t
+  let setCursor p = do 
+      treeViewExpandToPath (tv gui) p
+      treeViewSetCursor (tv gui) p Nothing
+  case find (\(x,y,_) ->(l==x &&r==y)) sl of
+    Just (_,_,p) -> setCursor p
+    Nothing      -> 
+      -- jump to src loc of given line if no exact matching found
+      case find (\(x,_,_) ->l==x) sl of
+        Just (_,_,p) -> setCursor p
+        Nothing -> return ()
+  
+-- |returns all source locations and paths to source
+-- locations in current tree
+sourceLocations :: Tree String -> [(Int,Int,TreePath)]
+sourceLocations = getSourceLocations . calcPaths [0]
+  where
+  calcPaths :: [Int] -> Tree String -> Tree (String,TreePath)
+  calcPaths p (Node l cs) = 
+    let paths = zipWith (\p e->p++[e]) (repeat p) [0,1..] in
+    Node (l,p) (zipWith (\subtree p -> calcPaths p subtree) cs paths)
+
+  getSourceLocations :: Tree (String,TreePath) -> [(Int,Int,TreePath)]
+  getSourceLocations (Node ("SrcLoc",p) cs) =
+    [(1+read (to 1)::Int,(read (to 2):: Int)-1,p)] 
+    where to i = rootLabel $ fmap fst $ cs !! i
+  getSourceLocations (Node _ cs) = concatMap getSourceLocations cs
 
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions
@@ -338,6 +378,7 @@ actionReparse gui = do
   parser <- readIORef (rCurParser gui)
   activateParser parser gui
   actionParse parser gui
+  return ()
 
 data Direction 
   = Down -- ^ go down one level to the leftmost child
