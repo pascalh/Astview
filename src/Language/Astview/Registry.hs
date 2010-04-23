@@ -3,9 +3,6 @@ module Language.Astview.Registry where
 -- hint
 import Language.Haskell.Interpreter hiding ((:=),set)
 
--- containers
-import Data.Tree ( Tree(Node,rootLabel) )
-
 -- glob
 import System.FilePath.Glob (compile,globDir)
 
@@ -13,7 +10,7 @@ import System.FilePath.Glob (compile,globDir)
 import Language.Astview.Parser
 
 -- local
-import Paths_astview (getDataFileName,getDataDir)  -- by cabal
+import Paths_astview (getDataFileName,getDataDir) -- by cabal
 
 
 -- | loads the parserRegistration and all modules in the data dir
