@@ -8,8 +8,14 @@ code improvements:
   * restructure GUI to multiple modules
   * make use of a string substitution package in Setup.hs
     to create documentations (e.g. Text.Template)
+  * remove package astview-utils
 
 feature requests:
+  * Split function (String -> Tree String) in two functions:
+      - parse :: String -> a
+      - toTree :: a -> Tree String
+  * support jumping to a node in tree by cursor position for
+    all languages
   * srcloc :: Maybe (Either ParsedFile ParsedError-> (Int,Int))
   * load additional parsers at runtime (user-triggered, open file)
   * show subtree when subtree is collapsed
