@@ -7,14 +7,13 @@ module Main where
 import System.Environment(getArgs)
 
 -- gtk
-import Graphics.UI.Gtk  -- (import all)
+import Graphics.UI.Gtk 
 
 -- hint
 import Language.Haskell.Interpreter hiding ((:=),set)
 
 -- astview-utils
 import Language.Astview.Parser
-import Language.Astview.DataTree
 
 -- local
 import Language.Astview.GUI (buildGUI)
