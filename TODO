@@ -22,3 +22,6 @@ feature requests:
   * generate and load bnfc-parser at runtime
   * generate pdf/png graphs from trees or terms
   * define/parse/toTree generically (using generic read)
+  * test
+
+
