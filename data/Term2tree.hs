@@ -6,8 +6,6 @@
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE EmptyDataDecls         #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
 {-# LANGUAGE OverlappingInstances   #-}
@@ -25,7 +23,7 @@ import Data.Traversable
 data Tree = Node String [Tree] deriving (Show)
 
 data2tree :: forall phi ix. (Fam phi, Data2Tree phi (PF phi)) => phi ix -> ix -> DT.Tree String
-data2tree p x = tree2tree $ data2tree' p x
+data2tree p = tree2tree . data2tree' p
 
 tree2tree :: Tree -> DT.Tree String
 tree2tree (Node s ts) = DT.Node s (map tree2tree ts)

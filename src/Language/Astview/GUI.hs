@@ -131,12 +131,12 @@ hooks gui = do
   onBufferChanged (tb gui) (actionBufferChanged gui)
   
   -- ctrl+p to reparse
-  (window gui) `on` keyPressEvent $ tryEvent $ do
+  window gui `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
     liftIO $ actionReparse gui 
 
-  (cbox gui) `on` changed $ do
+  cbox gui `on` changed $ do
     i <- comboBoxGetActive (cbox gui) 
     parsers <- readIORef (rParsers gui)
     let parser = parsers!!i
@@ -144,9 +144,9 @@ hooks gui = do
     actionParse parser gui
     comboBoxSetActive (cbox gui) i
     
-  (dlgAbout gui) `onResponse` (\ _ -> widgetHide (dlgAbout gui) )
+  dlgAbout gui `onResponse` (\ _ -> widgetHide (dlgAbout gui) )
         
-  (window gui) `on` deleteEvent $ tryEvent $ liftIO $ actionQuit gui
+  window gui `on` deleteEvent $ tryEvent $ liftIO $ actionQuit gui
   
   -- window    
   onDestroy (window gui) mainQuit

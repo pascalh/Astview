@@ -101,7 +101,7 @@ actionLoadHeadless file gui =
         file ReadMode (fmap BS.unpack . BS.hGetContents)
       textBufferSetText (tb gui) contents
 
-      windowSetTitle (window gui) ((takeFileName file) ++ suffix)
+      windowSetTitle (window gui) (takeFileName file ++ suffix)
       whenJust 
         (find (elem (takeExtension file) . exts) parsers) $
         \parser -> do   
@@ -131,7 +131,7 @@ actionParse parser gui = do
   case maybeCol of
     Just col-> treeViewRemoveColumn (tv gui) col
     Nothing -> return (-1)
-  let t = (tree parser) plain
+  let t = tree parser plain
   model <- treeStoreNew [t]
   treeViewSetModel (tv gui) model
   col <- treeViewColumnNew
@@ -253,7 +253,7 @@ sourceLocations = getSourceLocations . calcPaths [0]
   getSourceLocations :: Tree (String,TreePath) -> [(Int,Int,TreePath)]
   getSourceLocations (Node ("SrcLoc",p) cs) =
     [(1+read (to 1)::Int,(read (to 2):: Int)-1,p)] 
-    where to i = rootLabel $ fmap fst $ cs !! i
+    where to = rootLabel . fmap fst . (cs !!)
   getSourceLocations (Node _ cs) = concatMap getSourceLocations cs
 
 -- -------------------------------------------------------------------
@@ -274,8 +274,8 @@ actionAbout gui = do
   aboutDialogSetUrlHook (\_ -> return ())
   licensefile <- getDataFileName ("data" </> "LICENSE.unwrapped")
   contents <- catch 
-    (withFile licensefile ReadMode ((fmap BS.unpack) . BS.hGetContents))
-    (\ioe -> return $ "Err" ++ (show ioe))
+    (withFile licensefile ReadMode (fmap BS.unpack . BS.hGetContents))
+    (\ioe -> return $ "Err" ++ show ioe)
   aboutDialogSetWrapLicense (dlgAbout gui) True 
   aboutDialogSetLicense (dlgAbout gui) (Just contents)
   widgetShow (dlgAbout gui)
@@ -309,7 +309,7 @@ actionQuit gui = do
       file <- readIORef (rFile gui)
       lbl <- labelNew 
         (Just $ "Save changes to document \""++
-                (takeFileName file) ++
+                takeFileName file ++
                 "\" before closing?")
       boxPackStartDefaults contain lbl
 
@@ -369,7 +369,7 @@ actionDlgSaveRun gui = do
           writeFile file =<< getText gui
           windowSetTitle 
             (window gui) 
-            ((takeFileName file)++suffix)
+            (takeFileName file++suffix)
   widgetHide dia
 
 -- |applies current parser to current sourcebuffer 
@@ -390,7 +390,7 @@ actionGetPath gui = do
   s <- treeViewGetSelection $ tv gui
   t <- fmap (tail.head) $ treeSelectionGetSelectedRows s
   putStr $ show t ++ " : " 
-  putStrLn $ show $ trans t where
+  print $ trans t where
     -- transforms gtk2hs path representation to direction
     trans :: [Int] -> [Direction]
     trans (x:xs) = Down : replicate x Right ++ trans xs
@@ -422,5 +422,5 @@ getText gui = do
 writeFile :: FilePath -> String -> IO ()
 writeFile f str = catch
   (withFile f WriteMode (\h -> hPutStr h str >> hClose h))
-  (putStrLn . show)
+  print
 

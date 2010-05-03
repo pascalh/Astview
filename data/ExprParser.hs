@@ -18,7 +18,6 @@ import Language.Astview.DataTree
 -- Parsec (CSV Parser)
 import Text.ParserCombinators.Parsec as Parsec
 import Data.Generics hiding (Infix)
-import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (javaStyle)
 import Text.ParserCombinators.Parsec.Expr

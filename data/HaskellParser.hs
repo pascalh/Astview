@@ -22,10 +22,10 @@ haskellexts = Parser "Haskell" "Haskell" [".hs"] buildTreeH
 -- (for syb we need to help the compiler about the type of data2tree)
 buildTreeH = 
   buildTreeGen 
-    (parseFileContents) 
+    parseFileContents 
     (data2tree::Module->Tree String)
 
 -- mapping the Errortype to out result type (with better error-msg)
 instance Result (ParseResult a) a where
   from (ParseOk p) = Right p
-  from (ParseFailed sloc s) = Left ("\""++s++"\""++" at <"++ (show $ srcLine sloc) ++","++(show $ srcColumn sloc)++">")
+  from (ParseFailed sloc s) = Left ("\""++s++"\""++" at <"++ show ( srcLine sloc) ++","++show ( srcColumn sloc)++">")
