@@ -8,8 +8,6 @@ import Data.Tree (Tree(Node,rootLabel))
 -- syb
 import Data.Generics (Data)
 
--- base
-import Unsafe.Coerce (unsafeCoerce)
 
 -- local imports
 import Language.Astview.Parser as Astview
@@ -21,18 +19,16 @@ import Data.Generics hiding (Infix)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (javaStyle)
 import Text.ParserCombinators.Parsec.Expr
+import HigherOrderParse 
 
 expr = Parser "Expr" [] [".expr"] buildTreeExpr
 
--- Expr
-buildTreeExpr :: String -> Tree String
-buildTreeExpr s = case parseExpr s of
-     Right ast -> flat $ data2tree (ast::Expr)
-     Left ParseError -> Node "ParseError" []
+buildTreeExpr = 
+  buildTreeGen parseExpr (data2tree::Expr -> Tree String)
 
-parseExpr :: (Data a) => String -> Either Astview.ParseError a
+parseExpr :: String -> Either Astview.ParseError Expr
 parseExpr s = case parse lexedExpr "unknown" s of
-   Right p -> unsafeCoerce $ Right p
+   Right p -> Right p
    _       -> Left ParseError
 
 
@@ -40,7 +36,9 @@ parseExpr s = case parse lexedExpr "unknown" s of
 -- ------------ a parsec parser ----------------------
 
 -- a very tiny expr language deriving data
-data Expr = Add Expr Expr | Sub Expr Expr | I Integer deriving (Show,Data,Typeable)
+data Expr = Add Expr Expr 
+          | Sub Expr Expr 
+          | I Integer deriving (Show,Data,Typeable)
 
 runLex :: Show a => Parsec.Parser a -> String -> IO ()
 runLex p input
