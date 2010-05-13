@@ -9,15 +9,12 @@ import Language.Astview.GUIActions
 
 -- base
 import Control.Monad.Trans (liftIO)
-
--- state
-import Data.IORef (IORef,newIORef,writeIORef,readIORef)
-
+import Data.IORef
 -- filepath
 import System.FilePath ((</>))
 
 -- gtk
-import Graphics.UI.Gtk  
+import Graphics.UI.Gtk hiding (Language) 
 import Graphics.UI.Gtk.Gdk.EventM
 
 -- glib
@@ -30,14 +27,14 @@ import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 -- astview-utils
-import Language.Astview.Parser
+import Language.Astview.Language
 
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName) 
 
--- | builds the GUI 
-buildGUI :: [Parser] -> IO GUI
-buildGUI parsers = do
+-- | initiates aststate
+buildAststate :: Options -> [Language] -> IO (IORef AstState)
+buildAststate opt langs = do
   -- GTK init
   initGUI 
 
@@ -48,107 +45,97 @@ buildGUI parsers = do
   window   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
 
-  tb <- buildSourceView 
+  tb <- buildSourceView opt 
     =<< xmlGetWidget xml castToScrolledWindow "swSource" 
 
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-
-  -- storage for current file
-  rFile <- newIORef unsavedDoc
-  -- 
-  rChanged <- newIORef False
-  -- storage for all parsers
-  rParsers <- newIORef parsers
-  -- storage for current parser 
-  rCurParser <- newIORef $ head parsers
 
   -- setup combobox
   vbox <- xmlGetWidget xml castToVBox "vboxMain"
   cbox <- comboBoxNewText
   containerAdd vbox cbox
   boxSetChildPacking vbox cbox PackNatural 2 PackEnd
-  mapM_ (comboBoxAppendText cbox . buildLabel) parsers 
+  mapM_ (comboBoxAppendText cbox . buildLabel) langs 
 
   -- build compound datatype
-  let gui = GUI {
-      window=window 
-    , tv=treeview 
-    , tb=tb
-    , rFile=rFile
-    , rChanged=rChanged
-    , rParsers=rParsers
-    , rCurParser=rCurParser
-    , dlgAbout=dlgAbout
-    , cbox=cbox
-    }
+  let gui = GUI window treeview tb dlgAbout cbox 
+      c = if null langs then undefined else head langs
+      state = State 
+        { cFile = []
+        , textchanged = False
+        , languages = langs
+        , cLang = c
+        , cTree = undefined
+        }
+
+  r <- newIORef $ AstState state gui opt
+   
+  hooks r
 
   -- get all menuitems from xml and register guiactions to them
-  mapM_ (registerMenuAction xml gui) menuActions
+  mapM_ (registerMenuAction xml r) menuActions
   
-  -- add hooks to buttons
-  hooks gui 
-
-  -- finally return gui
-  return gui
+  return r
 
 -- -------------------------------------------------------------------
 -- ** some helper functions
 -- -------------------------------------------------------------------
 
--- |builds combobox label for a parser
-buildLabel :: Parser -> String
-buildLabel parser = 
-  name parser
+-- |builds combobox label for a language
+buildLabel :: Language -> String
+buildLabel l = 
+  name l
   ++ " ["
-  ++ concatMap (" "++) (exts parser)
+  ++ concatMap (" "++) (exts l)
   ++ "]"
 
 -- | setup the GtkSourceView and add it to the ScrollPane. return the 
 -- underlying textbuffer
-buildSourceView :: ScrolledWindow -> IO SourceBuffer
-buildSourceView sw = do
+buildSourceView :: Options -> ScrolledWindow -> IO SourceBuffer
+buildSourceView opt sw = do
   sourceBuffer <- sourceBufferNew Nothing
   sourceBufferSetHighlightSyntax sourceBuffer True
   sourceView <- sourceViewNewWithBuffer sourceBuffer
   sourceViewSetShowLineNumbers sourceView True
   sourceViewSetHighlightCurrentLine sourceView True
-  srcfont <- fontDescriptionFromString "Monospace 10"
+  srcfont <- fontDescriptionFromString $ 
+    font opt ++" "++show (fsize opt)
   widgetModifyFont sourceView (Just srcfont)
   containerAdd sw sourceView
   return sourceBuffer
 
 -- | registers one GUIAction with a MenuItem
 registerMenuAction 
-  :: GladeXML -> GUI -> MenuAction -> IO (ConnectId MenuItem)
-registerMenuAction xml gui (gtkId,guiaction) = do
+  :: GladeXML -> IORef AstState 
+  -> (String,AstAction ()) -> IO (ConnectId MenuItem)
+registerMenuAction xml ref (gtkId,action) = do
   item <- xmlGetWidget xml castToMenuItem gtkId
-  onActivateLeaf item (guiaction gui)
+  onActivateLeaf item $ action ref
 
 -- | adds actions to some widgets
-hooks :: GUI -> IO (ConnectId Window)
-hooks gui = do
+hooks :: AstAction (ConnectId Window)
+hooks ref = do
+  gui <- getGui ref
   -- textbuffer
-  onBufferChanged (tb gui) (actionBufferChanged gui)
+  onBufferChanged (tb gui) (actionBufferChanged ref)
   
   -- ctrl+p to reparse
   window gui `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
-    liftIO $ actionReparse gui 
+    liftIO $ actionReparse ref 
 
   cbox gui `on` changed $ do
     i <- comboBoxGetActive (cbox gui) 
-    parsers <- readIORef (rParsers gui)
-    let parser = parsers!!i
-    writeIORef (rCurParser gui) parser 
-    actionParse parser gui
+    langs <- getLangs ref
+    let lang = langs!!i
+    setLanguage lang ref 
+    actionParse lang ref
     comboBoxSetActive (cbox gui) i
     
-  dlgAbout gui `onResponse` (\ _ -> widgetHide (dlgAbout gui) )
+  dlgAbout gui `onResponse` (const $ widgetHide $ dlgAbout gui)
         
-  window gui `on` deleteEvent $ tryEvent $ liftIO $ actionQuit gui
+  window gui `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
   
   -- window    
   onDestroy (window gui) mainQuit
-    
-

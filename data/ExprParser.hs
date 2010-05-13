@@ -11,7 +11,6 @@ import Data.Generics (Data)
 
 -- local imports
 import Language.Astview.Parser as Astview
-import Language.Astview.DataTree
 
 -- Parsec (CSV Parser)
 import Text.ParserCombinators.Parsec as Parsec

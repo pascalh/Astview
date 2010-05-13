@@ -7,28 +7,28 @@ import Language.Haskell.Interpreter hiding ((:=),set)
 import System.FilePath.Glob (compile,globDir)
 
 -- astview-utils
-import Language.Astview.Parser
+import Language.Astview.Language (Language)
 
 -- local
 import Paths_astview (getDataFileName,getDataDir) -- by cabal
 
 
--- | loads the parserRegistration and all modules in the data dir
-loadParsers :: IO [Parser]
-loadParsers = do
+-- | loads the language registration and all modules in data dir
+loadLanguages :: IO [Language]
+loadLanguages = do
   -- find additional modules in data
   (glob,_) <- globDir [compile "data/**/*.hs"] =<< getDataDir
   let modules = head glob
   -- run Interpreter
-  parsers' <- runInterpreter $ interpretParsers modules
-  case parsers' of
-    Right parser -> return parser
+  langs' <- runInterpreter $ interpretLangs modules
+  case langs' of
+    Right l -> return l 
     Left err -> error (show err)
 
--- | interprets the modules and returns all parsers found.
-interpretParsers :: [FilePath] -> Interpreter [Parser]
-interpretParsers modules = do 
+-- | interprets the modules and returns all languages found.
+interpretLangs :: [FilePath] -> Interpreter [Language]
+interpretLangs modules = do 
   loadModules modules
-  setTopLevelModules ["Parsers"]
-  return =<< interpret "parsers" (as :: [Parser])
+  setTopLevelModules ["Languages"]
+  return =<< interpret "languages" (as :: [Language])
 

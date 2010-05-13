@@ -1,5 +1,5 @@
 Name:            astview
-Version:         0.1.5
+Version:         0.2
 License:         BSD4
 License-File:    LICENSE
 Author:          
@@ -27,12 +27,9 @@ Cabal-Version:   >= 1.2
 Build-Type:      Custom
 Data-Files:
                  data/astview.glade
-                 data/Parsers.hs
-                 data/HigherOrderParse.hs
-                 data/Term2tree.hs
-                 data/HaskellParser.hs
-                 data/CsvParser.hs
-                 data/ExprParser.hs
+                 data/DataTree.hs
+                 data/HaskellExtLang.hs
+                 data/Languages.hs
                  data/astview.html
                  data/astview-tmpl.html
                  data/style.css
@@ -60,9 +57,10 @@ Executable         astview
                    , gtk
                    , glade
                    , gtksourceview2
-                   , astview-utils >= 0.1.1
+                   , astview-utils >= 0.2
                    , directory
                    , mtl
                    , process
                    , multirec
                    , hscolour
+                   , haskell-src-exts >= 1.9.0

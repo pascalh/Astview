@@ -1,12 +1,11 @@
 
 module CsvParser where
-
+{-
 -- container
 import Data.Tree (Tree(Node,rootLabel))
 
 -- local imports
 import Language.Astview.Parser as Astview
-import Language.Astview.DataTree
 
 -- Parsec (CSV Parser)
 import Data.Generics hiding (Infix)
@@ -27,4 +26,4 @@ csvFile = endBy line eol
 line = sepBy cell (char ',')
 cell = many (noneOf ",\n")
 eol = char '\n'
-
+-}
