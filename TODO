@@ -5,7 +5,6 @@ user-interface bugs:
 code improvements:
   * Add module descriptions (haddock)
   * GTK dialogs with response 
-  * restructure GUI to multiple modules
   * make use of a string substitution package in Setup.hs
     to create documentations (e.g. Text.Template)
   * remove package astview-utils
@@ -22,6 +21,9 @@ feature requests:
   * generate and load bnfc-parser at runtime
   * generate pdf/png graphs from trees or terms
   * define/parse/toTree generically (using generic read)
-  * test
 
+misc:
+  * adjust readme and html documentation to new data types
 
+bugs:
+  * star is added to window title after starting astview with param 

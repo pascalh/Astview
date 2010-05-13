@@ -83,7 +83,7 @@ actionEmptyGUI ref = do
     Just col-> treeViewRemoveColumn (tv g) col
     Nothing -> return undefined
   textBufferSetText (tb g) ""
-  windowSetTitle (window g) (unsavedDoc++suffix) 
+  windowSetTitle (window g) (unsavedDoc++suffix)  
 
 -- | updates the sourceview with a given file, chooses a language by 
 -- extension and parses the file
@@ -91,6 +91,7 @@ actionLoadHeadless :: FilePath -> AstAction ()
 actionLoadHeadless file ref = do
   setcFile file ref
   s <- getAstState ref
+
   let langs = languages $ state s
   windowSetTitle 
     (window $ gui s) 
@@ -107,8 +108,7 @@ actionLoadHeadless file ref = do
             actionParse l ref
             activateLang l ref 
     Nothing -> return ()
-  setChanged False ref
-
+  
 -- | helper for loadHeadless
 activateLang :: Language -> AstAction ()
 activateLang l ref = do
