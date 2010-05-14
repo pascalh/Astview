@@ -117,7 +117,7 @@ hooks :: AstAction (ConnectId Window)
 hooks ref = do
   gui <- getGui ref
   -- textbuffer
-  onBufferChanged (tb gui) (actionBufferChanged ref)
+  onBufferChanged (tb gui) $ actionBufferChanged ref
   
   -- ctrl+p to reparse
   window gui `on` keyPressEvent $ tryEvent $ do

@@ -101,6 +101,7 @@ actionLoadHeadless file ref = do
       contents <- withFile 
         file ReadMode (fmap BS.unpack . BS.hGetContents)
       textBufferSetText (tb $ gui s) contents
+      deleteStar ref
     )
     print
   case find (elem (takeExtension file) . exts) langs of
@@ -177,20 +178,21 @@ actionSave ref = do
  
 -- |saves current file if a file is active or calls "save as"-dialog
 actionSaveWorker :: String -> FilePath -> AstAction ()
-actionSaveWorker plain file ref = do
-  g <- getGui ref
+actionSaveWorker plain file ref = 
   case file of
     "Unsaved document"  -> actionDlgSaveRun ref
     otherwise           -> do 
-      deleteStar g >> writeFile file plain 
-      setChanged False ref
-            where
-        -- |removes @*@ from window title if existing  
-        deleteStar :: GUI -> IO ()
-        deleteStar gui = do
-          t <- windowGetTitle (window gui)
-          when (head t == '*') 
-               (windowSetTitle (window gui) (tail t))
+      deleteStar ref 
+      writeFile file plain 
+
+-- |removes @*@ from window title if existing and updates state
+deleteStar :: AstAction ()
+deleteStar ref = do
+  w <- getWindow ref
+  t <- windowGetTitle w
+  setChanged False ref
+  when (head t == '*') 
+    (windowSetTitle w (tail t))
  
 -- -------------------------------------------------------------------
 -- ** editmenu menu actions

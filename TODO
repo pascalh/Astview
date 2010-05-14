@@ -7,7 +7,6 @@ code improvements:
   * GTK dialogs with response 
   * make use of a string substitution package in Setup.hs
     to create documentations (e.g. Text.Template)
-  * remove package astview-utils
 
 feature requests:
   * Split function (String -> Tree String) in two functions:
@@ -26,4 +25,3 @@ misc:
   * adjust readme and html documentation to new data types
 
 bugs:
-  * star is added to window title after starting astview with param 

@@ -70,6 +70,8 @@ getChanged = fmap (textchanged . state) . readIORef
 getcFile = fmap (cFile . state) . readIORef
 
 getcLang = fmap (cLang . state) . readIORef
+
+getWindow = fmap (window . gui) . readIORef
 -- * setter functions
 
 setcFile :: FilePath -> IORef AstState -> IO ()
