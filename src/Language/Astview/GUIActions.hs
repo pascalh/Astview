@@ -104,22 +104,20 @@ actionLoadHeadless file ref = do
       deleteStar ref
     )
     print
-  case find (elem (takeExtension file) . exts) langs of
-    Just l -> do 
-            actionParse l ref
-            activateLang l ref 
-    Nothing -> return ()
+  whenJust 
+    (find (elem (takeExtension file) . exts) langs) $
+    \l -> actionParse l ref >> activateLang l ref 
   
 -- | helper for loadHeadless
 activateLang :: Language -> AstAction ()
 activateLang l ref = do
   setLanguage l ref
   langs <- getLangs ref 
-  case findIndex (l==) langs of
-    Just i -> do
+  whenJust 
+    (findIndex (l==) langs) $
+    \i -> do
       combobox <- getcBox ref
       comboBoxSetActive combobox  i
-    Nothing-> return ()
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
@@ -144,8 +142,8 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
       textBufferPlaceCursor (tb g) iter
     _ -> return ()
 
-  let t = case p plain of
-          Right ast -> to ast
+  let t = case eitherTree of
+          Right ast                 -> ast
           Left Err                  -> Node "Parse error" []
           Left (ErrMessage m)       -> Node m []
           Left (ErrLocation (SrcLocation l r) m) -> 
@@ -182,9 +180,8 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
 -- |saves a file 
 actionSave :: AstAction ()
 actionSave ref = do
-  g <- getGui ref
   url <- getcFile ref
-  text <- getText g
+  text <- getText =<< getGui ref
   actionSaveWorker text url ref
  
 -- |saves current file if a file is active or calls "save as"-dialog
@@ -379,7 +376,6 @@ actionDlgOpenRun ref = do
 -- | launches save dialog
 actionDlgSaveRun :: AstAction ()
 actionDlgSaveRun ref = do
-  g <- getGui ref
   dia <- fileChooserDialogNew 
     (Just "astview") 
     Nothing 
@@ -397,6 +393,7 @@ actionDlgSaveRun ref = do
        case maybeFile of
          Nothing-> return () 
          Just file -> do
+            g <- getGui ref
             setcFile file ref
             setChanged False ref
             writeFile file =<< getText g
@@ -409,9 +406,8 @@ actionDlgSaveRun ref = do
 actionReparse :: AstAction ()
 actionReparse ref = do
   l <- getcLang ref
-  activateLang l ref
   actionParse l ref
-  return ()
+  activateLang l ref
 
 data Direction 
   = D -- ^ go down one level to the leftmost child
