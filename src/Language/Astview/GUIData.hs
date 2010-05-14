@@ -80,6 +80,12 @@ setcFile file r = modifyIORef r f where
   f a@(AstState (State _ c ls l t) _ _) = 
     a { state = State file c ls l t }
 
+setcTree :: Tree String -> IORef AstState -> IO ()
+setcTree t r = modifyIORef r f where
+  f :: AstState -> AstState
+  f a@(AstState (State f c ls l _) _ _) = 
+    a { state = State f c ls l t }
+
 setChanged :: Bool -> IORef AstState -> IO ()
 setChanged b r = modifyIORef r f where
   f :: AstState -> AstState

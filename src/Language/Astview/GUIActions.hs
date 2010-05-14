@@ -134,13 +134,24 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
     Just col-> treeViewRemoveColumn (tv g) col
     Nothing -> return (-1)
   
-  let t = 
-        case p plain of
+  let eitherTree = fmap to (p plain)
+
+  -- error handling
+  case eitherTree of
+    Left (ErrLocation (SrcLocation l r) m) -> do 
+      iter <- textBufferGetStartIter (tb g)
+      textIterSetLine iter (l-1)
+      textBufferPlaceCursor (tb g) iter
+    _ -> return ()
+
+  let t = case p plain of
           Right ast -> to ast
           Left Err                  -> Node "Parse error" []
           Left (ErrMessage m)       -> Node m []
           Left (ErrLocation (SrcLocation l r) m) -> 
             Node ("Parse error at:"++show l ++":"++show r) [] 
+  
+  setcTree t ref
 
   model <- treeStoreNew [t]
   treeViewSetModel (tv g) model
