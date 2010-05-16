@@ -21,7 +21,7 @@ haskellexts = Language
   [".hs",".lhs"] 
   parHaskell
   (data2tree::Module->Tree String)
-  Nothing
+  (Just toSrcLoc)
   Nothing
     
 parHaskell :: String -> Either Error Module
@@ -31,3 +31,9 @@ parHaskell s =
     ParseFailed (SrcLoc _ l c) m -> 
       Left $ ErrLocation (SrcLocation l c) m
 
+
+toSrcLoc :: Tree String -> [SrcLocation]
+toSrcLoc (Node "SrcLoc" cs) = 
+  [SrcLocation (read (to 1)::Int) (read (to 2):: Int)] 
+  where to = rootLabel . (cs !!)
+toSrcLoc _        = [] 

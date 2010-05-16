@@ -246,40 +246,46 @@ actionJumpToSrcLoc ref = do
   -- get cursor position
   -- zero point: line 1, row 0
   (iter,_) <- textBufferGetSelectionBounds (tb gui)
-  l1 <- textIterGetLine iter
+  l <- textIterGetLine iter
   r <- textIterGetLineOffset iter
-  let l = l1+1
   
   -- reparse and set cursor in treeview
   lang <- getcLang ref 
   t <- actionParse lang ref 
-  let sl = sourceLocations t
+  let sl = sourceLocations lang t
   let setCursor p = do 
       treeViewExpandToPath (tv gui) p
       treeViewSetCursor (tv gui) p Nothing
-  case find (\(x,y,_) ->(l==x &&r==y)) sl of
-    Just (_,_,p) -> setCursor p
+  case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
+    Just (_,p) -> setCursor p
     Nothing      -> 
       -- jump to src loc of given line if no exact matching found
-      case find (\(x,_,_) ->l==x) sl of
-        Just (_,_,p) -> setCursor p
+      case find (\(SrcLocation x _,_) ->l==x) sl of
+        Just (_,p) -> setCursor p
         Nothing -> return ()
   
 -- |returns all source locations and paths to source
 -- locations in current tree
-sourceLocations :: Tree String -> [(Int,Int,TreePath)]
-sourceLocations = getSourceLocations . calcPaths [0]
+sourceLocations :: Language -> Tree String -> [(SrcLocation,TreePath)]
+sourceLocations l = getSourceLocations l . calcPaths [0]
   where
   calcPaths :: [Int] -> Tree String -> Tree (String,TreePath)
   calcPaths p (Node l cs) = 
     let paths = zipWith (\p e->p++[e]) (repeat p) [0,1..] in
     Node (l,p) (zipWith (\subtree p -> calcPaths p subtree) cs paths)
 
-  getSourceLocations :: Tree (String,TreePath) -> [(Int,Int,TreePath)]
-  getSourceLocations (Node ("SrcLoc",p) cs) =
-    [(1+read (to 1)::Int,(read (to 2):: Int)-1,p)] 
-    where to = rootLabel . fmap fst . (cs !!)
-  getSourceLocations (Node _ cs) = concatMap getSourceLocations cs
+  getSourceLocations :: Language 
+                     -> Tree (String,TreePath) 
+                     -> [(SrcLocation,TreePath)]
+  getSourceLocations l t@(Node (_,p) cs) =
+    case srcLoc l of
+      Just f -> 
+        let xs = f $ fmap fst t in
+        case xs of
+          []    -> concatMap (getSourceLocations l) cs
+          (x:_) -> [(x,p)]
+      Nothing -> []
+
 
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions

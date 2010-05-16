@@ -19,7 +19,7 @@ data Language = forall a s . Language
   , exts :: [String] -- ^ file extentions
   , parse :: String -> Either Error a -- ^ parse function
   , toTree :: a -> Tree String -- to tree
-  , srcLoc :: Maybe (Tree String -> Maybe SrcLocation)
+  , srcLoc :: Maybe (Tree String -> [SrcLocation])
     -- ^ selector function for source locations (if supported)
   , adjustSrcLoc :: Maybe (s -> s)
     -- ^ adjust src locs in abstract syntax to
