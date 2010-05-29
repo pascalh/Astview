@@ -406,6 +406,7 @@ actionDlgSaveRun ref = do
             windowSetTitle 
               (window g) 
               (takeFileName file++suffix)
+    _ -> return ()
   widgetHide dia
 
 -- |applies current parser to current sourcebuffer 
