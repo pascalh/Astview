@@ -8,7 +8,7 @@ import Data.Tree (Tree(Node,rootLabel))
 -- syb
 import Data.Generics (Data)
 
-import DataTree (data2tree)
+import Language.Astview.DataTree (data2tree)
 
 -- local imports
 import Language.Astview.Language

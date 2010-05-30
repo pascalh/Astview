@@ -27,7 +27,6 @@ Cabal-Version:   >= 1.2
 Build-Type:      Custom
 Data-Files:
                  data/astview.glade
-                 data/DataTree.hs
                  data/Langs/Haskell.hs
                  data/Langs/Csv.hs
                  data/Langs/Expr.hs 
@@ -43,6 +42,7 @@ Data-Files:
 Library
   Hs-Source-Dirs:  src
   Exposed-Modules: Language.Astview.Language
+                   Language.Astview.DataTree
 
 Executable         astview
   Hs-Source-Dirs:  src

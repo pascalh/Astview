@@ -13,7 +13,7 @@ import Language.Haskell.Exts
 import Language.Haskell.Exts.Parser
 import Language.Haskell.Exts.Syntax
 
-import DataTree (data2tree)
+import Language.Astview.DataTree (data2tree)
 
 haskellexts = Language 
   "Haskell" 

@@ -6,7 +6,7 @@ import Data.Tree (Tree(Node,rootLabel))
 
 -- local imports
 import qualified Language.Astview.Language as L
-import DataTree (data2tree)
+import Language.Astview.DataTree (data2tree)
 
 -- Parsec (CSV Parser)
 import Data.Generics hiding (Infix)
