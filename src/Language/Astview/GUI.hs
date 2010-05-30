@@ -43,10 +43,14 @@ buildAststate opt langs = do
  
   -- get or create widgets
   window   <- xmlGetWidget xml castToWindow "mainWindow"
-  treeview <- xmlGetWidget xml castToTreeView "treeview"
+  treeviewL <- xmlGetWidget xml castToTreeView "treeviewLeft"
+  treeviewR <- xmlGetWidget xml castToTreeView "treeviewRight"
 
-  tb <- buildSourceView opt 
-    =<< xmlGetWidget xml castToScrolledWindow "swSource" 
+  tbL <- buildSourceView opt 
+    =<< xmlGetWidget xml castToScrolledWindow "swSourceLeft" 
+
+  tbR <- buildSourceView opt 
+    =<< xmlGetWidget xml castToScrolledWindow "swSourceRight" 
 
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
@@ -58,14 +62,14 @@ buildAststate opt langs = do
   mapM_ (comboBoxAppendText cbox . buildLabel) langs 
 
   -- build compound datatype
-  let gui = GUI window treeview tb dlgAbout cbox 
+  let gui = GUI window (treeviewL,treeviewR) (tbL,tbR) dlgAbout cbox 
       c = if null langs then undefined else head langs
       state = State 
-        { cFile = unsavedDoc
-        , textchanged = False
+        { cFile = (unsavedDoc,unsavedDoc)
+        , textchanged = (False,False)
         , languages = langs
         , cLang = c
-        , cTree = undefined
+        , cArea = L
         }
 
   r <- newIORef $ AstState state gui opt
@@ -117,8 +121,11 @@ hooks :: AstAction (ConnectId Window)
 hooks ref = do
   gui <- getGui ref
   -- textbuffer
-  onBufferChanged (tb gui) $ actionBufferChanged ref
-  
+  onBufferChanged (fst $ sb gui) $ 
+    actionBufferChanged L ref
+  onBufferChanged (snd $ sb gui) $ 
+    actionBufferChanged R ref  
+
   -- ctrl+p to reparse
   window gui `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier

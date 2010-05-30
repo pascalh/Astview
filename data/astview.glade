@@ -226,7 +226,7 @@
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <widget class="GtkTreeView" id="treeview">
+                      <widget class="GtkTreeView" id="treeviewLeft">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="rules_hint">True</property>
@@ -275,7 +275,7 @@
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">in</property>
                     <child>
-                      <widget class="GtkTreeView" id="treeview1">
+                      <widget class="GtkTreeView" id="treeviewRight">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="rules_hint">True</property>

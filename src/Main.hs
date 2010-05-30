@@ -37,8 +37,9 @@ main = do
   
   args <- getArgs
   case length args of
-    1 -> actionLoadHeadless (head args) ref 
     0 -> actionEmptyGUI ref
+    1 -> actionLoadHeadless args ref 
+    2 -> actionLoadHeadless args ref 
     _ -> error "Zero or one parameter expected"
   
   gui <- getGui ref 

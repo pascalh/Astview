@@ -74,22 +74,45 @@ menuActions =
 -- * filemenu menu actions
 -- -------------------------------------------------------------------
 
+clearTreeView :: TreeView -> IO ()
+clearTreeView t = do
+  c <- treeViewGetColumn t 0
+  case c of 
+    Just col-> treeViewRemoveColumn t col
+    Nothing -> return undefined
+  return ()
+
 -- | resets the GUI, 
 actionEmptyGUI :: AstAction ()
 actionEmptyGUI ref = do
   g <- getGui ref
-  maybeCol <- treeViewGetColumn (tv g) 0 
-  case maybeCol of
-    Just col-> treeViewRemoveColumn (tv g) col
-    Nothing -> return undefined
-  textBufferSetText (tb g) ""
+  mapM_ clearTreeView =<< getTreeViews ref
+  mapM_ (\s -> textBufferSetText s []) =<< getSourceBuffers ref
   windowSetTitle (window g) (unsavedDoc++suffix)  
 
 -- | updates the sourceview with a given file, chooses a language by 
 -- extension and parses the file
-actionLoadHeadless :: FilePath -> AstAction () 
-actionLoadHeadless file ref = do
-  setcFile file ref
+actionLoadHeadless :: [FilePath] -> AstAction ()
+actionLoadHeadless [] _= return ()
+actionLoadHeadless [f] r = do
+  sb <- getcSourceBuffer r 
+  tv <- getTreeView L r
+  a <- getCArea r
+  actionLoadHeadlessWorker a sb tv f r 
+actionLoadHeadless [f1,f2] r = do
+  [s1,s2] <- getSourceBuffers r
+  [t1,t2] <- getTreeViews r
+  actionLoadHeadlessWorker L s1 t1 f1 r
+  actionLoadHeadlessWorker R s2 t2 f2 r
+actionLoadHeadless _ _ = return ()
+
+-- |worker
+actionLoadHeadlessWorker 
+  :: Area 
+  -> SourceBuffer -> TreeView
+  -> FilePath -> AstAction () 
+actionLoadHeadlessWorker area sb tv file ref = do
+  setcFile area file ref
   s <- getAstState ref
 
   let langs = languages $ state s
@@ -100,7 +123,7 @@ actionLoadHeadless file ref = do
     (do
       contents <- withFile 
         file ReadMode (fmap BS.unpack . BS.hGetContents)
-      textBufferSetText (tb $ gui s) contents
+      textBufferSetText sb contents
       deleteStar ref
     )
     print
@@ -124,22 +147,20 @@ actionParse :: Language -> AstAction (Tree String)
 actionParse l@(Language _ _ _ p to _ _) ref = do
   setLanguage l ref
   g <- getGui ref
-  sourceBufferSetHighlightSyntax (tb g) True
-  setupSyntaxHighlighting l g
-  plain <- getText g
-  maybeCol <- treeViewGetColumn (tv g) 0
-  case maybeCol of
-    Just col-> treeViewRemoveColumn (tv g) col
-    Nothing -> return (-1)
-  
+  sb <- getcSourceBuffer ref
+  tv <- getcTreeView ref
+  sourceBufferSetHighlightSyntax sb True
+  setupSyntaxHighlighting sb l g
+  plain <- getText sb g
+  clearTreeView tv
   let eitherTree = fmap to (p plain)
 
   -- error handling
   case eitherTree of
     Left (ErrLocation (SrcLocation l r) m) -> do 
-      iter <- textBufferGetStartIter (tb g)
+      iter <- textBufferGetStartIter sb
       textIterSetLine iter (l-1)
-      textBufferPlaceCursor (tb g) iter
+      textBufferPlaceCursor sb iter
     _ -> return ()
 
   let t = case eitherTree of
@@ -149,10 +170,8 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
           Left (ErrLocation (SrcLocation l r) m) -> 
             Node ("Parse error at:"++show l ++":"++show r) [] 
   
-  setcTree t ref
-
   model <- treeStoreNew [t]
-  treeViewSetModel (tv g) model
+  treeViewSetModel tv model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
   cellLayoutPackStart col renderer True 
@@ -161,29 +180,30 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
     renderer 
     model 
     (\row -> [ cellText := row ] )
-  treeViewAppendColumn (tv g) col 
+  treeViewAppendColumn tv col 
   return t
   where 
-    setupSyntaxHighlighting :: Language -> GUI -> IO ()
-    setupSyntaxHighlighting l g = do
+    setupSyntaxHighlighting :: SourceBuffer -> Language -> GUI -> IO ()
+    setupSyntaxHighlighting sb l g = do
       langManager <- sourceLanguageManagerGetDefault
       maybeLang <- sourceLanguageManagerGetLanguage 
         langManager 
         (map toLower $ syntax l)
       case maybeLang of
         Just l -> do
-          sourceBufferSetHighlightSyntax (tb g) True
-          sourceBufferSetLanguage (tb g) l 
-        Nothing-> 
-          sourceBufferSetHighlightSyntax (tb g) False   
+          sourceBufferSetHighlightSyntax sb True
+          sourceBufferSetLanguage sb l 
+        Nothing ->
+          sourceBufferSetHighlightSyntax sb False   
 
 -- |saves a file 
 actionSave :: AstAction ()
 actionSave ref = do
   url <- getcFile ref
-  text <- getText =<< getGui ref
+  sb <- getcSourceBuffer ref
+  text <- getText sb =<< getGui ref
   actionSaveWorker text url ref
- 
+
 -- |saves current file if a file is active or calls "save as"-dialog
 actionSaveWorker :: String -> FilePath -> AstAction ()
 actionSaveWorker plain file ref = 
@@ -198,7 +218,8 @@ deleteStar :: AstAction ()
 deleteStar ref = do
   w <- getWindow ref
   t <- windowGetTitle w
-  setChanged False ref
+  a <- getCArea ref
+  setChanged a False ref
   when (head t == '*') 
     (windowSetTitle w (tail t))
  
@@ -215,37 +236,41 @@ actionCutSource ref = do
 -- |copies selected source to clipboard  
 actionCopySource :: AstAction () 
 actionCopySource ref = do
+  sb <- getcSourceBuffer ref
   gui <- getGui ref
-  (start,end) <- textBufferGetSelectionBounds (tb gui) 
+  (start,end) <- textBufferGetSelectionBounds sb 
   clipBoard <- clipboardGet selectionClipboard
   clipboardSetText 
     clipBoard 
-    =<< textBufferGetText (tb gui) start end True
+    =<< textBufferGetText sb start end True
 
 -- |pastes text from clipboard at current cursor position  
 actionPasteSource :: AstAction ()
-actionPasteSource ref = do
+actionPasteSource ref = do 
+  sb <- getcSourceBuffer ref
   gui <- getGui ref
   clipBoard <- clipboardGet selectionClipboard
-  clipboardRequestText clipBoard (insertAt (tb gui)) where
+  clipboardRequestText clipBoard (insertAt sb) where
     insertAt :: SourceBuffer -> Maybe String -> IO ()
     insertAt tb m = whenJust m (textBufferInsertAtCursor tb)
 
 -- |deletes selected source
 actionDeleteSource :: AstAction ()
 actionDeleteSource ref = do 
+  sb <- getcSourceBuffer ref
   gui <- getGui ref
-  textBufferDeleteSelection (tb gui) False False >> return ()
+  textBufferDeleteSelection sb False False >> return ()
 
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
 -- will jump to a source location of the correc line (if existing)
 actionJumpToSrcLoc :: AstAction ()
-actionJumpToSrcLoc ref = do
+actionJumpToSrcLoc ref = do  
+  tv <- getcTreeView ref
   gui <- getGui ref
   -- get cursor position
   -- zero point: line 1, row 0
-  (iter,_) <- textBufferGetSelectionBounds (tb gui)
+  (iter,_) <- textBufferGetSelectionBounds =<< getcSourceBuffer ref
   l <- textIterGetLine iter
   r <- textIterGetLineOffset iter
   
@@ -254,8 +279,8 @@ actionJumpToSrcLoc ref = do
   t <- actionParse lang ref 
   let sl = sourceLocations lang t
   let setCursor p = do 
-      treeViewExpandToPath (tv gui) p
-      treeViewSetCursor (tv gui) p Nothing
+      treeViewExpandToPath tv p
+      treeViewSetCursor tv p Nothing
   case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
     Just (_,p) -> setCursor p
     Nothing      -> 
@@ -317,10 +342,11 @@ actionAbout ref = do
 -- -------------------------------------------------------------------
 
 -- | adds '*' to window title if file changed and sets state
-actionBufferChanged :: AstAction ()
-actionBufferChanged ref = do
+actionBufferChanged :: Area -> AstAction ()
+actionBufferChanged area ref = do
   gui <- getGui ref
-  setChanged True ref
+  setcArea area ref 
+  setChanged area True ref
   t <- windowGetTitle (window gui)
   when (head t /= '*') (windowSetTitle (window gui) ('*':t))
 
@@ -376,7 +402,8 @@ actionDlgOpenRun ref = do
     ResponseOk     -> 
       whenJustM
         (fileChooserGetFilename dia) $ 
-        \file -> actionLoadHeadless file ref
+        \file -> actionLoadHeadless [file] ref
+    _ -> return ()
   widgetHide dia
 
 -- | launches save dialog
@@ -400,9 +427,11 @@ actionDlgSaveRun ref = do
          Nothing-> return () 
          Just file -> do
             g <- getGui ref
-            setcFile file ref
-            setChanged False ref
-            writeFile file =<< getText g
+            a <- getCArea ref
+            setcFile a file ref
+            setChanged a False ref
+            sb <- getcSourceBuffer ref
+            writeFile file =<< getText sb g
             windowSetTitle 
               (window g) 
               (takeFileName file++suffix)
@@ -418,19 +447,19 @@ actionReparse ref = do
 
 data Direction 
   = D -- ^ go down one level to the leftmost child
-  | R -- ^ stay at the same level and go to the right
+  | Ri -- ^ stay at the same level and go to the right
   deriving Show
 
 actionGetPath :: AstAction () 
-actionGetPath ref = do
+actionGetPath ref = do 
   gui <- getGui ref
-  s <- treeViewGetSelection $ tv gui
+  s <- treeViewGetSelection =<< getcTreeView ref
   t <- fmap (tail.head) $ treeSelectionGetSelectedRows s
   putStr $ show t ++ " : " 
   print $ trans t where
     -- transforms gtk2hs path representation to direction
     trans :: [Int] -> [Direction]
-    trans (x:xs) = D : replicate x R ++ trans xs
+    trans (x:xs) = D : replicate x Ri ++ trans xs
     trans [] = []
 
 -- -------------------------------------------------------------------
@@ -449,11 +478,11 @@ whenJustM val action = do
   when (isJust m) ((action.fromJust) m)  
 
 -- | helper for various text-processing actions
-getText :: GUI -> IO String
-getText gui = do
-  start <- textBufferGetStartIter (tb gui)
-  end <- textBufferGetEndIter (tb gui)
-  textBufferGetText (tb gui) start end True
+getText :: SourceBuffer -> GUI -> IO String
+getText sb gui = do
+  start <- textBufferGetStartIter sb
+  end <- textBufferGetEndIter sb
+  textBufferGetText sb start end True
   
 -- |safe function to write files
 writeFile :: FilePath -> String -> IO ()
