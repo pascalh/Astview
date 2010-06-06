@@ -70,6 +70,13 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkImageMenuItem" id="mAddRelation">
+                        <property name="label">Add relation</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">False</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="sepFile2">
                         <property name="visible">True</property>
                       </widget>
@@ -458,9 +465,17 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkTextView" id="tvConfig">
+              <widget class="GtkScrolledWindow" id="swConfig">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <widget class="GtkTextView" id="tvConfig">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                  </widget>
+                </child>
               </widget>
               <packing>
                 <property name="position">2</property>

@@ -56,23 +56,25 @@ data Area = L -- ^ left area
 -- |a configuration contains of relatons between nodes
 data Configuration = Configuration
   { relations :: [Relation]
-  } deriving Show
+  }
 
--- |data type to specify relation between nodes
-type Relation = (Elem,Elem)
+-- |data type to specify binary relations between nodes
+data Relation = Relation 
+  { e1 :: Elem -- ^ first relation element
+  , e2 :: Elem -- ^ second relation element
+  }
 
 -- |an element of the relation
 data Elem = Elem
   { path :: [Direction]   -- ^ path in ast to a node 
   , filepath :: FilePath  -- ^ file containing the ast
-  } deriving Show
+  } 
 
 -- |data type to specify paths in trees, a path has the type 
 -- > [Direction]
 data Direction 
   = D -- ^ go down one level to the leftmost child
   | Ri -- ^ stay at the same level and go to the right
-  deriving Show
 
 -- * parser of data type configuration
 
@@ -83,7 +85,7 @@ readRelation :: String -> Relation
 readRelation s = 
   let e1 = takeWhile (/=' ') s in
   let e2 = drop (1+length e1) s in
-  (readElem e1,readElem e2)
+  Relation (readElem e1) (readElem e2)
 
 readElem :: String -> Elem
 readElem s = 
@@ -218,3 +220,24 @@ setConfigFile fp r = modifyIORef r f where
   f :: AstState -> AstState
   f s@(AstState (State f cc ls l a c _) _ _) = 
     s { state = State f cc ls l a c fp}
+
+-- * misc transformations
+
+addRelation :: Relation -> IORef AstState -> IO ()
+addRelation r ref = modifyIORef ref f where
+  f :: AstState -> AstState
+  f s@(AstState (State f cc ls l a (Configuration rs) fp) _ _) = 
+    s { state = State f cc ls l a (Configuration $ rs++[r]) fp}
+
+-- instances
+
+instance Show Relation where
+  show (Relation e1 e2) = show e1 ++" "++ show e2
+
+instance Show Elem where
+  show (Elem p file) = show p ++ "@" ++ file 
+
+instance Show Direction where
+  show D  = "d"
+  show Ri = "r"
+  

@@ -57,6 +57,7 @@ menuActions =
   ,("mParseAll",actionReparseAll)
   ,("mOpenConfig",actionOpenConfig)
   ,("mSaveConfig", actionSaveConfig)
+  ,("mAddRelation",actionAddRelation)
   ,("mSaveAsConfig",actionSaveAsConfig)
   ,("mOpenLeft",actionDlgOpenRun L)
   ,("mParseLeft",actionReparse L)
@@ -516,6 +517,21 @@ actionShowPath a ref = do
   if null p 
     then return () 
     else print (tail p)
+
+
+actionAddRelation :: AstAction ()
+actionAddRelation ref = do
+  pl <- actionGetPath L ref
+  pr <- actionGetPath R ref
+  fl <- getFile L ref
+  fr <- getFile R ref
+  let r = Relation (Elem pl fl) (Elem pr fr)
+  addRelation r ref 
+ 
+  tb <- textViewGetBuffer =<< getTvConf ref
+  t <- getText tb
+  textBufferSetText tb (t++"\n"++show r)
+  return ()
 
 actionGetPath :: Area -> AstAction [Direction]
 actionGetPath a ref = do 
