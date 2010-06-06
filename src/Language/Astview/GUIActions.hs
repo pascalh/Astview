@@ -54,16 +54,21 @@ unsavedDoc = "Unsaved document"
 menuActions :: [(String,AstAction ())]
 menuActions = 
   [("mNew",actionEmptyGUI)
-  ,("mOpen",actionDlgOpenRun)
-  ,("mParse",actionReparse)
-  ,("mPath",actionGetPath)
-  ,("mSave",actionSave)
-  ,("mSaveAs",actionDlgSaveRun)
+  ,("mOpenLeft",actionDlgOpenRun L)
+  ,("mParseLeft",actionReparse L)
+  ,("mParseRight",actionReparse R)
+  ,("mOpenRight",actionDlgOpenRun R)
+  ,("mParseAll",actionReparseAll)
+  ,("mSaveLeft",actionSave L)
+  ,("mSaveRight",actionSave R)
+  ,("mPathLeft",actionShowPath L)
+  ,("mPathRight",actionShowPath R)
   ,("mCut",actionCutSource)
   ,("mCopy",actionCopySource)
   ,("mPaste",actionPasteSource)
   ,("mDelete",actionDeleteSource)
-  ,("mSrcLoc",actionJumpToSrcLoc)
+  ,("mSrcLocLeft",actionJumpToSrcLoc L)
+  ,("mSrcLocRight",actionJumpToSrcLoc R)
   ,("mAbout",actionAbout)
   ,("mShowHelp",actionHelp)
   ,("mQuit",actionQuit)
@@ -92,26 +97,10 @@ actionEmptyGUI ref = do
 
 -- | updates the sourceview with a given file, chooses a language by 
 -- extension and parses the file
-actionLoadHeadless :: [FilePath] -> AstAction ()
-actionLoadHeadless [] _= return ()
-actionLoadHeadless [f] r = do
-  sb <- getcSourceBuffer r 
-  tv <- getTreeView L r
-  a <- getCArea r
-  actionLoadHeadlessWorker a sb tv f r 
-actionLoadHeadless [f1,f2] r = do
-  [s1,s2] <- getSourceBuffers r
-  [t1,t2] <- getTreeViews r
-  actionLoadHeadlessWorker L s1 t1 f1 r
-  actionLoadHeadlessWorker R s2 t2 f2 r
-actionLoadHeadless _ _ = return ()
-
--- |worker
-actionLoadHeadlessWorker 
-  :: Area 
-  -> SourceBuffer -> TreeView
-  -> FilePath -> AstAction () 
-actionLoadHeadlessWorker area sb tv file ref = do
+actionLoadHeadless :: Area -> FilePath -> AstAction ()
+actionLoadHeadless area file ref = do
+  sb <- getSourceBuffer area ref 
+  tv <- getTreeView area ref
   setcFile area file ref
   s <- getAstState ref
 
@@ -129,8 +118,11 @@ actionLoadHeadlessWorker area sb tv file ref = do
     print
   whenJust 
     (find (elem (takeExtension file) . exts) langs) $
-    \l -> actionParse l ref >> activateLang l ref 
-  
+    \l -> activateLang l ref 
+  l <- getcLang ref
+  actionParse area l ref 
+  return ()
+
 -- | helper for loadHeadless
 activateLang :: Language -> AstAction ()
 activateLang l ref = do
@@ -143,12 +135,12 @@ activateLang l ref = do
       comboBoxSetActive combobox  i
 
 -- | parses the contents of the sourceview with the selected language
-actionParse :: Language -> AstAction (Tree String)
-actionParse l@(Language _ _ _ p to _ _) ref = do
+actionParse :: Area -> Language -> AstAction (Tree String)
+actionParse a l@(Language _ _ _ p to _ _) ref = do
   setLanguage l ref
   g <- getGui ref
-  sb <- getcSourceBuffer ref
-  tv <- getcTreeView ref
+  sb <- getSourceBuffer a ref
+  tv <- getTreeView a ref
   sourceBufferSetHighlightSyntax sb True
   setupSyntaxHighlighting sb l g
   plain <- getText sb g
@@ -197,10 +189,10 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
           sourceBufferSetHighlightSyntax sb False   
 
 -- |saves a file 
-actionSave :: AstAction ()
-actionSave ref = do
-  url <- getcFile ref
-  sb <- getcSourceBuffer ref
+actionSave :: Area -> AstAction ()
+actionSave a ref = do
+  url <- getFile a ref
+  sb <- getSourceBuffer a ref
   text <- getText sb =<< getGui ref
   actionSaveWorker text url ref
 
@@ -264,19 +256,19 @@ actionDeleteSource ref = do
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
 -- will jump to a source location of the correc line (if existing)
-actionJumpToSrcLoc :: AstAction ()
-actionJumpToSrcLoc ref = do  
-  tv <- getcTreeView ref
+actionJumpToSrcLoc :: Area -> AstAction ()
+actionJumpToSrcLoc a ref = do  
+  tv <- getTreeView a ref
   gui <- getGui ref
   -- get cursor position
   -- zero point: line 1, row 0
-  (iter,_) <- textBufferGetSelectionBounds =<< getcSourceBuffer ref
+  (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer a ref
   l <- textIterGetLine iter
   r <- textIterGetLineOffset iter
   
   -- reparse and set cursor in treeview
   lang <- getcLang ref 
-  t <- actionParse lang ref 
+  t <- actionParse a lang ref 
   let sl = sourceLocations lang t
   let setCursor p = do 
       treeViewExpandToPath tv p
@@ -350,14 +342,18 @@ actionBufferChanged area ref = do
   t <- windowGetTitle (window gui)
   when (head t /= '*') (windowSetTitle (window gui) ('*':t))
 
-
 -- | destroys window widget 
 actionQuit :: AstAction ()
 actionQuit ref = do 
-  changed <- getChanged ref 
+  changedL <- getChanged L ref 
+  changedR <- getChanged R ref 
   gui <- getGui ref
-  if changed 
-    then do 
+  when changedL $ actionQuitWorker L ref
+  when changedR $ actionQuitWorker R ref
+  widgetDestroy (window gui)
+
+actionQuitWorker :: Area -> AstAction ()  
+actionQuitWorker a ref = do
       dia <- dialogNew
       dialogAddButton dia stockYes ResponseYes
       dialogAddButton dia stockNo ResponseNo
@@ -366,7 +362,7 @@ actionQuit ref = do
   
       windowSetTitle dia "astview"
       containerSetBorderWidth dia 2
-      file <- getcFile ref
+      file <- getFile a ref
       lbl <- labelNew 
         (Just $ "Save changes to document \""++
                 takeFileName file ++
@@ -375,17 +371,16 @@ actionQuit ref = do
 
       widgetShowAll dia
       response <- dialogRun dia
+      gui <- getGui ref
       case response of 
-        ResponseYes    -> actionSave ref>>widgetDestroy (window gui)
-        ResponseCancel -> return ()
-        ResponseNo     -> widgetDestroy (window gui)
+        ResponseYes   -> actionSave a ref
+        _             -> return ()
       widgetHide dia
-    else widgetDestroy (window gui)
-  
+
 
 -- | launches open dialog
-actionDlgOpenRun :: AstAction ()
-actionDlgOpenRun ref = do
+actionDlgOpenRun :: Area -> AstAction ()
+actionDlgOpenRun a ref = do
   gui <- getGui ref 
   dia <- fileChooserDialogNew 
     (Just "astview") 
@@ -402,7 +397,7 @@ actionDlgOpenRun ref = do
     ResponseOk     -> 
       whenJustM
         (fileChooserGetFilename dia) $ 
-        \file -> actionLoadHeadless [file] ref
+        \file -> actionLoadHeadless a file ref
     _ -> return ()
   widgetHide dia
 
@@ -438,11 +433,15 @@ actionDlgSaveRun ref = do
     _ -> return ()
   widgetHide dia
 
+actionReparseAll :: AstAction ()
+actionReparseAll ref = actionReparse L ref >> actionReparse R ref
+
+
 -- |applies current parser to current sourcebuffer 
-actionReparse :: AstAction ()
-actionReparse ref = do
+actionReparse :: Area -> AstAction ()
+actionReparse a ref = do
   l <- getcLang ref
-  actionParse l ref
+  actionParse a l ref
   activateLang l ref
 
 data Direction 
@@ -450,17 +449,25 @@ data Direction
   | Ri -- ^ stay at the same level and go to the right
   deriving Show
 
-actionGetPath :: AstAction () 
-actionGetPath ref = do 
+
+actionShowPath a ref = do
+  p <- actionGetPath a ref
+  if null p 
+    then return () 
+    else print (tail p)
+
+actionGetPath :: Area -> AstAction [Direction]
+actionGetPath a ref = do 
   gui <- getGui ref
-  s <- treeViewGetSelection =<< getcTreeView ref
-  t <- fmap (tail.head) $ treeSelectionGetSelectedRows s
-  putStr $ show t ++ " : " 
-  print $ trans t where
-    -- transforms gtk2hs path representation to direction
-    trans :: [Int] -> [Direction]
-    trans (x:xs) = D : replicate x Ri ++ trans xs
-    trans [] = []
+  s <- treeSelectionGetSelectedRows 
+    =<< treeViewGetSelection =<< getTreeView a ref
+  if null s
+    then return []
+    else return $ trans (head s) where
+      -- transforms gtk2hs path representation to direction
+      trans :: [Int] -> [Direction]
+      trans (x:xs) = D : replicate x Ri ++ trans xs
+      trans [] = []
 
 -- -------------------------------------------------------------------
 -- ** Helpers

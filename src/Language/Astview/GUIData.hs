@@ -108,21 +108,18 @@ getLangs = fmap (languages . state) . readIORef
 getcBox :: IORef AstState -> IO ComboBox
 getcBox = fmap (cbox . gui) . readIORef
 
-getChanged :: IORef AstState -> IO Bool
-getChanged r = do
-  area <- getCArea r
-  let sel = case area of 
-              L -> fst
-              R -> snd
-  fmap (sel . textchanged . state) $ readIORef r
+getChanged :: Area -> IORef AstState -> IO Bool
+getChanged L = fmap (fst . textchanged . state) . readIORef
+getChanged R = fmap (snd . textchanged . state) . readIORef
+
+getFile :: Area -> IORef AstState -> IO String
+getFile L = fmap (fst . cFile . state) . readIORef
+getFile R = fmap (snd . cFile . state) . readIORef
 
 getcFile :: IORef AstState -> IO String
 getcFile r = do
   area <- getCArea r
-  let sel = case area of 
-              L -> fst
-              R -> snd
-  fmap (sel . cFile . state) $ readIORef r
+  getFile area r
 
 getcLang = fmap (cLang . state) . readIORef
 

@@ -130,14 +130,14 @@ hooks ref = do
   window gui `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
-    liftIO $ actionReparse ref 
+    liftIO $ actionReparseAll ref 
 
   cbox gui `on` changed $ do
     i <- comboBoxGetActive (cbox gui) 
     langs <- getLangs ref
     let lang = langs!!i
     setLanguage lang ref 
-    actionParse lang ref
+    actionReparseAll ref
     comboBoxSetActive (cbox gui) i
     
   dlgAbout gui `onResponse` (const $ widgetHide $ dlgAbout gui)
