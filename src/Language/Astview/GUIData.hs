@@ -35,6 +35,7 @@ data State =  forall a .  State
   , languages :: [Language] -- ^ known languages
   , cLang :: Language-- ^ current language
   , cArea :: Area -- ^ containing current area
+  , config :: Configuration -- ^ current configuration
   }
 
 -- |main gui data type, contains gtk components
@@ -50,6 +51,31 @@ data GUI = GUI
 -- |indicator data type for both areas
 data Area = L -- ^ left area 
           | R -- ^ right area
+
+-- |a configuration contains of relatons between nodes and
+-- required files
+data Configuration = Configuration
+  { relations :: [Relation]
+  , files :: [FilePath]
+  }
+
+-- |data type to specify relation between nodes
+type Relation = (Elem,Elem)
+
+-- |an element of the relation
+data Elem = Elem
+  { path :: [Direction]   -- ^ path in ast to a node 
+  , filepath :: FilePath  -- ^ file containing the ast
+  }
+
+-- |data type to specify paths in trees, a path has the type 
+-- > [Direction]
+data Direction 
+  = D -- ^ go down one level to the leftmost child
+  | Ri -- ^ stay at the same level and go to the right
+  deriving Show
+
+
 
 -- * getter functions
 
@@ -131,28 +157,28 @@ getWindow = fmap (window . gui) . readIORef
 setcFile :: Area -> FilePath -> IORef AstState -> IO ()
 setcFile a file r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State (_,cR) c ls l a) _ _) = 
-    s { state = State (file,cR) c ls l a}
-  f R s@(AstState (State (cL,_) c ls l a) _ _) = 
-    s { state = State (cL,file) c ls l a}
+  f L s@(AstState (State (_,cR) c ls l a co) _ _) = 
+    s { state = State (file,cR) c ls l a co}
+  f R s@(AstState (State (cL,_) c ls l a co) _ _) = 
+    s { state = State (cL,file) c ls l a co}
 
 setcArea :: Area -> IORef AstState -> IO ()
 setcArea a r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State x c ls l _) _ _) = 
-    s { state = State x c ls l a}
+  f s@(AstState (State x c ls l _ co) _ _) = 
+    s { state = State x c ls l a co}
 
 setChanged :: Area -> Bool -> IORef AstState -> IO ()
 setChanged a b r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State f (_,c) ls l a) _ _) = 
-    s { state = State f (b,c) ls l a}
-  f R s@(AstState (State f (c,_) ls l a) _ _) = 
-    s { state = State f (c,b) ls l a}
+  f L s@(AstState (State f (_,c) ls l a co) _ _) = 
+    s { state = State f (b,c) ls l a co}
+  f R s@(AstState (State f (c,_) ls l a co) _ _) = 
+    s { state = State f (c,b) ls l a co}
 
 setLanguage :: Language -> IORef AstState -> IO ()
 setLanguage l r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f c ls _ a) _ _) = 
-    s { state = State f c ls l a}
+  f s@(AstState (State f c ls _ a co) _ _) = 
+    s { state = State f c ls l a co}
 

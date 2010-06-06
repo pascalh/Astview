@@ -448,12 +448,6 @@ actionReparse a ref = do
   actionParse a l ref
   activateLang l ref
 
-data Direction 
-  = D -- ^ go down one level to the leftmost child
-  | Ri -- ^ stay at the same level and go to the right
-  deriving Show
-
-
 actionShowPath a ref = do
   p <- actionGetPath a ref
   if null p 

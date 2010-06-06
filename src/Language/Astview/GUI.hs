@@ -77,6 +77,7 @@ buildAststate opt langs = do
         , languages = langs
         , cLang = c
         , cArea = L
+        , config = Configuration [] [] 
         }
 
   r <- newIORef $ AstState state gui opt
