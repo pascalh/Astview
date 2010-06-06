@@ -54,6 +54,10 @@ unsavedDoc = "Unsaved document"
 menuActions :: [(String,AstAction ())]
 menuActions = 
   [("mNew",actionEmptyGUI)
+  ,("mParseAll",actionReparseAll)
+  ,("mOpenConfig",const $ return())
+  ,("mSaveConfig", const $ return ())
+  ,("mSaveAsConfig",const $ return ())
   ,("mOpenLeft",actionDlgOpenRun L)
   ,("mParseLeft",actionReparse L)
   ,("mParseRight",actionReparse R)

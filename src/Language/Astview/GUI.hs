@@ -52,6 +52,8 @@ buildAststate opt langs = do
   tbR <- buildSourceView opt 
     =<< xmlGetWidget xml castToScrolledWindow "swSourceRight" 
 
+  tvConfig <- xmlGetWidget xml castToTextView "tvConfig"
+
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
   -- setup combobox
@@ -62,7 +64,12 @@ buildAststate opt langs = do
   mapM_ (comboBoxAppendText cbox . buildLabel) langs 
 
   -- build compound datatype
-  let gui = GUI window (treeviewL,treeviewR) (tbL,tbR) dlgAbout cbox 
+  let gui = GUI window 
+                (treeviewL,treeviewR) 
+                (tbL,tbR) 
+                tvConfig 
+                dlgAbout 
+                cbox 
       c = if null langs then undefined else head langs
       state = State 
         { cFile = (unsavedDoc,unsavedDoc)

@@ -42,6 +42,7 @@ data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: (TreeView,TreeView) -- ^ treeview
   , sb :: (SourceBuffer,SourceBuffer) -- ^ sourceview
+  , tvConf :: TextView -- ^ text view showing the config file
   , dlgAbout :: AboutDialog -- ^ about dialog
   , cbox :: ComboBox -- ^ combobox containing the languages
   }

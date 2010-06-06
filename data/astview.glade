@@ -357,10 +357,9 @@
           </packing>
         </child>
         <child>
-          <widget class="GtkHPaned" id="hpnMain">
+          <widget class="GtkHBox" id="hboxMain">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="position">300</property>
+            <property name="homogeneous">True</property>
             <child>
               <widget class="GtkVPaned" id="vpnLeft">
                 <property name="visible">True</property>
@@ -406,8 +405,7 @@
                 </child>
               </widget>
               <packing>
-                <property name="resize">False</property>
-                <property name="shrink">True</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -415,6 +413,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="orientation">vertical</property>
+                <property name="position">1</property>
                 <child>
                   <widget class="GtkScrolledWindow" id="swSourceRight">
                     <property name="visible">True</property>
@@ -455,13 +454,21 @@
                 </child>
               </widget>
               <packing>
-                <property name="resize">False</property>
-                <property name="shrink">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkTextView" id="tvConfig">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+              </widget>
+              <packing>
+                <property name="position">2</property>
               </packing>
             </child>
           </widget>
           <packing>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </widget>
