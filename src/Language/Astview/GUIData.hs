@@ -36,6 +36,7 @@ data State =  forall a .  State
   , cLang :: Language-- ^ current language
   , cArea :: Area -- ^ containing current area
   , config :: Configuration -- ^ current configuration
+  , configFile :: FilePath -- ^ path of current configuraton file 
   }
 
 -- |main gui data type, contains gtk components
@@ -52,12 +53,10 @@ data GUI = GUI
 data Area = L -- ^ left area 
           | R -- ^ right area
 
--- |a configuration contains of relatons between nodes and
--- required files
+-- |a configuration contains of relatons between nodes
 data Configuration = Configuration
   { relations :: [Relation]
-  , files :: [FilePath]
-  }
+  } deriving Show
 
 -- |data type to specify relation between nodes
 type Relation = (Elem,Elem)
@@ -66,7 +65,7 @@ type Relation = (Elem,Elem)
 data Elem = Elem
   { path :: [Direction]   -- ^ path in ast to a node 
   , filepath :: FilePath  -- ^ file containing the ast
-  }
+  } deriving Show
 
 -- |data type to specify paths in trees, a path has the type 
 -- > [Direction]
@@ -75,9 +74,35 @@ data Direction
   | Ri -- ^ stay at the same level and go to the right
   deriving Show
 
+-- * parser of data type configuration
+
+readConfig :: String -> Configuration
+readConfig = Configuration . map readRelation . lines
+
+readRelation :: String -> Relation
+readRelation s = 
+  let e1 = takeWhile (/=' ') s in
+  let e2 = drop (1+length e1) s in
+  (readElem e1,readElem e2)
+
+readElem :: String -> Elem
+readElem s = 
+  let (p,fp) = span (/='@') s in
+  Elem (map readDirection p) (tail fp)
+  
+readDirection :: Char -> Direction
+readDirection 'r' = Ri
+readDirection 'd' = D
+readDirection _ = error "direction r or d expected"  
 
 
 -- * getter functions
+
+getConfigFile :: IORef AstState -> IO FilePath
+getConfigFile = fmap (configFile . state) . readIORef
+
+getTvConf :: IORef AstState -> IO TextView
+getTvConf = fmap (tvConf . gui) . readIORef 
 
 getCArea :: IORef AstState -> IO Area
 getCArea = fmap (cArea . state) . readIORef
@@ -157,28 +182,39 @@ getWindow = fmap (window . gui) . readIORef
 setcFile :: Area -> FilePath -> IORef AstState -> IO ()
 setcFile a file r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State (_,cR) c ls l a co) _ _) = 
-    s { state = State (file,cR) c ls l a co}
-  f R s@(AstState (State (cL,_) c ls l a co) _ _) = 
-    s { state = State (cL,file) c ls l a co}
+  f L s@(AstState (State (_,cR) c ls l a co cf) _ _) = 
+    s { state = State (file,cR) c ls l a co cf}
+  f R s@(AstState (State (cL,_) c ls l a co cf) _ _) = 
+    s { state = State (cL,file) c ls l a co cf}
 
 setcArea :: Area -> IORef AstState -> IO ()
 setcArea a r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State x c ls l _ co) _ _) = 
-    s { state = State x c ls l a co}
+  f s@(AstState (State x c ls l _ co cf) _ _) = 
+    s { state = State x c ls l a co cf}
 
 setChanged :: Area -> Bool -> IORef AstState -> IO ()
 setChanged a b r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State f (_,c) ls l a co) _ _) = 
-    s { state = State f (b,c) ls l a co}
-  f R s@(AstState (State f (c,_) ls l a co) _ _) = 
-    s { state = State f (c,b) ls l a co}
+  f L s@(AstState (State f (_,c) ls l a co cf) _ _) = 
+    s { state = State f (b,c) ls l a co cf}
+  f R s@(AstState (State f (c,_) ls l a co cf) _ _) = 
+    s { state = State f (c,b) ls l a co cf}
 
 setLanguage :: Language -> IORef AstState -> IO ()
 setLanguage l r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f c ls _ a co) _ _) = 
-    s { state = State f c ls l a co}
+  f s@(AstState (State f c ls _ a co cf) _ _) = 
+    s { state = State f c ls l a co cf}
 
+setConfiguration :: Configuration -> IORef AstState -> IO ()
+setConfiguration c r = modifyIORef r f where
+  f :: AstState -> AstState
+  f s@(AstState (State f cc ls l a _ cf) _ _) = 
+    s { state = State f cc ls l a c cf}
+
+setConfigFile :: FilePath -> IORef AstState -> IO ()
+setConfigFile fp r = modifyIORef r f where
+  f :: AstState -> AstState
+  f s@(AstState (State f cc ls l a c _) _ _) = 
+    s { state = State f cc ls l a c fp}

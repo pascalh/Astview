@@ -55,8 +55,8 @@ menuActions :: [(String,AstAction ())]
 menuActions = 
   [("mNew",actionEmptyGUI)
   ,("mParseAll",actionReparseAll)
-  ,("mOpenConfig",const $ return())
-  ,("mSaveConfig", const $ return ())
+  ,("mOpenConfig",actionOpenConfig)
+  ,("mSaveConfig", actionSaveConfig)
   ,("mSaveAsConfig",const $ return ())
   ,("mOpenLeft",actionDlgOpenRun L)
   ,("mParseLeft",actionReparse L)
@@ -79,6 +79,8 @@ menuActions =
   ]
 
 
+
+
 -- -------------------------------------------------------------------
 -- * filemenu menu actions
 -- -------------------------------------------------------------------
@@ -98,6 +100,33 @@ actionEmptyGUI ref = do
   mapM_ clearTreeView =<< getTreeViews ref
   mapM_ (\s -> textBufferSetText s []) =<< getSourceBuffers ref
   windowSetTitle (window g) (unsavedDoc++suffix)  
+
+actionOpenConfig :: AstAction ()
+actionOpenConfig ref = do
+  gui <- getGui ref 
+  dia <- fileChooserDialogNew 
+    (Just "astview") 
+    Nothing 
+    FileChooserActionOpen 
+    []
+  dialogAddButton dia stockCancel ResponseCancel
+  dialogAddButton dia stockOpen ResponseOk
+
+  widgetShowAll dia
+  response <- dialogRun dia
+  case response of 
+    ResponseCancel -> return ()
+    ResponseOk     -> 
+      whenJustM
+        (fileChooserGetFilename dia) $ 
+        \file -> do
+          contents <- readFile file
+          setConfiguration (readConfig contents) ref
+          setConfigFile file ref
+          sb <- textViewGetBuffer $ tvConf gui
+          textBufferSetText sb contents
+    _ -> return ()
+  widgetHide dia
 
 -- | updates the sourceview with a given file, chooses a language by 
 -- extension and parses the file
@@ -147,7 +176,7 @@ actionParse a l@(Language _ _ _ p to _ _) ref = do
   tv <- getTreeView a ref
   sourceBufferSetHighlightSyntax sb True
   setupSyntaxHighlighting sb l g
-  plain <- getText sb g
+  plain <- getText sb 
   clearTreeView tv
   let eitherTree = fmap to (p plain)
 
@@ -197,7 +226,7 @@ actionSave :: Area -> AstAction ()
 actionSave a ref = do
   url <- getFile a ref
   sb <- getSourceBuffer a ref
-  text <- getText sb =<< getGui ref
+  text <- getText sb 
   actionSaveWorker text url ref
 
 -- |saves current file if a file is active or calls "save as"-dialog
@@ -208,6 +237,40 @@ actionSaveWorker plain file ref =
     otherwise           -> do 
       deleteStar ref 
       writeFile file plain 
+
+-- |saves a configuration file
+actionSaveConfig :: AstAction ()
+actionSaveConfig ref = do
+  cf <- getConfigFile ref
+  case cf of
+    "Unsaved document" -> actionSaveAsConfig ref 
+    _ -> writeFile cf =<< getText =<< 
+           textViewGetBuffer =<< getTvConf ref
+
+actionSaveAsConfig :: AstAction ()
+actionSaveAsConfig ref = do
+  dia <- fileChooserDialogNew 
+    (Just "astview") 
+    Nothing 
+    FileChooserActionSave 
+    []
+  dialogAddButton dia stockCancel ResponseCancel
+  dialogAddButton dia stockOpen ResponseOk
+
+  widgetShowAll dia
+  response <- dialogRun dia
+  case response of 
+    ResponseCancel -> return ()
+    ResponseOk     -> do
+       maybeFile <- fileChooserGetFilename dia
+       case maybeFile of
+         Nothing-> return () 
+         Just file -> do
+            writeFile file =<< getText =<< 
+              textViewGetBuffer =<< getTvConf ref
+    _ -> return ()
+  widgetHide dia
+
 
 -- |removes @*@ from window title if existing and updates state
 deleteStar :: AstAction ()
@@ -430,7 +493,7 @@ actionDlgSaveRun ref = do
             setcFile a file ref
             setChanged a False ref
             sb <- getcSourceBuffer ref
-            writeFile file =<< getText sb g
+            writeFile file =<< getText sb
             windowSetTitle 
               (window g) 
               (takeFileName file++suffix)
@@ -483,8 +546,8 @@ whenJustM val action = do
   when (isJust m) ((action.fromJust) m)  
 
 -- | helper for various text-processing actions
-getText :: SourceBuffer -> GUI -> IO String
-getText sb gui = do
+getText :: TextBufferClass c => c -> IO String
+getText sb = do
   start <- textBufferGetStartIter sb
   end <- textBufferGetEndIter sb
   textBufferGetText sb start end True
