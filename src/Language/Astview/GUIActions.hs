@@ -57,7 +57,7 @@ menuActions =
   ,("mParseAll",actionReparseAll)
   ,("mOpenConfig",actionOpenConfig)
   ,("mSaveConfig", actionSaveConfig)
-  ,("mSaveAsConfig",const $ return ())
+  ,("mSaveAsConfig",actionSaveAsConfig)
   ,("mOpenLeft",actionDlgOpenRun L)
   ,("mParseLeft",actionReparse L)
   ,("mParseRight",actionReparse R)
