@@ -58,6 +58,7 @@ menuActions =
   ,("mOpenConfig",actionOpenConfig)
   ,("mSaveConfig", actionSaveConfig)
   ,("mAddRelation",actionAddRelation)
+  ,("mAddRelationSrcView",actionAddRelationSrc)
   ,("mSaveAsConfig",actionSaveAsConfig)
   ,("mOpenLeft",actionDlgOpenRun L)
   ,("mParseLeft",actionReparse L)
@@ -72,8 +73,8 @@ menuActions =
   ,("mCopy",actionCopySource)
   ,("mPaste",actionPasteSource)
   ,("mDelete",actionDeleteSource)
-  ,("mSrcLocLeft",actionJumpToSrcLoc L)
-  ,("mSrcLocRight",actionJumpToSrcLoc R)
+  --,("mSrcLocLeft",actionJumpToSrcLoc L)
+  --,("mSrcLocRight",actionJumpToSrcLoc R)
   ,("mAbout",actionAbout)
   ,("mShowHelp",actionHelp)
   ,("mQuit",actionQuit)
@@ -321,11 +322,29 @@ actionDeleteSource ref = do
   gui <- getGui ref
   textBufferDeleteSelection sb False False >> return ()
 
+actionAddRelationSrc :: AstAction ()
+actionAddRelationSrc ref = do
+  p1 <- fmap trans $ actionGetSrcLoc L ref
+  p2 <- fmap trans $ actionGetSrcLoc R ref
+  if null p1 || null p2
+    then putStrLn "at least one empty path occured"
+    else do
+      fl <- getFile L ref
+      fr <- getFile R ref
+      let r = Relation (Elem p1 fl) (Elem p2 fr)
+      addRelation r ref 
+ 
+      tb <- textViewGetBuffer =<< getTvConf ref
+      t <- getText tb
+      textBufferSetText tb (t++"\n"++show r)
+      return ()
+ 
+
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
 -- will jump to a source location of the correc line (if existing)
-actionJumpToSrcLoc :: Area -> AstAction ()
-actionJumpToSrcLoc a ref = do  
+actionGetSrcLoc :: Area -> AstAction TreePath
+actionGetSrcLoc a ref = do  
   tv <- getTreeView a ref
   gui <- getGui ref
   -- get cursor position
@@ -342,12 +361,12 @@ actionJumpToSrcLoc a ref = do
       treeViewExpandToPath tv p
       treeViewSetCursor tv p Nothing
   case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
-    Just (_,p) -> setCursor p
-    Nothing      -> 
+    Just (_,p) -> setCursor p >> return p
+    Nothing    -> 
       -- jump to src loc of given line if no exact matching found
       case find (\(SrcLocation x _,_) ->l==x) sl of
-        Just (_,p) -> setCursor p
-        Nothing -> return ()
+        Just (_,p) -> setCursor p >> return p
+        Nothing    -> return []
   
 -- |returns all source locations and paths to source
 -- locations in current tree
@@ -518,6 +537,7 @@ actionShowPath a ref = do
     then return () 
     else print (tail p)
 
+  
 
 actionAddRelation :: AstAction ()
 actionAddRelation ref = do
@@ -540,11 +560,16 @@ actionGetPath a ref = do
     =<< treeViewGetSelection =<< getTreeView a ref
   if null s
     then return []
-    else return $ trans (head s) where
-      -- transforms gtk2hs path representation to direction
-      trans :: [Int] -> [Direction]
-      trans (x:xs) = D : replicate x Ri ++ trans xs
-      trans [] = []
+    else 
+      let p = head s in
+      if null p
+        then return []
+        else return $ trans (tail p) where
+
+-- |transforms gtk2hs path representation to direction
+trans :: [Int] -> [Direction]
+trans (x:xs) = D : replicate x Ri ++ trans xs
+trans [] = []
 
 -- -------------------------------------------------------------------
 -- ** Helpers

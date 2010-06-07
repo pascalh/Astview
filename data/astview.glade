@@ -70,6 +70,13 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkImageMenuItem" id="mAddRelationSrcView">
+                        <property name="label">Add relation (srcView)</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">False</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="mAddRelation">
                         <property name="label">Add relation</property>
                         <property name="visible">True</property>
