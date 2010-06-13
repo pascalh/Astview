@@ -69,10 +69,10 @@ menuActions =
   ,("mSaveRight",actionSave R)
   ,("mPathLeft",actionShowPath L)
   ,("mPathRight",actionShowPath R)
-  ,("mCut",actionCutSource)
-  ,("mCopy",actionCopySource)
-  ,("mPaste",actionPasteSource)
-  ,("mDelete",actionDeleteSource)
+  --,("mCut",actionCutSource)
+  --,("mCopy",actionCopySource)
+  --,("mPaste",actionPasteSource)
+  --,("mDelete",actionDeleteSource)
   --,("mSrcLocLeft",actionJumpToSrcLoc L)
   --,("mSrcLocRight",actionJumpToSrcLoc R)
   ,("mAbout",actionAbout)
@@ -148,7 +148,7 @@ actionLoadHeadless area file ref = do
       contents <- withFile 
         file ReadMode (fmap BS.unpack . BS.hGetContents)
       textBufferSetText sb contents
-      deleteStar ref
+      deleteStar area ref
     )
     print
   whenJustM
@@ -222,15 +222,15 @@ actionSave a ref = do
   url <- getFile a ref
   sb <- getSourceBuffer a ref
   text <- getText sb 
-  actionSaveWorker text url ref
+  actionSaveWorker a text url ref
 
 -- |saves current file if a file is active or calls "save as"-dialog
-actionSaveWorker :: String -> FilePath -> AstAction ()
-actionSaveWorker plain file ref = 
+actionSaveWorker :: Area -> String -> FilePath -> AstAction ()
+actionSaveWorker a plain file ref = 
   case file of
-    "Unsaved document"  -> actionDlgSaveRun ref
+    "Unsaved document"  -> actionDlgSaveRun a ref
     otherwise           -> do 
-      deleteStar ref 
+      deleteStar a ref 
       writeFile file plain 
 
 -- |saves a configuration file
@@ -268,11 +268,10 @@ actionSaveAsConfig ref = do
 
 
 -- |removes @*@ from window title if existing and updates state
-deleteStar :: AstAction ()
-deleteStar ref = do
+deleteStar :: Area -> AstAction ()
+deleteStar a ref = do
   w <- getWindow ref
   t <- windowGetTitle w
-  a <- getCArea ref
   setChanged a False ref
   when (head t == '*') 
     (windowSetTitle w (tail t))
@@ -284,13 +283,13 @@ deleteStar ref = do
 -- |moves selected source to clipboard (cut)
 actionCutSource :: AstAction ()  
 actionCutSource ref = do
-  actionCopySource ref
-  actionDeleteSource ref
+  sbs <- getSourceBuffers ref
+  mapM_ (\sb -> actionCopySource sb ref) sbs
+  mapM_ (\sb -> actionDeleteSource sb ref) sbs
 
 -- |copies selected source to clipboard  
-actionCopySource :: AstAction () 
-actionCopySource ref = do
-  sb <- getcSourceBuffer ref
+actionCopySource :: SourceBuffer -> AstAction () 
+actionCopySource sb ref = do
   gui <- getGui ref
   (start,end) <- textBufferGetSelectionBounds sb 
   clipBoard <- clipboardGet selectionClipboard
@@ -299,9 +298,8 @@ actionCopySource ref = do
     =<< textBufferGetText sb start end True
 
 -- |pastes text from clipboard at current cursor position  
-actionPasteSource :: AstAction ()
-actionPasteSource ref = do 
-  sb <- getcSourceBuffer ref
+actionPasteSource :: SourceBuffer -> AstAction ()
+actionPasteSource sb ref = do 
   gui <- getGui ref
   clipBoard <- clipboardGet selectionClipboard
   clipboardRequestText clipBoard (insertAt sb) where
@@ -309,9 +307,8 @@ actionPasteSource ref = do
     insertAt tb m = whenJust m (textBufferInsertAtCursor tb)
 
 -- |deletes selected source
-actionDeleteSource :: AstAction ()
-actionDeleteSource ref = do 
-  sb <- getcSourceBuffer ref
+actionDeleteSource :: SourceBuffer -> AstAction ()
+actionDeleteSource sb ref = do 
   gui <- getGui ref
   textBufferDeleteSelection sb False False >> return ()
 
@@ -332,6 +329,14 @@ actionAddRelationSrc ref = do
       textBufferSetText tb (t++"\n"++show r)
       return ()
  
+-- |returns the current cursor position in a source view.
+-- return type: (line,row)
+getCursorPosition :: Area -> AstAction (Int,Int)
+getCursorPosition a ref = do
+  (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer a ref
+  l <- textIterGetLine iter
+  r <- textIterGetLineOffset iter
+  return (l,r)
 
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
@@ -340,11 +345,7 @@ actionGetSrcLoc :: Area -> AstAction TreePath
 actionGetSrcLoc a ref = do  
   tv <- getTreeView a ref
   gui <- getGui ref
-  -- get cursor position
-  -- zero point: line 1, row 0
-  (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer a ref
-  l <- textIterGetLine iter
-  r <- textIterGetLineOffset iter
+  (l,r) <- getCursorPosition a ref 
   
   -- reparse and set cursor in treeview
   maybeLang <- getLanguage a ref
@@ -420,7 +421,6 @@ actionAbout ref = do
 actionBufferChanged :: Area -> AstAction ()
 actionBufferChanged area ref = do
   gui <- getGui ref
-  setcArea area ref 
   setChanged area True ref
   t <- windowGetTitle (window gui)
   when (head t /= '*') (windowSetTitle (window gui) ('*':t))
@@ -485,8 +485,8 @@ actionDlgOpenRun a ref = do
   widgetHide dia
 
 -- | launches save dialog
-actionDlgSaveRun :: AstAction ()
-actionDlgSaveRun ref = do
+actionDlgSaveRun :: Area -> AstAction ()
+actionDlgSaveRun a ref = do
   dia <- fileChooserDialogNew 
     (Just "astview") 
     Nothing 
@@ -505,10 +505,8 @@ actionDlgSaveRun ref = do
          Nothing-> return () 
          Just file -> do
             g <- getGui ref
-            a <- getCArea ref
-            setcFile a file ref
             setChanged a False ref
-            sb <- getcSourceBuffer ref
+            sb <- getSourceBuffer a ref
             writeFile file =<< getText sb
             windowSetTitle 
               (window g) 

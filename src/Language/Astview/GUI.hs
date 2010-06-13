@@ -66,7 +66,6 @@ buildAststate opt langs = do
         { cFile = (unsavedDoc,unsavedDoc)
         , textchanged = (False,False)
         , languages = langs
-        , cArea = L
         , config = Configuration [] 
         , configFile = unsavedDoc
         }
