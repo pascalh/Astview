@@ -33,7 +33,6 @@ data State =  forall a .  State
   { cFile :: (String,String) -- ^ current file
   , textchanged :: (Bool,Bool) -- ^ true if file changed
   , languages :: [Language] -- ^ known languages
-  , cLang :: Language-- ^ current language
   , cArea :: Area -- ^ containing current area
   , config :: Configuration -- ^ current configuration
   , configFile :: FilePath -- ^ path of current configuraton file 
@@ -46,7 +45,6 @@ data GUI = GUI
   , sb :: (SourceBuffer,SourceBuffer) -- ^ sourceview
   , tvConf :: TextView -- ^ text view showing the config file
   , dlgAbout :: AboutDialog -- ^ about dialog
-  , cbox :: ComboBox -- ^ combobox containing the languages
   }
 
 -- |indicator data type for both areas
@@ -159,9 +157,6 @@ getState = fmap state . readIORef
 getLangs :: IORef AstState -> IO [Language]
 getLangs = fmap (languages . state) . readIORef
 
-getcBox :: IORef AstState -> IO ComboBox
-getcBox = fmap (cbox . gui) . readIORef
-
 getChanged :: Area -> IORef AstState -> IO Bool
 getChanged L = fmap (fst . textchanged . state) . readIORef
 getChanged R = fmap (snd . textchanged . state) . readIORef
@@ -175,8 +170,6 @@ getcFile r = do
   area <- getCArea r
   getFile area r
 
-getcLang = fmap (cLang . state) . readIORef
-
 getWindow = fmap (window . gui) . readIORef
 
 -- * setter functions
@@ -184,50 +177,45 @@ getWindow = fmap (window . gui) . readIORef
 setcFile :: Area -> FilePath -> IORef AstState -> IO ()
 setcFile a file r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State (_,cR) c ls l a co cf) _ _) = 
-    s { state = State (file,cR) c ls l a co cf}
-  f R s@(AstState (State (cL,_) c ls l a co cf) _ _) = 
-    s { state = State (cL,file) c ls l a co cf}
+  f L s@(AstState (State (_,cR) c ls a co cf) _ _) = 
+    s { state = State (file,cR) c ls a co cf}
+  f R s@(AstState (State (cL,_) c ls a co cf) _ _) = 
+    s { state = State (cL,file) c ls a co cf}
 
 setcArea :: Area -> IORef AstState -> IO ()
 setcArea a r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State x c ls l _ co cf) _ _) = 
-    s { state = State x c ls l a co cf}
+  f s@(AstState (State x c ls _ co cf) _ _) = 
+    s { state = State x c ls a co cf}
 
 setChanged :: Area -> Bool -> IORef AstState -> IO ()
 setChanged a b r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State f (_,c) ls l a co cf) _ _) = 
-    s { state = State f (b,c) ls l a co cf}
-  f R s@(AstState (State f (c,_) ls l a co cf) _ _) = 
-    s { state = State f (c,b) ls l a co cf}
+  f L s@(AstState (State f (_,c) ls a co cf) _ _) = 
+    s { state = State f (b,c) ls a co cf}
+  f R s@(AstState (State f (c,_) ls a co cf) _ _) = 
+    s { state = State f (c,b) ls a co cf}
 
-setLanguage :: Language -> IORef AstState -> IO ()
-setLanguage l r = modifyIORef r f where
-  f :: AstState -> AstState
-  f s@(AstState (State f c ls _ a co cf) _ _) = 
-    s { state = State f c ls l a co cf}
 
 setConfiguration :: Configuration -> IORef AstState -> IO ()
 setConfiguration c r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls l a _ cf) _ _) = 
-    s { state = State f cc ls l a c cf}
+  f s@(AstState (State f cc ls a _ cf) _ _) = 
+    s { state = State f cc ls a c cf}
 
 setConfigFile :: FilePath -> IORef AstState -> IO ()
 setConfigFile fp r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls l a c _) _ _) = 
-    s { state = State f cc ls l a c fp}
+  f s@(AstState (State f cc ls a c _) _ _) = 
+    s { state = State f cc ls a c fp}
 
 -- * misc transformations
 
 addRelation :: Relation -> IORef AstState -> IO ()
 addRelation r ref = modifyIORef ref f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls l a (Configuration rs) fp) _ _) = 
-    s { state = State f cc ls l a (Configuration $ rs++[r]) fp}
+  f s@(AstState (State f cc ls a (Configuration rs) fp) _ _) = 
+    s { state = State f cc ls a (Configuration $ rs++[r]) fp}
 
 -- instances
 

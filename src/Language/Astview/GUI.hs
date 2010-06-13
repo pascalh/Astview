@@ -56,26 +56,16 @@ buildAststate opt langs = do
 
   dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
-  -- setup combobox
-  vbox <- xmlGetWidget xml castToVBox "vboxMain"
-  cbox <- comboBoxNewText
-  containerAdd vbox cbox
-  boxSetChildPacking vbox cbox PackNatural 2 PackEnd
-  mapM_ (comboBoxAppendText cbox . buildLabel) langs 
-
   -- build compound datatype
   let gui = GUI window 
                 (treeviewL,treeviewR) 
                 (tbL,tbR) 
                 tvConfig 
                 dlgAbout 
-                cbox 
-      c = if null langs then undefined else head langs
       state = State 
         { cFile = (unsavedDoc,unsavedDoc)
         , textchanged = (False,False)
         , languages = langs
-        , cLang = c
         , cArea = L
         , config = Configuration [] 
         , configFile = unsavedDoc
@@ -141,14 +131,6 @@ hooks ref = do
     "p" <- eventKeyName
     liftIO $ actionReparseAll ref 
 
-  cbox gui `on` changed $ do
-    i <- comboBoxGetActive (cbox gui) 
-    langs <- getLangs ref
-    let lang = langs!!i
-    setLanguage lang ref 
-    actionReparseAll ref
-    comboBoxSetActive (cbox gui) i
-    
   dlgAbout gui `onResponse` (const $ widgetHide $ dlgAbout gui)
         
   window gui `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref

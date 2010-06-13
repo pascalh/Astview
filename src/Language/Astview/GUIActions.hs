@@ -151,28 +151,21 @@ actionLoadHeadless area file ref = do
       deleteStar ref
     )
     print
-  whenJust 
-    (find (elem (takeExtension file) . exts) langs) $
-    \l -> activateLang l ref 
-  l <- getcLang ref
-  actionParse area l ref 
-  return ()
+  whenJustM
+    (getLanguage area ref) $
+    \l -> actionParse area l ref >> return ()
 
--- | helper for loadHeadless
-activateLang :: Language -> AstAction ()
-activateLang l ref = do
-  setLanguage l ref
-  langs <- getLangs ref 
-  whenJust 
-    (findIndex (l==) langs) $
-    \i -> do
-      combobox <- getcBox ref
-      comboBoxSetActive combobox  i
+-- |tries to find a language based on the extension of 
+-- current file name
+getLanguage :: Area -> AstAction (Maybe Language)
+getLanguage area ref = do
+  file <- getFile area ref
+  langs <- getLangs ref
+  return $ find (elem (takeExtension file) . exts) langs
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Area -> Language -> AstAction (Tree String)
 actionParse a l@(Language _ _ _ p to _ _) ref = do
-  setLanguage l ref
   g <- getGui ref
   sb <- getSourceBuffer a ref
   tv <- getTreeView a ref
@@ -354,19 +347,22 @@ actionGetSrcLoc a ref = do
   r <- textIterGetLineOffset iter
   
   -- reparse and set cursor in treeview
-  lang <- getcLang ref 
-  t <- actionParse a lang ref 
-  let sl = sourceLocations lang t
-  let setCursor p = do 
-      treeViewExpandToPath tv p
-      treeViewSetCursor tv p Nothing
-  case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
-    Just (_,p) -> setCursor p >> return p
-    Nothing    -> 
-      -- jump to src loc of given line if no exact matching found
-      case find (\(SrcLocation x _,_) ->l==x) sl of
+  maybeLang <- getLanguage a ref
+  case maybeLang of
+    Nothing -> return [] 
+    Just lang -> do 
+      t <- actionParse a lang ref 
+      let sl = sourceLocations lang t
+      let setCursor p = do 
+          treeViewExpandToPath tv p
+          treeViewSetCursor tv p Nothing
+      case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
         Just (_,p) -> setCursor p >> return p
-        Nothing    -> return []
+        Nothing    -> 
+          -- jump to src loc of given line if no exact matching found
+          case find (\(SrcLocation x _,_) ->l==x) sl of
+            Just (_,p) -> setCursor p >> return p
+            Nothing    -> return []
   
 -- |returns all source locations and paths to source
 -- locations in current tree
@@ -527,9 +523,8 @@ actionReparseAll ref = actionReparse L ref >> actionReparse R ref
 -- |applies current parser to current sourcebuffer 
 actionReparse :: Area -> AstAction ()
 actionReparse a ref = do
-  l <- getcLang ref
-  actionParse a l ref
-  activateLang l ref
+  whenJustM (getLanguage a ref) $
+    \l -> actionParse a l ref >> return ()
 
 actionShowPath a ref = do
   p <- actionGetPath a ref
