@@ -65,6 +65,7 @@ buildAststate opt langs = do
       state = State 
         { cFile = (unsavedDoc,unsavedDoc)
         , textchanged = (False,False)
+        , cursor = (CursorP 0 0,CursorP 0 0)
         , languages = langs
         , config = Configuration [] 
         , configFile = unsavedDoc
@@ -119,10 +120,14 @@ hooks :: AstAction (ConnectId Window)
 hooks ref = do
   gui <- getGui ref
   -- textbuffer
-  onBufferChanged (fst $ sb gui) $ 
+  onBufferChanged (fst $ sb gui) $ do 
     actionBufferChanged L ref
-  onBufferChanged (snd $ sb gui) $ 
+    cp <- getCursorPosition L ref
+    setCursor L cp ref
+  onBufferChanged (snd $ sb gui) $ do
     actionBufferChanged R ref  
+    cp <- getCursorPosition R ref
+    setCursor R cp ref
 
   -- ctrl+p to reparse
   window gui `on` keyPressEvent $ tryEvent $ do

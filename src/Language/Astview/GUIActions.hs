@@ -331,12 +331,12 @@ actionAddRelationSrc ref = do
  
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
-getCursorPosition :: Area -> AstAction (Int,Int)
+getCursorPosition :: Area -> AstAction CursorP
 getCursorPosition a ref = do
   (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer a ref
   l <- textIterGetLine iter
   r <- textIterGetLineOffset iter
-  return (l,r)
+  return $ CursorP l r
 
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
@@ -345,7 +345,7 @@ actionGetSrcLoc :: Area -> AstAction TreePath
 actionGetSrcLoc a ref = do  
   tv <- getTreeView a ref
   gui <- getGui ref
-  (l,r) <- getCursorPosition a ref 
+  (CursorP l r) <- getCursorPosition a ref 
   
   -- reparse and set cursor in treeview
   maybeLang <- getLanguage a ref

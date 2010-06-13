@@ -32,6 +32,7 @@ data Options = Options
 data State =  forall a .  State
   { cFile :: (String,String) -- ^ current file
   , textchanged :: (Bool,Bool) -- ^ true if file changed
+  , cursor :: (CursorP,CursorP) -- ^ last active cursor position
   , languages :: [Language] -- ^ known languages
   , config :: Configuration -- ^ current configuration
   , configFile :: FilePath -- ^ path of current configuraton file 
@@ -44,6 +45,11 @@ data GUI = GUI
   , sb :: (SourceBuffer,SourceBuffer) -- ^ sourceview
   , tvConf :: TextView -- ^ text view showing the config file
   , dlgAbout :: AboutDialog -- ^ about dialog
+  }
+
+data CursorP = CursorP 
+  { cursorLine :: Int
+  , cursorRow  :: Int
   }
 
 -- |indicator data type for both areas
@@ -143,6 +149,10 @@ getChanged :: Area -> IORef AstState -> IO Bool
 getChanged L = fmap (fst . textchanged . state) . readIORef
 getChanged R = fmap (snd . textchanged . state) . readIORef
 
+getCursor :: Area -> IORef AstState -> IO CursorP
+getCursor L = fmap (fst . cursor . state) . readIORef
+getCursor R = fmap (snd . cursor . state) . readIORef
+
 getFile :: Area -> IORef AstState -> IO String
 getFile L = fmap (fst . cFile . state) . readIORef
 getFile R = fmap (snd . cFile . state) . readIORef
@@ -151,42 +161,50 @@ getWindow = fmap (window . gui) . readIORef
 
 -- * setter functions
 
+setCursor :: Area -> CursorP -> IORef AstState -> IO ()
+setCursor a cp r = modifyIORef r (f a) where
+  f :: Area -> AstState -> AstState
+  f L s@(AstState (State f c (_,cR) ls co cf) _ _) = 
+    s { state = State f c (cp,cR) ls co cf}
+  f R s@(AstState (State f c (cL,_) ls co cf) _ _) = 
+    s { state = State f c (cL,cp) ls co cf}
+
 setcFile :: Area -> FilePath -> IORef AstState -> IO ()
 setcFile a file r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State (_,cR) c ls co cf) _ _) = 
-    s { state = State (file,cR) c ls co cf}
-  f R s@(AstState (State (cL,_) c ls co cf) _ _) = 
-    s { state = State (cL,file) c ls co cf}
+  f L s@(AstState (State (_,cR) cp c ls co cf) _ _) = 
+    s { state = State (file,cR) cp c ls co cf}
+  f R s@(AstState (State (cL,_) cp c ls co cf) _ _) = 
+    s { state = State (cL,file) cp c ls co cf}
 
 setChanged :: Area -> Bool -> IORef AstState -> IO ()
 setChanged a b r = modifyIORef r (f a) where
   f :: Area -> AstState -> AstState
-  f L s@(AstState (State f (_,c) ls co cf) _ _) = 
-    s { state = State f (b,c) ls co cf}
-  f R s@(AstState (State f (c,_) ls co cf) _ _) = 
-    s { state = State f (c,b) ls co cf}
+  f L s@(AstState (State f (_,c) cp ls co cf) _ _) = 
+    s { state = State f (b,c) cp ls co cf}
+  f R s@(AstState (State f (c,_) cp ls co cf) _ _) = 
+    s { state = State f (c,b) cp ls co cf}
 
 
 setConfiguration :: Configuration -> IORef AstState -> IO ()
 setConfiguration c r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls _ cf) _ _) = 
-    s { state = State f cc ls c cf}
+  f s@(AstState (State f cc cp ls _ cf) _ _) = 
+    s { state = State f cc cp ls c cf}
 
 setConfigFile :: FilePath -> IORef AstState -> IO ()
 setConfigFile fp r = modifyIORef r f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls c _) _ _) = 
-    s { state = State f cc ls c fp}
+  f s@(AstState (State f cc cp ls c _) _ _) = 
+    s { state = State f cc cp ls c fp}
 
 -- * misc transformations
 
 addRelation :: Relation -> IORef AstState -> IO ()
 addRelation r ref = modifyIORef ref f where
   f :: AstState -> AstState
-  f s@(AstState (State f cc ls (Configuration rs) fp) _ _) = 
-    s { state = State f cc ls (Configuration $ rs++[r]) fp}
+  f s@(AstState (State f cc cp ls (Configuration rs) fp) _ _) = 
+    s { state = State f cc cp ls (Configuration $ rs++[r]) fp}
 
 -- instances
 
