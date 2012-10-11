@@ -50,13 +50,13 @@ Executable         astview
   Other-Modules:   Language.Astview.GUI,
                    Language.Astview.Registry
 
-  Build-Depends:   base>=4 && <5
+  Build-Depends:   base
                    , filepath
                    , bytestring
                    , Glob
                    , containers
                    , syb
-                   , hint
+                   , hint 
                    , glib
                    , gtk
                    , glade
@@ -64,7 +64,6 @@ Executable         astview
                    , directory
                    , mtl
                    , process
-                   , multirec
                    , hscolour
                    , haskell-src-exts >= 1.9.0
                    , parsec
