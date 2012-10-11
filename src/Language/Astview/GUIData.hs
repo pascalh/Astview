@@ -1,4 +1,3 @@
-{-# LANGUAGE ExistentialQuantification #-}
 {- contains the GUI data types
  -
  -}
@@ -29,7 +28,7 @@ data Options = Options
   }
 
 -- |data type for the intern program state
-data State =  forall a .  State
+data State =  State
   { cFile :: (String,String) -- ^ current file
   , textchanged :: (Bool,Bool) -- ^ true if file changed
   , cursor :: (CursorP,CursorP) -- ^ last active cursor position

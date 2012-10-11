@@ -212,7 +212,7 @@ actionParse a l@(Language _ _ _ p to _ _) ref = do
       case maybeLang of
         Just l -> do
           sourceBufferSetHighlightSyntax sb True
-          sourceBufferSetLanguage sb l 
+          sourceBufferSetLanguage sb (Just l) 
         Nothing ->
           sourceBufferSetHighlightSyntax sb False   
 

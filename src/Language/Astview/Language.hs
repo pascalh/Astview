@@ -1,6 +1,10 @@
 {-# LANGUAGE ExistentialQuantification , DeriveDataTypeable #-}
 
-
+{-|
+This module offers the main data type 'Language'. For every language, whose
+files shall be processed by astview, a value of the data type 'Language' has
+to be defined. Store the file to the data folder and add it to the cabal file.
+-}
 module Language.Astview.Language where
 
 import Data.Generics (Typeable)
@@ -16,9 +20,10 @@ import Data.Tree (Tree(..))
 data Language = forall a s . Language
   { name :: String -- ^ language name
   , syntax :: String -- ^ syntax highlighter name
-  , exts :: [String] -- ^ file extentions
+  , exts :: [String] 
+   -- ^ file extentions which should be associated with this language
   , parse :: String -> Either Error a -- ^ parse function
-  , toTree :: a -> Tree String -- to tree
+  , toTree :: a -> Tree String -- ^ how to get a 'Tree' 'String'?
   , srcLoc :: Maybe (Tree String -> [SrcLocation])
     -- ^ selector function for source locations (if supported)
   , adjustSrcLoc :: Maybe (s -> s)
@@ -29,15 +34,16 @@ instance Eq Language where
   l1 == l2 = name l1 == name l2
 
 
--- |datatype to specify parse errors
+-- |datatype to specify parse errors. Since parsers offer different
+-- amounts of information about parse errors, we offer the following
+-- three parse errors: 
 data Error
   = Err -- ^ no error information
   | ErrMessage String -- ^ simple error message
   | ErrLocation SrcLocation String -- ^ error message and src loc
 
 -- |specifies a source location in text area,
--- zero point: line 1, row 0
 data SrcLocation = SrcLocation
-  { line :: Int
-  , row :: Int
+  { line :: Int -- ^ line, zero point: 1
+  , row :: Int -- ^ row, zero point: 0
   } 

@@ -1,3 +1,6 @@
+{-| This module contains datatype-generic functions to gain a 'Tree' 'String'
+out of an arbitrary term.
+-}
 module Language.Astview.DataTree where
 
 -- syb
@@ -10,13 +13,15 @@ import Data.Generics (Data
 -- containers
 import Data.Tree (Tree(Node,rootLabel))
 
--- | Trealise Data to Tree (from SYB 2, sec. 3.4 )
+-- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
 data2tree :: Data a => a -> Tree String
 data2tree = gdefault `extQ` atString
   where 
     atString x = Node x []
     gdefault x = Node (showConstr $ toConstr x) (gmapQ data2tree x) 
-    
+  
+
+-- |try to flatten degenerated trees (lists of cons). NOT WORKING YET!
 flat :: Tree String -> Tree String
 flat = id -- do nothing, see commentary below
 
@@ -24,7 +29,7 @@ flat = id -- do nothing, see commentary below
 
 
 
-{- -- try to flatten degenerated trees (lists of cons)
+{- -- 
 
 
 flat (Node a xs) = Node a xs --(flat <$> (children False =<< xs))    
