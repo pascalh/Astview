@@ -17,12 +17,11 @@ import Data.Tree (Tree(..))
 import Language.Astview.Language 
 
 import Haskell  -- requires haskell-src-exts
-import Csv -- requires parsec
 import Expr -- requires parsec
 
 -- | Main export for dynamic interpretation by astview
 languages :: [Language]
-languages = [haskellexts,expr,csv]
+languages = [haskellexts,expr]
 
 {-
 -- --------------------------------------------------------

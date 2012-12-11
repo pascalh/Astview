@@ -28,7 +28,6 @@ Build-Type:      Custom
 Data-Files:
                  data/astview.glade
                  data/Langs/Haskell.hs
-                 data/Langs/Csv.hs
                  data/Langs/Expr.hs 
                  data/Langs/Languages.hs
                  data/astview.html
