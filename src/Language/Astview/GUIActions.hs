@@ -73,8 +73,8 @@ menuActions =
   --,("mCopy",actionCopySource)
   --,("mPaste",actionPasteSource)
   --,("mDelete",actionDeleteSource)
-  --,("mSrcLocLeft",actionJumpToSrcLoc L)
-  --,("mSrcLocRight",actionJumpToSrcLoc R)
+  ,("mSrcLocLeft",actionJumpToSrcLoc L)
+  ,("mSrcLocRight",actionJumpToSrcLoc R)
   ,("mAbout",actionAbout)
   ,("mShowHelp",actionHelp)
   ,("mQuit",actionQuit)
@@ -143,14 +143,10 @@ actionLoadHeadless area file ref = do
   windowSetTitle 
     (window $ gui s) 
     (takeFileName file ++ suffix)
-  catch 
-    (do
-      contents <- withFile 
-        file ReadMode (fmap BS.unpack . BS.hGetContents)
-      textBufferSetText sb contents
-      deleteStar area ref
-    )
-    print
+  contents <- withFile 
+    file ReadMode (fmap BS.unpack . BS.hGetContents)
+  textBufferSetText sb contents
+  deleteStar area ref
   whenJustM
     (getLanguage area ref) $
     \l -> actionParse area l ref >> return ()
@@ -336,12 +332,19 @@ getCursorPosition a ref = do
   (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer a ref
   l <- textIterGetLine iter
   r <- textIterGetLineOffset iter
-  return $ CursorP l r
+  return $ CursorP (l+1) (r+1)
+
+-- |
+actionJumpToSrcLoc :: Area -> AstAction ()
+actionJumpToSrcLoc a ref = do
+  path <- actionGetSrcLoc a ref 
+  when (not $ null path) (selectPath path a ref)
+
 
 -- |jumps to the node in tree given by current cursor position. If
 -- cursor position does not match any source location in tree we 
--- will jump to a source location of the correc line (if existing)
-actionGetSrcLoc :: Area -> AstAction TreePath
+-- will jump to a source location of the correct line (if existing)
+actionGetSrcLoc :: Area -> AstAction TreePath 
 actionGetSrcLoc a ref = do  
   tv <- getTreeView a ref
   gui <- getGui ref
@@ -354,17 +357,21 @@ actionGetSrcLoc a ref = do
     Just lang -> do 
       t <- actionParse a lang ref 
       let sl = sourceLocations lang t
-      let setCursor p = do 
-          treeViewExpandToPath tv p
-          treeViewSetCursor tv p Nothing
       case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
-        Just (_,p) -> setCursor p >> return p
+        Just (_,p) -> return p 
         Nothing    -> 
           -- jump to src loc of given line if no exact matching found
           case find (\(SrcLocation x _,_) ->l==x) sl of
-            Just (_,p) -> setCursor p >> return p
+            Just (_,p) -> return p 
             Nothing    -> return []
   
+-- |select tree path in area.
+selectPath :: TreePath -> Area -> AstAction ()
+selectPath p a ref = do 
+  tv <- getTreeView a ref
+  treeViewExpandToPath tv p
+  treeViewSetCursor tv p Nothing
+
 -- |returns all source locations and paths to source
 -- locations in current tree
 sourceLocations :: Language -> Tree String -> [(SrcLocation,TreePath)]
@@ -406,9 +413,7 @@ actionAbout ref = do
   gui <- getGui ref
   aboutDialogSetUrlHook (\_ -> return ())
   licensefile <- getDataFileName ("data" </> "LICENSE.unwrapped")
-  contents <- catch 
-    (withFile licensefile ReadMode (fmap BS.unpack . BS.hGetContents))
-    (\ioe -> return $ "Err" ++ show ioe)
+  contents <- withFile licensefile ReadMode (fmap BS.unpack . BS.hGetContents)
   aboutDialogSetWrapLicense (dlgAbout gui) True 
   aboutDialogSetLicense (dlgAbout gui) (Just contents)
   widgetShow (dlgAbout gui)
@@ -588,7 +593,5 @@ getText sb = do
   
 -- |safe function to write files
 writeFile :: FilePath -> String -> IO ()
-writeFile f str = catch
-  (withFile f WriteMode (\h -> hPutStr h str >> hClose h))
-  print
+writeFile f str = withFile f WriteMode (\h -> hPutStr h str >> hClose h)
 
