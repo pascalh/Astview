@@ -3,7 +3,6 @@
  -}
 module Language.Astview.GUIData where
 
-import Data.Tree (Tree(..))
 import Data.IORef
 
 -- gtksourceview
@@ -62,8 +61,8 @@ data Configuration = Configuration
 
 -- |data type to specify binary relations between nodes
 data Relation = Relation 
-  { e1 :: Elem -- ^ first relation element
-  , e2 :: Elem -- ^ second relation element
+  { element1 :: Elem -- ^ first relation element
+  , element2 :: Elem -- ^ second relation element
   }
 
 -- |an element of the relation
@@ -156,53 +155,54 @@ getFile :: Area -> IORef AstState -> IO String
 getFile L = fmap (fst . cFile . state) . readIORef
 getFile R = fmap (snd . cFile . state) . readIORef
 
+getWindow :: IORef AstState -> IO Window
 getWindow = fmap (window . gui) . readIORef
 
 -- * setter functions
 
 setCursor :: Area -> CursorP -> IORef AstState -> IO ()
-setCursor a cp r = modifyIORef r (f a) where
-  f :: Area -> AstState -> AstState
-  f L s@(AstState (State f c (_,cR) ls co cf) _ _) = 
+setCursor a cp r = modifyIORef r (m a) where
+  m :: Area -> AstState -> AstState
+  m L s@(AstState (State f c (_,cR) ls co cf) _ _) = 
     s { state = State f c (cp,cR) ls co cf}
-  f R s@(AstState (State f c (cL,_) ls co cf) _ _) = 
+  m R s@(AstState (State f c (cL,_) ls co cf) _ _) = 
     s { state = State f c (cL,cp) ls co cf}
 
 setcFile :: Area -> FilePath -> IORef AstState -> IO ()
-setcFile a file r = modifyIORef r (f a) where
-  f :: Area -> AstState -> AstState
-  f L s@(AstState (State (_,cR) cp c ls co cf) _ _) = 
+setcFile a file r = modifyIORef r (m a) where
+  m :: Area -> AstState -> AstState
+  m L s@(AstState (State (_,cR) cp c ls co cf) _ _) = 
     s { state = State (file,cR) cp c ls co cf}
-  f R s@(AstState (State (cL,_) cp c ls co cf) _ _) = 
+  m R s@(AstState (State (cL,_) cp c ls co cf) _ _) = 
     s { state = State (cL,file) cp c ls co cf}
 
 setChanged :: Area -> Bool -> IORef AstState -> IO ()
-setChanged a b r = modifyIORef r (f a) where
-  f :: Area -> AstState -> AstState
-  f L s@(AstState (State f (_,c) cp ls co cf) _ _) = 
+setChanged a b r = modifyIORef r (m a) where
+  m :: Area -> AstState -> AstState
+  m L s@(AstState (State f (_,c) cp ls co cf) _ _) = 
     s { state = State f (b,c) cp ls co cf}
-  f R s@(AstState (State f (c,_) cp ls co cf) _ _) = 
+  m R s@(AstState (State f (c,_) cp ls co cf) _ _) = 
     s { state = State f (c,b) cp ls co cf}
 
 
 setConfiguration :: Configuration -> IORef AstState -> IO ()
-setConfiguration c r = modifyIORef r f where
-  f :: AstState -> AstState
-  f s@(AstState (State f cc cp ls _ cf) _ _) = 
+setConfiguration c r = modifyIORef r m where
+  m :: AstState -> AstState
+  m s@(AstState (State f cc cp ls _ cf) _ _) = 
     s { state = State f cc cp ls c cf}
 
 setConfigFile :: FilePath -> IORef AstState -> IO ()
-setConfigFile fp r = modifyIORef r f where
-  f :: AstState -> AstState
-  f s@(AstState (State f cc cp ls c _) _ _) = 
+setConfigFile fp r = modifyIORef r m where
+  m :: AstState -> AstState
+  m s@(AstState (State f cc cp ls c _) _ _) = 
     s { state = State f cc cp ls c fp}
 
 -- * misc transformations
 
 addRelation :: Relation -> IORef AstState -> IO ()
-addRelation r ref = modifyIORef ref f where
-  f :: AstState -> AstState
-  f s@(AstState (State f cc cp ls (Configuration rs) fp) _ _) = 
+addRelation r ref = modifyIORef ref m where
+  m :: AstState -> AstState
+  m s@(AstState (State f cc cp ls (Configuration rs) fp) _ _) = 
     s { state = State f cc cp ls (Configuration $ rs++[r]) fp}
 
 -- instances

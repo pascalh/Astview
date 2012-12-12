@@ -5,24 +5,15 @@ module Main where
 
 -- base
 import System.Environment(getArgs)
-import Data.IORef 
-import Control.Monad ((=<<))
 
 -- gtk
 import Graphics.UI.Gtk hiding (get) 
-
--- hint
-import Language.Haskell.Interpreter hiding ((:=),set,get)
-
--- astview-utils
-import Language.Astview.Language
 
 -- local
 import Language.Astview.GUIActions (actionEmptyGUI,actionLoadHeadless) 
 import Language.Astview.GUIData
 import Language.Astview.Registry (loadLanguages)
 import Language.Astview.GUI (buildAststate)
-
 
 -- --------------------------------------------------------
 -- * main ()
@@ -44,7 +35,5 @@ main = do
       actionLoadHeadless R (last args) ref
     _ -> error "Zero, one or two parameter expected"
   
-  gui <- getGui ref 
-   -- show UI
-  widgetShowAll $ window gui
+  fmap (widgetShowAll . window) (getGui ref)
   mainGUI

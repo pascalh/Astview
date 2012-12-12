@@ -15,10 +15,6 @@ import System.FilePath ((</>))
 
 -- gtk
 import Graphics.UI.Gtk hiding (Language) 
-import Graphics.UI.Gtk.Gdk.EventM
-
--- glib
-import System.Glib.Signals (ConnectId)
 
 -- glade
 import Graphics.UI.Gtk.Glade     
@@ -42,7 +38,7 @@ buildAststate opt langs = do
   Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
  
   -- get or create widgets
-  window   <- xmlGetWidget xml castToWindow "mainWindow"
+  win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeviewL <- xmlGetWidget xml castToTreeView "treeviewLeft"
   treeviewR <- xmlGetWidget xml castToTreeView "treeviewRight"
 
@@ -54,15 +50,15 @@ buildAststate opt langs = do
 
   tvConfig <- xmlGetWidget xml castToTextView "tvConfig"
 
-  dlgAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
+  dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
   -- build compound datatype
-  let gui = GUI window 
-                (treeviewL,treeviewR) 
-                (tbL,tbR) 
-                tvConfig 
-                dlgAbout 
-      state = State 
+  let g = GUI win 
+              (treeviewL,treeviewR) 
+              (tbL,tbR) 
+              tvConfig 
+              dialogAbout 
+      st = State 
         { cFile = (unsavedDoc,unsavedDoc)
         , textchanged = (False,False)
         , cursor = (CursorP 0 0,CursorP 0 0)
@@ -71,7 +67,7 @@ buildAststate opt langs = do
         , configFile = unsavedDoc
         }
 
-  r <- newIORef $ AstState state gui opt
+  r <- newIORef $ AstState st g opt
    
   hooks r
 
@@ -118,26 +114,26 @@ registerMenuAction xml ref (gtkId,action) = do
 -- | adds actions to some widgets
 hooks :: AstAction (ConnectId Window)
 hooks ref = do
-  gui <- getGui ref
+  g <- getGui ref
   -- textbuffer
-  onBufferChanged (fst $ sb gui) $ do 
+  onBufferChanged (fst $ sb g) $ do 
     actionBufferChanged L ref
     cp <- getCursorPosition L ref
     setCursor L cp ref
-  onBufferChanged (snd $ sb gui) $ do
+  onBufferChanged (snd $ sb g) $ do
     actionBufferChanged R ref  
     cp <- getCursorPosition R ref
     setCursor R cp ref
 
   -- ctrl+p to reparse
-  window gui `on` keyPressEvent $ tryEvent $ do
+  window g `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
     liftIO $ actionReparseAll ref 
 
-  dlgAbout gui `onResponse` (const $ widgetHide $ dlgAbout gui)
+  dlgAbout g `onResponse` (const $ widgetHide $ dlgAbout g)
         
-  window gui `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
+  window g `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
   
   -- window    
-  onDestroy (window gui) mainQuit
+  onDestroy (window g) mainQuit

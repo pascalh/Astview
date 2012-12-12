@@ -10,8 +10,7 @@ import System.FilePath.Glob (compile,globDir)
 import Language.Astview.Language (Language)
 
 -- local
-import Paths_astview (getDataFileName,getDataDir) -- by cabal
-
+import Paths_astview (getDataDir) -- by cabal
 
 -- | loads the language registration and all modules in data dir
 loadLanguages :: IO [Language]
