@@ -46,6 +46,7 @@ Library
 Executable         astview
   Hs-Source-Dirs:  src
   Main-is:         Main.hs
+  GHC-Options:     -Wall
   Other-Modules:   Language.Astview.GUI,
                    Language.Astview.Registry
 
