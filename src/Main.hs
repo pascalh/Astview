@@ -1,4 +1,3 @@
-{-# LANGUAGE Rank2Types #-}
 module Main where
 
 -- order of imports analogous to cabal build-depends
@@ -28,13 +27,10 @@ main = do
   ref <- buildAststate os =<< loadLanguages
   
   args <- getArgs
-  case length args of
-    0 -> actionEmptyGUI ref
-    1 -> actionLoadHeadless L (head args) ref 
-    2 -> do
-      actionLoadHeadless L (head args) ref 
-      actionLoadHeadless R (last args) ref
-    _ -> error "Zero, one or two parameter expected"
+  case args of
+    []  -> actionEmptyGUI ref
+    [a] -> actionLoadHeadless a ref 
+    _   -> error "Zero or one argument expected"
   
   widgetShowAll =<< fmap window (getGui ref)
   mainGUI

@@ -39,32 +39,20 @@ buildAststate opt langs = do
  
   -- get or create widgets
   win   <- xmlGetWidget xml castToWindow "mainWindow"
-  treeviewL <- xmlGetWidget xml castToTreeView "treeviewLeft"
-  treeviewR <- xmlGetWidget xml castToTreeView "treeviewRight"
+  treeview <- xmlGetWidget xml castToTreeView "treeview"
 
-  tbL <- buildSourceView opt 
-    =<< xmlGetWidget xml castToScrolledWindow "swSourceLeft" 
-
-  tbR <- buildSourceView opt 
-    =<< xmlGetWidget xml castToScrolledWindow "swSourceRight" 
-
-  tvConfig <- xmlGetWidget xml castToTextView "tvConfig"
+  tb <- buildSourceView opt 
+    =<< xmlGetWidget xml castToScrolledWindow "swSource" 
 
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
   -- build compound datatype
-  let g = GUI win 
-              (treeviewL,treeviewR) 
-              (tbL,tbR) 
-              tvConfig 
-              dialogAbout 
+  let g = GUI win treeview tb dialogAbout
       st = State 
-        { cFile = (unsavedDoc,unsavedDoc)
-        , textchanged = (False,False)
-        , cursor = (CursorP 0 0,CursorP 0 0)
+        { cFile = unsavedDoc
+        , textchanged = False
+        , cursor = CursorP 0 0
         , languages = langs
-        , config = Configuration [] 
-        , configFile = unsavedDoc
         }
 
   r <- newIORef $ AstState st g opt
@@ -116,20 +104,16 @@ hooks :: AstAction (ConnectId Window)
 hooks ref = do
   g <- getGui ref
   -- textbuffer
-  onBufferChanged (fst $ sb g) $ do 
-    actionBufferChanged L ref
-    cp <- getCursorPosition L ref
-    setCursor L cp ref
-  onBufferChanged (snd $ sb g) $ do
-    actionBufferChanged R ref  
-    cp <- getCursorPosition R ref
-    setCursor R cp ref
+  onBufferChanged (sb g) $ do 
+    actionBufferChanged ref
+    cp <- getCursorPosition ref
+    setCursor cp ref
 
   -- ctrl+p to reparse
   window g `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
-    liftIO $ actionReparseAll ref 
+    liftIO $ actionReparse ref 
 
   dlgAbout g `onResponse` (const $ widgetHide $ dlgAbout g)
         
