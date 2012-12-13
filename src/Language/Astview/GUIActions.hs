@@ -40,10 +40,6 @@ import Language.Astview.Language hiding (line,row)
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName,getDataDir) 
 
--- |suffix of window title
-suffix :: String
-suffix = " - astview"
-
 -- |unsaved document
 unsavedDoc :: String
 unsavedDoc = "Unsaved document"
@@ -87,7 +83,7 @@ actionEmptyGUI ref = do
   g <- getGui ref
   clearTreeView =<< getTreeView ref
   (\s -> textBufferSetText s []) =<< getSourceBuffer ref
-  windowSetTitle (window g) (unsavedDoc++suffix)  
+  windowSetTitleSuffix (window g) unsavedDoc
 
 -- | updates the sourceview with a given file, chooses a language by 
 -- extension and parses the file
@@ -96,9 +92,9 @@ actionLoadHeadless file ref = do
   setcFile file ref
   s <- getAstState ref
 
-  windowSetTitle 
+  windowSetTitleSuffix 
     (window $ gui s) 
-    (takeFileName file ++ suffix)
+    (takeFileName file)
   contents <- withFile 
     file ReadMode (fmap BS.unpack . BS.hGetContents)
   buffer <- getSourceBuffer ref 
@@ -383,7 +379,7 @@ actionQuitWorker ref = do
       dialogAddButton dia stockCancel ResponseCancel
       contain <- dialogGetUpper dia
   
-      windowSetTitle dia "astview"
+      windowSetTitleSuffix dia "Quit" 
       containerSetBorderWidth dia 2
       file <- getFile ref
       lbl <- labelNew 
@@ -447,7 +443,7 @@ actionDlgSaveRun ref = do
             writeFile file =<< getText =<< getSourceBuffer ref
             windowSetTitle 
               (window g) 
-              (takeFileName file++suffix)
+              (takeFileName file)
     _ -> return ()
   widgetHide dia
 
@@ -493,6 +489,10 @@ getText tb = do
   start <- textBufferGetStartIter tb
   end <- textBufferGetEndIter tb
   textBufferGetText tb start end True
+
+-- |uses the given string to set the title of given window with suffix "-astview"
+windowSetTitleSuffix :: WindowClass w => w -> String -> IO ()
+windowSetTitleSuffix win title = windowSetTitle win (title++" - astview")
   
 -- |safe function to write files
 writeFile :: FilePath -> String -> IO ()
