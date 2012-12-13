@@ -320,10 +320,18 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkTreeView" id="treeview">
+              <widget class="GtkScrolledWindow" id="swTree">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="rules_hint">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <widget class="GtkTreeView" id="treeview">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="rules_hint">True</property>
+                  </widget>
+                </child>
               </widget>
               <packing>
                 <property name="expand">True</property>
