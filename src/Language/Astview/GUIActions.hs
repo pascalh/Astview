@@ -181,19 +181,7 @@ actionSaveWorker plain file ref =
 
 
 actionSaveAs :: AstAction ()
-actionSaveAs _ = error "not yet implemented"
-{-
--- |saves a configuration file
-actionSaveConfig :: AstAction ()
-actionSaveConfig ref = do
-  cf <- getConfigFile ref
-  case cf of
-    "Unsaved document" -> actionSaveAsConfig ref 
-    _ -> writeFile cf =<< getText =<< 
-           textViewGetBuffer =<< getTvConf ref
-
-actionSaveAsConfig :: AstAction ()
-actionSaveAsConfig ref = do
+actionSaveAs ref = do 
   dia <- fileChooserDialogNew 
     (Just "astview") 
     Nothing 
@@ -210,12 +198,9 @@ actionSaveAsConfig ref = do
        maybeFile <- fileChooserGetFilename dia
        case maybeFile of
          Nothing-> return () 
-         Just file -> do
-            writeFile file =<< getText =<< 
-              textViewGetBuffer =<< getTvConf ref
+         Just file -> writeFile file =<< getText =<< getSourceBuffer ref
     _ -> return ()
   widgetHide dia
--}
 
 -- |removes @*@ from window title if existing and updates state
 deleteStar :: AstAction ()
