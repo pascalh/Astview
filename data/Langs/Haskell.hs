@@ -26,11 +26,11 @@ parHaskell s =
   case parseFileContents s of
     ParseOk t   -> Right t
     ParseFailed (SrcLoc _ l c) m -> 
-      Left $ ErrLocation (SrcLocation l c) m
+      Left $ ErrLocation (SrcPosition l c) m
 
 
 toSrcLoc :: Tree String -> [SrcLocation]
 toSrcLoc (Node "SrcLoc" cs) = 
-  [SrcLocation (read (to 1)::Int) (read (to 2):: Int)] 
+  [SrcPosition (read (to 1)::Int) (read (to 2):: Int)] 
   where to = rootLabel . (cs !!)
 toSrcLoc _        = [] 
