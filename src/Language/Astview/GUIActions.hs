@@ -421,6 +421,7 @@ actionDlgSaveRun ref = do
          Just file -> do
             g <- getGui ref
             setChanged False ref
+            setcFile file ref
             writeFile file =<< getText =<< getSourceBuffer ref
             windowSetTitle 
               (window g) 
