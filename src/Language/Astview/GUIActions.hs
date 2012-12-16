@@ -35,7 +35,8 @@ import Graphics.UI.Gtk.SourceView
 import System.Cmd (rawSystem)
 
 -- astview-utils
-import Language.Astview.Language hiding (line,row)
+import Language.Astview.Language 
+import Language.Astview.SourceLocation hiding (line,row)
 
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName,getDataDir) 
@@ -121,22 +122,14 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
   setupSyntaxHighlighting buffer l
   plain <- getText buffer
   clearTreeView view
-  let eitherTree = fmap to (p plain)
 
   -- error handling
-  case eitherTree of
-    Left (ErrLocation (SrcLocation line _) _) -> do 
-      iter <- textBufferGetStartIter buffer
-      textIterSetLine iter (line-1)
-      textBufferPlaceCursor buffer iter
-    _ -> return ()
-
-  let t = case eitherTree of
-          Right ast                 -> ast
-          Left Err                  -> Node "Parse error" []
-          Left (ErrMessage m)       -> Node m []
-          Left (ErrLocation (SrcLocation line row) _) -> 
-            Node ("Parse error at:"++show line ++":"++show row) [] 
+  let t = case fmap to (p plain) of
+           Left Err                  -> Node "Parse error" []
+           Left (ErrMessage m)       -> Node m []
+           Left (ErrLocation pos message) -> 
+               Node ("Parse error at:"++show pos++": "++message) [] 
+           Right ast                 -> ast
   
   model <- treeStoreNew [t]
   treeViewSetModel view model
@@ -270,14 +263,9 @@ actionGetSrcLoc ref = do
     Just lang -> do 
       t <- actionParse lang ref 
       let sl = sourceLocations lang t
-      case find (\(SrcLocation x y,_) ->(l==x &&r==y)) sl of
-        Just (_,p) -> return p 
-        Nothing    -> 
-          -- jump to src loc of given line if no exact matching found
-          case find (\(SrcLocation x _,_) ->l==x) sl of
-            Just (_,p) -> return p 
-            Nothing    -> return []
-  
+      let s = findSrcLoc l r $ map fst sl 
+      return $ getAssociatedValue s sl 
+
 -- |select tree path 
 selectPath :: TreePath -> AstAction ()
 selectPath p ref = do 

@@ -6,9 +6,9 @@ files shall be processed by astview, a value of the data type 'Language' has
 to be defined. Store the file to the data folder and add it to the cabal file.
 -}
 module Language.Astview.Language where
-
 import Data.Generics (Typeable)
 import Data.Tree (Tree(..))
+import Language.Astview.SourceLocation
 
 -- |datatype for one language. Some parsers support source locations
 -- which enables us to connect locations in text area with locations
@@ -42,8 +42,3 @@ data Error
   | ErrMessage String -- ^ simple error message
   | ErrLocation SrcLocation String -- ^ error message and src loc
 
--- |specifies a source location in text area,
-data SrcLocation = SrcLocation
-  { line :: Int -- ^ line, zero point: 1
-  , row :: Int -- ^ row, zero point: 0
-  } 
