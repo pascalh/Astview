@@ -5,6 +5,7 @@ import Data.Tree (Tree(Node,rootLabel))
 
 -- local imports
 import Language.Astview.Language
+import Language.Astview.SourceLocation
 
 import Language.Haskell.Exts 
 import Language.Haskell.Exts.Parser

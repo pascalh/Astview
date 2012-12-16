@@ -41,6 +41,7 @@ Data-Files:
 Library
   Hs-Source-Dirs:  src
   Exposed-Modules: Language.Astview.Language
+                   Language.Astview.SourceLocation
                    Language.Astview.DataTree
 
 Executable         astview
