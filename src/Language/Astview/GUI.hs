@@ -41,8 +41,7 @@ buildAststate opt langs = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
 
-  tb <- buildSourceView opt 
-    =<< xmlGetWidget xml castToScrolledWindow "swSource" 
+  tb <- buildSourceView opt =<< xmlGetWidget xml castToScrolledWindow "swSource" 
 
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
 
@@ -70,11 +69,7 @@ buildAststate opt langs = do
 
 -- |builds combobox label for a language
 buildLabel :: Language -> String
-buildLabel l = 
-  name l
-  ++ " ["
-  ++ concatMap (" "++) (exts l)
-  ++ "]"
+buildLabel l = name l ++ " [" ++ concatMap (" "++) (exts l) ++ "]"
 
 -- | setup the GtkSourceView and add it to the ScrollPane. return the 
 -- underlying textbuffer
@@ -85,8 +80,7 @@ buildSourceView opt sw = do
   sourceView <- sourceViewNewWithBuffer sourceBuffer
   sourceViewSetShowLineNumbers sourceView True
   sourceViewSetHighlightCurrentLine sourceView True
-  srcfont <- fontDescriptionFromString $ 
-    font opt ++" "++show (fsize opt)
+  srcfont <- fontDescriptionFromString $ font opt ++" "++show (fsize opt)
   widgetModifyFont sourceView (Just srcfont)
   containerAdd sw sourceView
   return sourceBuffer

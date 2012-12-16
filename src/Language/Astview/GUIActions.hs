@@ -26,7 +26,7 @@ import qualified Data.ByteString.Char8 as BS (hGetContents,unpack)
 import Data.Tree ( Tree(Node) )
 
 -- gtk
-import Graphics.UI.Gtk hiding (Language,get,response) 
+import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged) 
 
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView 
@@ -74,7 +74,7 @@ clearTreeView t = do
   c <- treeViewGetColumn t 0
   case c of 
     Just col-> treeViewRemoveColumn t col
-    Nothing -> return undefined
+    Nothing -> return 0 
   return ()
 
 -- | resets the GUI, 
@@ -82,7 +82,7 @@ actionEmptyGUI :: AstAction ()
 actionEmptyGUI ref = do
   g <- getGui ref
   clearTreeView =<< getTreeView ref
-  (\s -> textBufferSetText s []) =<< getSourceBuffer ref
+  flip textBufferSetText [] =<< getSourceBuffer ref
   windowSetTitleSuffix (window g) unsavedDoc
 
 -- | updates the sourceview with a given file, chooses a language by 
@@ -151,6 +151,8 @@ actionParse l@(Language _ _ _ p to _ _) ref = do
   treeViewAppendColumn view col 
   return t
     
+-- |uses the name of given language to establish syntax highlighting in 
+-- source buffer
 setupSyntaxHighlighting :: SourceBuffer -> Language -> IO ()
 setupSyntaxHighlighting buffer language = do
   langManager <- sourceLanguageManagerGetDefault
@@ -163,23 +165,18 @@ setupSyntaxHighlighting buffer language = do
       sourceBufferSetLanguage buffer (Just lang) 
     Nothing -> sourceBufferSetHighlightSyntax buffer False   
 
--- |saves a file 
+-- |saves current file if a file is active or calls "save as"-dialog
 actionSave :: AstAction ()
 actionSave ref = do
-  url <- getFile ref
+  file <- getFile ref
   text <- getText =<< getSourceBuffer ref
-  actionSaveWorker text url ref
-
--- |saves current file if a file is active or calls "save as"-dialog
-actionSaveWorker :: String -> FilePath -> AstAction ()
-actionSaveWorker plain file ref = 
   case file of
     "Unsaved document"  -> actionDlgSaveRun ref
     _                   -> do 
       deleteStar ref 
-      writeFile file plain 
+      writeFile file text 
 
-
+-- |lanches the "save as"-dialog
 actionSaveAs :: AstAction ()
 actionSaveAs ref = do 
   dia <- fileChooserDialogNew 
@@ -207,9 +204,9 @@ deleteStar :: AstAction ()
 deleteStar ref = do
   w <- getWindow ref
   t <- windowGetTitle w
+  bufferChanged <- getChanged ref
+  when bufferChanged (windowSetTitle w (tail t))
   setChanged False ref
-  when (head t == '*') 
-    (windowSetTitle w (tail t))
  
 -- -------------------------------------------------------------------
 -- ** editmenu menu actions
@@ -228,9 +225,7 @@ actionCopySource ref = do
   buffer <- getSourceBuffer ref
   (start,end) <- textBufferGetSelectionBounds buffer 
   clipBoard <- clipboardGet selectionClipboard
-  clipboardSetText 
-    clipBoard 
-    =<< textBufferGetText buffer start end True
+  clipboardSetText clipBoard =<< textBufferGetText buffer start end True
 
 -- |pastes text from clipboard at current cursor position  
 actionPasteSource :: AstAction ()
@@ -256,7 +251,7 @@ getCursorPosition ref = do
   r <- textIterGetLineOffset iter
   return $ CursorP (l+1) (r+1)
 
--- |
+-- |opens tree position associated with current cursor position
 actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
   treePath <- actionGetSrcLoc ref 
@@ -344,17 +339,18 @@ actionAbout ref = do
 actionBufferChanged :: AstAction ()
 actionBufferChanged ref = do
   w <- fmap window (getGui ref)
-  setChanged True ref
   t <- windowGetTitle w 
-  when (head t /= '*') (windowSetTitle w ('*':t))
+  c <- getChanged ref
+  when (not c) (windowSetTitle w ('*':t))
+  setChanged True ref
 
 -- | destroys window widget 
 actionQuit :: AstAction ()
 actionQuit ref = do 
   isChanged <- getChanged ref 
   when isChanged $ actionQuitWorker ref
-  w <- fmap window (getGui ref)
-  widgetDestroy w
+  widgetDestroy =<< fmap window (getGui ref)
+
 
 actionQuitWorker :: AstAction ()  
 actionQuitWorker ref = do
@@ -447,8 +443,7 @@ actionShowPath ref = do
 
 actionGetPath :: AstAction [Int]
 actionGetPath ref = do 
-  rows <- treeSelectionGetSelectedRows 
-    =<< treeViewGetSelection =<< getTreeView ref
+  rows <- treeSelectionGetSelectedRows =<< treeViewGetSelection =<< getTreeView ref
   return $ case rows of 
     []    -> [] 
     (p:_) -> p
@@ -459,8 +454,8 @@ actionGetPath ref = do
 
 -- |similar to @when@ 
 whenJust :: Monad m => Maybe a -> (a -> m ()) -> m ()
-whenJust m action =
-  when (isJust m) ((action.fromJust) m) 
+whenJust Nothing _       = return ()
+whenJust (Just x) action = action x 
   
 -- |similar to @whenJust@, but value is inside a monad
 whenJustM :: Monad m => m(Maybe a) -> (a -> m ()) -> m ()
@@ -468,7 +463,7 @@ whenJustM val action = do
   m <- val
   when (isJust m) ((action.fromJust) m)  
 
--- | helper for various text-processing actions
+-- |returns the text in given text buffer
 getText :: TextBufferClass c => c -> IO String
 getText tb = do
   start <- textBufferGetStartIter tb
