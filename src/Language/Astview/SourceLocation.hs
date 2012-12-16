@@ -4,6 +4,7 @@ a couple of useful helper functions for source locations.
 -}
 module Language.Astview.SourceLocation where
 import Data.List(find)
+import Data.Monoid
 
 -- |specifies a source location in text area
 data SrcLocation 
@@ -35,7 +36,9 @@ findSrcLoc :: Int -- ^line
            -> Maybe SrcLocation
 findSrcLoc l r srcLocs
   | elem (SrcPosition l r) srcLocs = Just (SrcPosition l r) 
-  | otherwise                      = find equalsLine srcLocs  where
+  | otherwise        = 
+   getFirst $ (First $ find (\s -> contains s (SrcPosition l r)) srcLocs) `mappend` 
+              (First $ find equalsLine srcLocs)  where
     equalsLine :: SrcLocation -> Bool
     equalsLine (SrcPosition ll _) = ll ==l
     equalsLine _ = False 
@@ -48,3 +51,10 @@ getAssociatedValue (Just s) ((loc,v):xs)
   | s == loc  = v
   | otherwise = getAssociatedValue (Just s) xs
 
+-- |returns whether first argument source location contains the second one
+contains :: SrcLocation -> SrcLocation -> Bool
+contains (SrcSpan bl br el er) (SrcPosition l r) = 
+  bl <= l && l<= el && br <= r && r <= er
+contains s (SrcSpan bl br el er) =
+  contains s (SrcPosition bl br) && contains s (SrcPosition el er)
+contains _ _ = False
