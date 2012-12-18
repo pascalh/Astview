@@ -102,22 +102,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="mParse">
-                        <property name="label">Parse</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="use_stock">False</property>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="image5">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="stock">gtk-refresh</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                    <child>
                       <widget class="GtkImageMenuItem" id="mOpen">
                         <property name="label">gtk-open</property>
                         <property name="visible">True</property>
@@ -219,6 +203,21 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkSeparatorMenuItem" id="sepFile1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="mReparse">
+                        <property name="label">gtk-refresh</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_stock">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="mPath">
                         <property name="label">Print Path</property>
                         <property name="visible">True</property>
@@ -236,7 +235,7 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                     </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="mSrcLoc">
-                        <property name="label">--&gt;</property>
+                        <property name="label">--&gt; (Jump to position in tree)</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>

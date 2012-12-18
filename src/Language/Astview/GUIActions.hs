@@ -49,10 +49,9 @@ unsavedDoc = "Unsaved document"
 menuActions :: [(String,AstAction ())]
 menuActions = 
   [("mNew",actionEmptyGUI)
-  ,("mParse",actionReparse)
+  ,("mReparse",actionReparse)
   ,("mSaveAs",actionSaveAs)
   ,("mOpen",actionDlgOpenRun)
-  ,("mParse",actionReparse)
   ,("mSave",actionSave)
   ,("mCut",actionCutSource)
   ,("mCopy",actionCopySource)
