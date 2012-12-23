@@ -187,7 +187,9 @@ actionSaveAs ref = do
        maybeFile <- fileChooserGetFilename dia
        case maybeFile of
          Nothing-> return () 
-         Just file -> writeFile file =<< getText =<< getSourceBuffer ref
+         Just file -> do
+           setcFile file ref
+           writeFile file =<< getText =<< getSourceBuffer ref
     _ -> return ()
   widgetHide dia
 
