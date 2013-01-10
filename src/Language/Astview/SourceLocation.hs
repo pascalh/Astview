@@ -4,7 +4,7 @@ a couple of useful helper functions for source locations.
 -}
 module Language.Astview.SourceLocation where
 import Data.List(find)
-import Data.Monoid
+import Data.Monoid(Monoid(..),First(..),(<>))
 
 -- |specifies a source location in text area
 data SrcLocation 
