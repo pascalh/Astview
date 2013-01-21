@@ -31,11 +31,9 @@ parHaskell s =
 
 
 toSrcLoc :: Tree String -> Maybe SrcLoc.SrcLocation
-toSrcLoc (Node "SrcSpan" cs) = Just $  
-  SrcLoc.SrcSpan (read (to 1):: Int) 
-           (read (to 2):: Int)
-           (read (to 3):: Int)
-           (read (to 4):: Int)
-   
-  where to = rootLabel . (cs !!)
+toSrcLoc (Node "SrcSpan" [_,c1,c2,c3,c4]) = 
+  Just $ SrcLoc.SrcSpan (to c1) (to c2) (to c3) (to c4)
+   where 
+     to :: Tree String -> Int
+     to = read . rootLabel 
 toSrcLoc _        = Nothing 
