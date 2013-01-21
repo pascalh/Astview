@@ -20,7 +20,7 @@ haskellexts = Language
   [".hs",".lhs"] 
   parHaskell
   (data2tree::Module SrcSpan ->Tree String)
-  (Just toSrcLoc)
+  toSrcLoc
     
 parHaskell :: String -> Either Error (Module SrcSpan)
 parHaskell s =
@@ -30,12 +30,12 @@ parHaskell s =
       Left $ ErrLocation (SrcLoc.SrcPosition l c) m
 
 
-toSrcLoc :: Tree String -> [SrcLoc.SrcLocation]
-toSrcLoc (Node "SrcSpan" cs) = 
-  [SrcLoc.SrcSpan (read (to 1):: Int) 
+toSrcLoc :: Tree String -> Maybe SrcLoc.SrcLocation
+toSrcLoc (Node "SrcSpan" cs) = Just $  
+  SrcLoc.SrcSpan (read (to 1):: Int) 
            (read (to 2):: Int)
            (read (to 3):: Int)
            (read (to 4):: Int)
-  ] 
+   
   where to = rootLabel . (cs !!)
-toSrcLoc _        = [] 
+toSrcLoc _        = Nothing 

@@ -22,7 +22,7 @@ data Language = forall a . Language
    -- ^ file extentions which should be associated with this language
   , parse :: String -> Either Error a -- ^ parse function
   , toTree :: a -> Tree String -- ^ how to get a 'Tree' 'String'?
-  , srcLoc :: Maybe (Tree String -> [SrcLocation])
+  , srcLoc :: Tree String -> Maybe SrcLocation
     -- ^ selector function for source locations (if supported)
   } deriving Typeable
 

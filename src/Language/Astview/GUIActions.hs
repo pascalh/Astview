@@ -288,13 +288,10 @@ getSourceLocations :: Language
                    -> Tree (String,TreePath) 
                    -> [(SrcLocation,TreePath)]
 getSourceLocations l t@(Node (_,p) cs) =
-  case srcLoc l of
-    Just f -> 
-      let xs = f $ fmap fst t in
+      let xs = srcLoc l $ fmap fst t in
       case xs of
-        []    -> concatMap (getSourceLocations l) cs
-        (x:_) -> [(x,p)]
-    Nothing -> []
+        Nothing -> concatMap (getSourceLocations l) cs
+        Just x  -> [(x,p)]
 
 
 -- -------------------------------------------------------------------
