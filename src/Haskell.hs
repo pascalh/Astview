@@ -13,6 +13,7 @@ import Language.Haskell.Exts.SrcLoc
 
 import Language.Astview.DataTree (data2tree)
 
+haskellexts :: Language
 haskellexts = Language 
   "Haskell" 
   "Haskell" 

@@ -11,7 +11,7 @@ import Data.Generics (Data
                      ,toConstr)
 
 -- containers
-import Data.Tree (Tree(Node,rootLabel))
+import Data.Tree (Tree(Node))
 
 -- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
 data2tree :: Data a => a -> Tree String
