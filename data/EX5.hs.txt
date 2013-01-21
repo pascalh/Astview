@@ -1,0 +1,8 @@
+haskellexts :: Language
+haskellexts = Language 
+  "Haskell" 
+  "Haskell" 
+  [".hs",".lhs"] 
+  parHaskell
+  (data2tree::Module SrcSpan ->Tree String)
+  toSrcLoc
