@@ -45,13 +45,17 @@ Library
                    , haskell-src-exts >= 1.9.0
                    , syb
                    , parsec
+  extensions:      ExistentialQuantification,
+                   DeriveDataTypeable
 
 Executable         astview
   Hs-Source-Dirs:  src
   Main-is:         Main.hs
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
   Other-Modules:   Language.Astview.GUI
-  extensions:      TemplateHaskell
+  extensions:      TemplateHaskell,
+                   ExistentialQuantification,
+                   DeriveDataTypeable
 
   Build-Depends:   base
                    , filepath

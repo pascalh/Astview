@@ -1,5 +1,3 @@
-{-# LANGUAGE ExistentialQuantification , DeriveDataTypeable #-}
-
 {-|
 This module offers the main data type 'Language'. For every language, whose
 files shall be processed by astview, a value of the data type 'Language' has
