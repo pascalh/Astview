@@ -17,7 +17,7 @@ import Language.Astview.SourceLocation
 -- tree). @srcLoc@ returns @Nothing@ if current tree does not specify
 -- any src loc. Function @adjustSrcLoc@ offers the ability to adjust
 -- src locs in abstract data type to our zero point (line 1, row 0)
-data Language = forall a s . Language
+data Language = forall a . Language
   { name :: String -- ^ language name
   , syntax :: String -- ^ syntax highlighter name
   , exts :: [String] 
@@ -26,8 +26,6 @@ data Language = forall a s . Language
   , toTree :: a -> Tree String -- ^ how to get a 'Tree' 'String'?
   , srcLoc :: Maybe (Tree String -> [SrcLocation])
     -- ^ selector function for source locations (if supported)
-  , adjustSrcLoc :: Maybe (s -> s)
-    -- ^ adjust src locs in abstract syntax to
   } deriving Typeable
 
 instance Eq Language where

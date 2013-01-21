@@ -114,7 +114,7 @@ getLanguage ref = do
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
-actionParse l@(Language _ _ _ p to _ _) ref = do
+actionParse l@(Language _ _ _ p to _) ref = do
   buffer <- getSourceBuffer ref
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True

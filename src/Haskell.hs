@@ -21,7 +21,6 @@ haskellexts = Language
   parHaskell
   (data2tree::Module SrcSpan ->Tree String)
   (Just toSrcLoc)
-  Nothing
     
 parHaskell :: String -> Either Error (Module SrcSpan)
 parHaskell s =
