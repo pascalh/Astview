@@ -43,6 +43,7 @@ Library
                    Language.Astview.DataTree
                    Language.Astview.Languages
   Build-Depends:     base
+                   , gio 
                    , haskell-src-exts >= 1.9.0
                    , syb
                    , parsec
@@ -70,5 +71,4 @@ Executable         astview
                    , gtksourceview2
                    , directory
                    , mtl
-                   , process
                    , hscolour

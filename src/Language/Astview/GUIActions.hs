@@ -31,8 +31,8 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView 
 
--- commands
-import System.Cmd (rawSystem)
+--gio
+import System.GIO.File.AppInfo (appInfoGetAllForType,appInfoLaunchUris)
 
 -- astview-utils
 import Language.Astview.Language 
@@ -303,9 +303,16 @@ actionHelp :: AstAction ()
 actionHelp _ = do
   helpfile <- getDataFileName ("data" </> "astview.html")
   dir <- getDataDir
-  rawSystem "firefox" [dir </> helpfile]
-  return ()
-    
+  openUrlBySystemTool $ dir </> helpfile
+
+-- |open website in default browser respectively tool 
+openUrlBySystemTool :: String -> IO ()
+openUrlBySystemTool url = do
+  infos <- appInfoGetAllForType "text/html"
+  case infos of
+    []    -> return ()
+    (x:_) -> appInfoLaunchUris x [url] Nothing
+
 -- | launches info dialog
 actionAbout :: AstAction ()
 actionAbout ref = do
