@@ -40,9 +40,4 @@ To launch astview, just issue the command 'astview' in your
 Configuration
 -------------
 
-To add custom parsers, you have to edit the file
-~/.cabal/share/astview-a.b/Parsers.hs and conform to the signatures of
-the exported function. The parsers have to generate haskell terms
-which are fully (i.e. all used types) in the Data class.
-
-... detailed instructions will follow ...
+See file 'data/astview.html' for a full configuration reference. 
