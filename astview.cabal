@@ -27,15 +27,6 @@ Cabal-Version:   >= 1.2
 Build-Type:      Custom
 Data-Files:
                  data/astview.glade
-                 data/astview.html
-                 data/astview-tmpl.html
-                 data/style.css
-                 data/LICENSE.unwrapped
-                 data/EX1.hs.txt
-                 data/EX2.hs.txt
-                 data/EX3.hs.txt
-                 data/EX4.hs.txt
-                 data/EX5.hs.txt
 Library
   Hs-Source-Dirs:  src
   Exposed-Modules: Language.Astview.Language
@@ -46,7 +37,6 @@ Library
                    , gio 
                    , haskell-src-exts >= 1.9.0
                    , syb
-                   , parsec
   extensions:      ExistentialQuantification,
                    DeriveDataTypeable
 
