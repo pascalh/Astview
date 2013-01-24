@@ -8,20 +8,16 @@ Beware, this file will be overwritten when updating the package.
 
 -}
 
-module Languages where
-
--- container
-import Data.Tree (Tree(..))
+module Language.Astview.Languages where
 
 -- -- local imports
 import Language.Astview.Language 
 
 import Haskell  -- requires haskell-src-exts
-import Expr -- requires parsec
 
 -- | Main export for dynamic interpretation by astview
-languages :: [Language]
-languages = [haskellexts,expr]
+knownLanguages :: [Language]
+knownLanguages = [haskellexts]
 
 {-
 -- --------------------------------------------------------

@@ -1,5 +1,3 @@
-{-# LANGUAGE ExistentialQuantification , DeriveDataTypeable #-}
-
 {-|
 This module offers the main data type 'Language'. For every language, whose
 files shall be processed by astview, a value of the data type 'Language' has
@@ -17,17 +15,15 @@ import Language.Astview.SourceLocation
 -- tree). @srcLoc@ returns @Nothing@ if current tree does not specify
 -- any src loc. Function @adjustSrcLoc@ offers the ability to adjust
 -- src locs in abstract data type to our zero point (line 1, row 0)
-data Language = forall a s . Language
+data Language = forall a . Language
   { name :: String -- ^ language name
   , syntax :: String -- ^ syntax highlighter name
   , exts :: [String] 
    -- ^ file extentions which should be associated with this language
   , parse :: String -> Either Error a -- ^ parse function
   , toTree :: a -> Tree String -- ^ how to get a 'Tree' 'String'?
-  , srcLoc :: Maybe (Tree String -> [SrcLocation])
+  , srcLoc :: Tree String -> Maybe SrcLocation
     -- ^ selector function for source locations (if supported)
-  , adjustSrcLoc :: Maybe (s -> s)
-    -- ^ adjust src locs in abstract syntax to
   } deriving Typeable
 
 instance Eq Language where

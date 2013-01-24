@@ -31,8 +31,8 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView 
 
--- commands
-import System.Cmd (rawSystem)
+--gio
+import System.GIO.File.AppInfo (appInfoGetAllForType,appInfoLaunchUris)
 
 -- astview-utils
 import Language.Astview.Language 
@@ -114,7 +114,7 @@ getLanguage ref = do
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
-actionParse l@(Language _ _ _ p to _ _) ref = do
+actionParse l@(Language _ _ _ p to _) ref = do
   buffer <- getSourceBuffer ref
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True
@@ -288,13 +288,10 @@ getSourceLocations :: Language
                    -> Tree (String,TreePath) 
                    -> [(SrcLocation,TreePath)]
 getSourceLocations l t@(Node (_,p) cs) =
-  case srcLoc l of
-    Just f -> 
-      let xs = f $ fmap fst t in
+      let xs = srcLoc l $ fmap fst t in
       case xs of
-        []    -> concatMap (getSourceLocations l) cs
-        (x:_) -> [(x,p)]
-    Nothing -> []
+        Nothing -> concatMap (getSourceLocations l) cs
+        Just x  -> [(x,p)]
 
 
 -- -------------------------------------------------------------------
@@ -306,9 +303,16 @@ actionHelp :: AstAction ()
 actionHelp _ = do
   helpfile <- getDataFileName ("data" </> "astview.html")
   dir <- getDataDir
-  rawSystem "firefox" [dir </> helpfile]
-  return ()
-    
+  openUrlBySystemTool $ dir </> helpfile
+
+-- |open website in default browser respectively tool 
+openUrlBySystemTool :: String -> IO ()
+openUrlBySystemTool url = do
+  infos <- appInfoGetAllForType "text/html"
+  case infos of
+    []    -> return ()
+    (x:_) -> appInfoLaunchUris x [url] Nothing
+
 -- | launches info dialog
 actionAbout :: AstAction ()
 actionAbout ref = do

@@ -1,5 +1,9 @@
 // release history with features and fixed and open bugs
 
+0.3
+* removed dynamical extension of languages. The library (see astview.cabal) offers
+  statically all known languages. 
+
 0.2.1
 * removed dependency on astview-utils
 

@@ -11,8 +11,8 @@ import Graphics.UI.Gtk hiding (get)
 -- local
 import Language.Astview.GUIActions (actionEmptyGUI,actionLoadHeadless) 
 import Language.Astview.GUIData
-import Language.Astview.Registry (loadLanguages)
 import Language.Astview.GUI (buildAststate)
+import Language.Astview.Languages(knownLanguages)
 
 
 -- --------------------------------------------------------
@@ -24,7 +24,7 @@ import Language.Astview.GUI (buildAststate)
 main :: IO ()
 main = do 
   let os = Options "Monospace" 9
-  ref <- buildAststate os =<< loadLanguages
+  ref <- buildAststate os knownLanguages 
   
   args <- getArgs
   case args of

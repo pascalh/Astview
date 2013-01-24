@@ -1,5 +1,5 @@
 Name:            astview
-Version:         0.2.1
+Version:         0.3
 License:         BSD4
 License-File:    LICENSE
 Author:          
@@ -27,9 +27,6 @@ Cabal-Version:   >= 1.2
 Build-Type:      Custom
 Data-Files:
                  data/astview.glade
-                 data/Langs/Haskell.hs
-                 data/Langs/Expr.hs 
-                 data/Langs/Languages.hs
                  data/astview.html
                  data/astview-tmpl.html
                  data/style.css
@@ -38,18 +35,29 @@ Data-Files:
                  data/EX2.hs.txt
                  data/EX3.hs.txt
                  data/EX4.hs.txt
+                 data/EX5.hs.txt
 Library
   Hs-Source-Dirs:  src
   Exposed-Modules: Language.Astview.Language
                    Language.Astview.SourceLocation
                    Language.Astview.DataTree
+                   Language.Astview.Languages
+  Build-Depends:     base
+                   , gio 
+                   , haskell-src-exts >= 1.9.0
+                   , syb
+                   , parsec
+  extensions:      ExistentialQuantification,
+                   DeriveDataTypeable
 
 Executable         astview
   Hs-Source-Dirs:  src
   Main-is:         Main.hs
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
-  Other-Modules:   Language.Astview.GUI,
-                   Language.Astview.Registry
+  Other-Modules:   Language.Astview.GUI
+  extensions:      TemplateHaskell,
+                   ExistentialQuantification,
+                   DeriveDataTypeable
 
   Build-Depends:   base
                    , filepath
@@ -57,14 +65,10 @@ Executable         astview
                    , Glob
                    , containers
                    , syb
-                   , hint 
                    , glib
                    , gtk
                    , glade
                    , gtksourceview2
                    , directory
                    , mtl
-                   , process
                    , hscolour
-                   , haskell-src-exts >= 1.9.0
-                   , parsec

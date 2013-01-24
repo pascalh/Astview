@@ -1,12 +1,10 @@
-haskell :: Parser
-haskell =  Parser "Haskell" [".hs"] buildTreeHaskell
-
-buildTreeHaskell :: String -> Tree String
-buildTreeHaskell s = case parseHaskell s of
-     Right ast -> flat $ data2tree (ast::HsModule)
-     Left ParseError -> Node "ParseError" []
-
-parseHaskell :: (Data a) => String -> Either ParseError a
-parseHaskell s = case parseModule s of
-  ParseOk p -> unsafeCoerce $ Right p
-  _         -> Left ParseError
+data Language = forall a . Language
+  { name :: String -- ^ language name
+  , syntax :: String -- ^ syntax highlighter name
+  , exts :: [String] 
+   -- ^ file extentions which should be associated with this language
+  , parse :: String -> Either Error a -- ^ parse function
+  , toTree :: a -> Tree String -- ^ how to get a Tree String?
+  , srcLoc :: Tree String -> Maybe SrcLocation
+    -- ^ selector function for source locations (if supported)
+  } 
