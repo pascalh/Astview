@@ -23,8 +23,8 @@ find the executable `astview` in `~/.cabal/bin`.
 ### Working with source files
 
 We tried to make the user interface as common as possible by
-following the [http://library.gnome.org/devel/hig-book/stable/](
-GNOME human interface guidelines) closely. You can open a file by
+following the [
+GNOME human interface guidelines](http://library.gnome.org/devel/hig-book/stable/) closely. You can open a file by
 giving the filename at the command line:
 
 ```Bash
@@ -109,7 +109,7 @@ function over the tree of strings in order to get all source locations being rep
 ### Example: Adding your own language
 
 In this section we will introduce you to extending astview with our own languages. As
-a running example we will use the language Haskell based on the abstract syntax and parser from package [http://hackage.haskell.org/packages/archive/haskell-src-exts/latest/doc/html/Language-Haskell-Exts.html](haskell-src-exts). The name and the syntax highlighter are both the string `"Haskell"`. Although we associate both classical haskell files `".hs"` and literate haskell files `".lhs"` with this language. The following code applies the parser to our file content and puts the result in the right context to fit with our resulting data type:
+a running example we will use the language Haskell based on the abstract syntax and parser from package [haskell-src-exts](http://hackage.haskell.org/packages/archive/haskell-src-exts/latest/doc/html/Language-Haskell-Exts.html). The name and the syntax highlighter are both the string `"Haskell"`. Although we associate both classical haskell files `".hs"` and literate haskell files `".lhs"` with this language. The following code applies the parser to our file content and puts the result in the right context to fit with our resulting data type:
 
 
 ```Haskell
