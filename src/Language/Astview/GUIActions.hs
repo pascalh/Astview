@@ -31,9 +31,6 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView 
 
---gio
-import System.GIO.File.AppInfo (appInfoGetAllForType,appInfoLaunchUris)
-
 -- astview-utils
 import Language.Astview.Language 
 import Language.Astview.SourceLocation hiding (line,row)
@@ -57,7 +54,6 @@ menuActions =
   ,("mSrcLoc",actionJumpToSrcLoc)
   ,("mPath",actionShowPath)
   ,("mAbout",actionAbout)
-  ,("mOpenGitHub",actionGitHub)
   ,("mQuit",actionQuit)
   ]
 
@@ -294,18 +290,6 @@ getSourceLocations l t@(Node (_,p) cs) =
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions
 -- -------------------------------------------------------------------
-
--- |opens help in firefox
-actionGitHub :: AstAction ()
-actionGitHub _ = openUrlBySystemTool "http://github.com/pascalh/Astview" 
-
--- |open website in default browser respectively tool 
-openUrlBySystemTool :: String -> IO ()
-openUrlBySystemTool url = do
-  infos <- appInfoGetAllForType "text/html"
-  case infos of
-    []    -> return ()
-    (x:_) -> appInfoLaunchUris x [url] Nothing
 
 -- | launches info dialog
 actionAbout :: AstAction ()

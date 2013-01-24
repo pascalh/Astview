@@ -10,14 +10,14 @@
     <property name="type_hint">dialog</property>
     <property name="program_name">astview</property>
     <property name="version">0.3</property>
-    <property name="copyright" translatable="yes">Copyright © 2009 Sebastian Menge and Pascal Hof</property>
+    <property name="copyright" translatable="yes">Copyright © 2009-2013 Sebastian Menge and Pascal Hof</property>
     <property name="comments" translatable="yes">a graphical syntax tree viewer</property>
-    <property name="website">http://ls10-www.cs.tu-dortmund.de</property>
-    <property name="website_label">Lehrstuhl fuer Software-Technologie</property>
+    <property name="website">http://github.com/pascalh/Astview</property>
+    <property name="website_label">Repo: http://github.com/pascalh/Astview</property>
     <property name="license">astview: View abstract syntax trees for your custom languages and
 parsers in a graphical (GTK+) application.
 
-Copyright (c) 2009 Sebastian Menge and Pascal Hof
+Copyright (c) 2009-2013 Sebastian Menge and Pascal Hof
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -265,22 +265,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                   <widget class="GtkMenu" id="menuHelp">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="mOpenGitHub">
-                        <property name="label">Open project's GitHub in browser</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="use_stock">False</property>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="image1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="stock">gtk-missing-image</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="mAbout">
                         <property name="label">gtk-about</property>
