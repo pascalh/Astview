@@ -24,7 +24,7 @@ Description:
 Category:        Language
 
 Cabal-Version:   >= 1.2
-Build-Type:      Custom
+Build-Type:      Simple 
 Data-Files:
                  data/astview.glade
 Library
