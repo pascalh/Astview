@@ -17,7 +17,7 @@ import Data.Char (toLower)
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
 
 -- filepath
-import System.FilePath ((</>),takeExtension,takeFileName)
+import System.FilePath (takeExtension,takeFileName)
 
 -- bytestring
 import qualified Data.ByteString.Char8 as BS (hGetContents,unpack)
@@ -38,9 +38,6 @@ import System.GIO.File.AppInfo (appInfoGetAllForType,appInfoLaunchUris)
 import Language.Astview.Language 
 import Language.Astview.SourceLocation hiding (line,row)
 
--- generated on-the-fly by cabal
-import Paths_astview (getDataFileName,getDataDir) 
-
 -- |unsaved document
 unsavedDoc :: String
 unsavedDoc = "Unsaved document"
@@ -60,7 +57,7 @@ menuActions =
   ,("mSrcLoc",actionJumpToSrcLoc)
   ,("mPath",actionShowPath)
   ,("mAbout",actionAbout)
-  ,("mShowHelp",actionHelp)
+  ,("mOpenGitHub",actionGitHub)
   ,("mQuit",actionQuit)
   ]
 
@@ -299,11 +296,8 @@ getSourceLocations l t@(Node (_,p) cs) =
 -- -------------------------------------------------------------------
 
 -- |opens help in firefox
-actionHelp :: AstAction ()
-actionHelp _ = do
-  helpfile <- getDataFileName ("data" </> "astview.html")
-  dir <- getDataDir
-  openUrlBySystemTool $ dir </> helpfile
+actionGitHub :: AstAction ()
+actionGitHub _ = openUrlBySystemTool "http://github.com/pascalh/Astview" 
 
 -- |open website in default browser respectively tool 
 openUrlBySystemTool :: String -> IO ()
@@ -318,10 +312,6 @@ actionAbout :: AstAction ()
 actionAbout ref = do
   dlg <- fmap dlgAbout (getGui ref)
   aboutDialogSetUrlHook (\_ -> return ())
-  licensefile <- getDataFileName ("data" </> "LICENSE.unwrapped")
-  contents <- withFile licensefile ReadMode (fmap BS.unpack . BS.hGetContents)
-  aboutDialogSetWrapLicense dlg True 
-  aboutDialogSetLicense dlg (Just contents)
   widgetShow dlg
 
 -- -------------------------------------------------------------------

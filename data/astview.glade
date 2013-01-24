@@ -9,7 +9,7 @@
     <property name="icon_name">dialog-information</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">astview</property>
-    <property name="version">0.1</property>
+    <property name="version">0.3</property>
     <property name="copyright" translatable="yes">Copyright © 2009 Sebastian Menge and Pascal Hof</property>
     <property name="comments" translatable="yes">a graphical syntax tree viewer</property>
     <property name="website">http://ls10-www.cs.tu-dortmund.de</property>
@@ -40,7 +40,7 @@ OTHER DEALINGS IN THE SOFTWARE.</property>
     <property name="authors">Sebastian Menge &lt;sebastian.menge@uni-dortmund.de&gt;
 Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
     <property name="documenters">Haddock: Sebastian Menge &lt;sebastian.menge@uni-dortmund.de&gt;</property>
-    <property name="artists"/>
+    <property name="artists"></property>
     <property name="wrap_license">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxAbout">
@@ -214,6 +214,7 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
                     </child>
@@ -265,13 +266,19 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <widget class="GtkImageMenuItem" id="mShowHelp">
-                        <property name="label">gtk-help</property>
+                      <widget class="GtkImageMenuItem" id="mOpenGitHub">
+                        <property name="label">Open project's GitHub in browser</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="image1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-missing-image</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>

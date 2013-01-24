@@ -12,8 +12,13 @@ widget.
 The program evolved as a case study in generic programming and
 building graphical user interfaces in Haskell.
 
+Astview is under continuous development. The sources can be found at [Github](https://github.com/pascalh/Astview).
 
 ## User guide
+
+### Installing astview
+
+First of all download the sources of astview, which can be easily achieved by a `git clone`. To install astview, just run `cabal install` in the astview-directory.
 
 ### Opening astview
 Astview will be installed in our local cabal directory. Thus you will

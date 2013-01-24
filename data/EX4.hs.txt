@@ -1,7 +1,0 @@
-toSrcLoc :: Tree String -> Maybe SrcLocation
-toSrcLoc (Node "SrcSpan" [_,c1,c2,c3,c4]) = 
-  Just $ SrcSpan (to c1) (to c2) (to c3) (to c4)
-   where 
-     to :: Tree String -> Int
-     to = read . rootLabel 
-toSrcLoc _        = Nothing 
