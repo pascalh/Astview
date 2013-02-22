@@ -11,15 +11,12 @@ import Language.Haskell.Exts.Parser
 import Language.Haskell.Exts.Annotated.Syntax
 import Language.Haskell.Exts.SrcLoc
 
-import Language.Astview.DataTree (data2tree)
-
 haskellexts :: Language
 haskellexts = Language 
   "Haskell" 
   "Haskell" 
   [".hs",".lhs"] 
   parHaskell
-  (data2tree::Module SrcSpan ->Tree String)
   toSrcLoc
     
 parHaskell :: String -> Either Error (Module SrcSpan)

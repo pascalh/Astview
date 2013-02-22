@@ -16,6 +16,8 @@ import Data.Char (toLower)
 -- io
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
 
+import Language.Astview.DataTree (data2tree)
+
 -- filepath
 import System.FilePath (takeExtension,takeFileName)
 
@@ -107,7 +109,7 @@ getLanguage ref = do
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
-actionParse l@(Language _ _ _ p to _) ref = do
+actionParse l@(Language _ _ _ p _) ref = do
   buffer <- getSourceBuffer ref
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True
@@ -116,7 +118,7 @@ actionParse l@(Language _ _ _ p to _) ref = do
   clearTreeView view
 
   -- error handling
-  let t = case fmap to (p plain) of
+  let t = case fmap data2tree (p plain) of
            Left Err                  -> Node "Parse error" []
            Left (ErrMessage m)       -> Node m []
            Left (ErrLocation pos message) -> 
