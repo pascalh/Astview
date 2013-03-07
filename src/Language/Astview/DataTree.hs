@@ -1,7 +1,7 @@
 {-| This module contains datatype-generic functions to gain a 'Tree' 'String'
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree where
+module Language.Astview.DataTree (data2tree) where
 
 -- syb
 import Data.Generics (Data
