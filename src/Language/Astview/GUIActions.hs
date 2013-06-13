@@ -33,9 +33,9 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView 
 
--- astview-utils
 import Language.Astview.Language 
-import Language.Astview.SourceLocation hiding (line,row)
+import Language.Astview.Languages
+import Language.Astview.SourceLocation 
 
 -- |unsaved document
 unsavedDoc :: String
@@ -101,15 +101,20 @@ actionLoadHeadless file ref = do
 
 -- |tries to find a language based on the extension of 
 -- current file name
-getLanguage :: AstAction (Maybe Language)
+getLanguage :: AstAction (Maybe Lang)
 getLanguage ref = do
   file <- getFile ref
   langs <- getLangs ref
-  return $ find (elem (takeExtension file) . exts) langs
+  return $ find (elem (takeExtension file) . langExts) langs
+
+
+actionGetAst :: Lang -> AstAction (Either Error Ast)
+actionGetAst l ref = do
+  fmap (langParse l) . getText =<< getSourceBuffer ref 
 
 -- | parses the contents of the sourceview with the selected language
-actionParse :: Language -> AstAction (Tree String)
-actionParse l@(Language _ _ _ p _) ref = do
+actionParse :: Lang -> AstAction (Tree String) 
+actionParse l ref = do
   buffer <- getSourceBuffer ref
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True
@@ -118,7 +123,7 @@ actionParse l@(Language _ _ _ p _) ref = do
   clearTreeView view
 
   -- error handling
-  let t = case fmap data2tree (p plain) of
+  let t = case fmap data2tree (langParse l plain) of
            Left Err                  -> Node "Parse error" []
            Left (ErrMessage m)       -> Node m []
            Left (ErrLocation pos message) -> 
@@ -140,12 +145,12 @@ actionParse l@(Language _ _ _ p _) ref = do
     
 -- |uses the name of given language to establish syntax highlighting in 
 -- source buffer
-setupSyntaxHighlighting :: SourceBuffer -> Language -> IO ()
+setupSyntaxHighlighting :: SourceBuffer -> Lang -> IO ()
 setupSyntaxHighlighting buffer language = do
   langManager <- sourceLanguageManagerGetDefault
   maybeLang <- sourceLanguageManagerGetLanguage 
         langManager 
-        (map toLower $ syntax language)
+        (map toLower $ langSyntax language)
   case maybeLang of
     Just lang -> do
       sourceBufferSetHighlightSyntax buffer True
@@ -233,34 +238,54 @@ actionDeleteSource ref = do
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
-getCursorPosition :: AstAction CursorP
+getCursorPosition :: AstAction CursorSelection 
 getCursorPosition ref = do
-  (iter,_) <- textBufferGetSelectionBounds =<< getSourceBuffer ref
-  l <- textIterGetLine iter
-  r <- textIterGetLineOffset iter
-  return $ CursorP (l+1) (r+1)
+  (startIter,endIter) <- textBufferGetSelectionBounds =<< getSourceBuffer ref
+  lineStart <- textIterGetLine startIter 
+  rowStart <- textIterGetLineOffset startIter 
+  lineEnd <- textIterGetLine endIter  
+  rowEnd <- textIterGetLineOffset endIter 
+  return $ CursorSelection (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
 
 -- |opens tree position associated with current cursor position
 actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
   treePath <- actionGetSrcLoc ref 
-  when (not $ null treePath) (selectPath treePath ref)
+  case treePath of
+    Nothing -> return ()
+    Just p  -> selectPath p ref
 
 -- |returns the position in tree which is associated with the
 -- current selected source location.
-actionGetSrcLoc :: AstAction TreePath 
+--
+-- IMPORTANT: a source pos should be located in the first
+-- subtree, thus moving to the immediate parent of a src loc
+-- yields the whole tree annotated with that src loc. 
+actionGetSrcLoc :: AstAction (Maybe TreePath)
 actionGetSrcLoc ref = do  
-  (CursorP l r) <- getCursorPosition ref 
-  
-  -- reparse and set cursor in treeview
+  sele <- getCursorPosition ref 
   maybeLang <- getLanguage ref
   case maybeLang of
-    Nothing -> return [] 
+    Nothing -> return Nothing
     Just lang -> do 
-      t <- actionParse lang ref 
-      let sl = sourceLocations lang t
-      let s = findSrcLoc l r $ map fst sl 
-      return $ getAssociatedValue s sl 
+      astOrError <- actionGetAst lang ref 
+      case astOrError of
+        Left _    -> return Nothing
+        Right ast -> do
+             putStrLn $ show sele ++ "selected"
+             case extractMinSrcLocWithPath lang sele ast of
+                Nothing -> return Nothing
+                Just (p',srcloc)  -> do
+                  let p = up p'
+                  putStrLn $ "Source location "++show srcloc
+                  putStrLn $ "Selecting path :"++ show p
+                  putStrLn $ replicate 50 '-'
+                  return $ Just p
+
+up :: TreePath -> TreePath
+up [c] = [c-1]
+up (c:cs) = c : up cs
+
 
 -- |select tree path 
 selectPath :: TreePath -> AstAction ()
@@ -269,25 +294,16 @@ selectPath p ref = do
   treeViewExpandToPath view p
   treeViewSetCursor view p Nothing
 
--- |returns all source locations and paths to source
--- locations in current tree
-sourceLocations :: Language -> Tree String -> [(SrcLocation,TreePath)]
-sourceLocations lang = getSourceLocations lang . calcPaths [0] where
-  calcPaths :: [Int] -> Tree String -> Tree (String,TreePath)
-  calcPaths curPath (Node l cs) = 
-    let paths = zipWith (\p e->p++[e]) (repeat curPath) [0,1..] in
-    Node (l,curPath) (zipWith (\subtree p -> calcPaths p subtree) cs paths)
-
--- |a helper function for 'sourceLocations'
-getSourceLocations :: Language 
-                   -> Tree (String,TreePath) 
-                   -> [(SrcLocation,TreePath)]
-getSourceLocations l t@(Node (_,p) cs) =
-      let xs = srcLoc l $ fmap fst t in
-      case xs of
-        Nothing -> concatMap (getSourceLocations l) cs
-        Just x  -> [(x,p)]
-
+-- |
+extractMinSrcLocWithPath :: Lang -> CursorSelection -> Ast -> Maybe (TreePath,SrcLocation)
+extractMinSrcLocWithPath lang sele term =
+  case langToSrcLoc lang of
+    Nothing -> Nothing
+    Just extrSrcLoc -> do
+      let m = pathToValues (sybFoo extrSrcLoc lang) term
+      srcloc <- findSrcLoc sele $ map fst m 
+      p <- lookup srcloc m
+      return (path p,srcloc)
 
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions
@@ -403,13 +419,10 @@ actionReparse :: AstAction ()
 actionReparse ref = 
   whenJustM (getLanguage ref) $ \l -> actionParse l ref >> return ()
 
--- |prints the current selected path to console
+-- |prints the current selected path to console. Mainly used for 
+-- debugging purposes.
 actionShowPath :: AstAction ()
-actionShowPath ref = do
-  p <- actionGetPath ref
-  case p of
-    []   -> return ()
-    path -> print path
+actionShowPath ref = actionGetPath ref >>= print
 
 actionGetPath :: AstAction [Int]
 actionGetPath ref = do 

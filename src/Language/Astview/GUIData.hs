@@ -9,7 +9,7 @@ import Data.IORef
 import Graphics.UI.Gtk hiding (Language,get)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
 
-import Language.Astview.Language (Language)
+import Language.Astview.Languages (Lang)
 
 type AstAction a = IORef AstState -> IO a
 
@@ -30,8 +30,8 @@ data Options = Options
 data State =  State
   { cFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if file changed
-  , cursor :: CursorP -- ^ last active cursor position
-  , languages :: [Language] -- ^ known languages
+  , lastSelection :: CursorSelection -- ^ last active cursor position
+  , languages :: [Lang] -- ^ known languages
   }
 
 -- |main gui data type, contains gtk components
@@ -42,12 +42,16 @@ data GUI = GUI
   , dlgAbout :: AboutDialog -- ^ about dialog
   }
 
--- |cursor position in a text buffer
-data CursorP = CursorP 
-  { cursorLine :: Int
-  , cursorRow  :: Int
-  }
+-- |a cursor selection in a text buffer
+data CursorSelection = CursorSelection
+  Int -- ^ line start
+  Int  -- ^ row start
+  Int -- ^ line end
+  Int  -- ^ row end
 
+instance Show CursorSelection where
+  show (CursorSelection a b c d) = "("++show a++":"++show b++") ("++
+                                   show c++":"++show d++")"
 
 -- * getter functions
 
@@ -66,14 +70,14 @@ getGui = fmap gui . readIORef
 getState :: AstAction State 
 getState = fmap state . readIORef 
 
-getLangs :: AstAction [Language]
+getLangs :: AstAction [Lang]
 getLangs = fmap (languages . state) . readIORef
 
 getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
 
-getCursor :: AstAction CursorP
-getCursor = fmap (cursor . state) . readIORef
+getCursor :: AstAction CursorSelection
+getCursor = fmap (lastSelection . state) . readIORef
 
 getFile :: AstAction String
 getFile = fmap (cFile . state) . readIORef
@@ -83,8 +87,8 @@ getWindow = fmap (window . gui) . readIORef
 
 -- * setter functions
 
--- |stores the current cursor position
-setCursor :: CursorP -> AstAction ()
+-- |stores the current selection 
+setCursor :: CursorSelection -> AstAction ()
 setCursor cp r = modifyIORef r m  where
   m :: AstState -> AstState
   m s@(AstState (State f c _ ls ) _ _) = s { state = State f c cp ls}

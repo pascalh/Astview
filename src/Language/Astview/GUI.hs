@@ -23,13 +23,13 @@ import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 -- astview-utils
-import Language.Astview.Language
+import Language.Astview.Languages
 
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName) 
 
 -- | initiates aststate
-buildAststate :: Options -> [Language] -> IO (IORef AstState)
+buildAststate :: Options -> [Lang] -> IO (IORef AstState)
 buildAststate opt langs = do
   -- GTK init
   initGUI 
@@ -50,7 +50,7 @@ buildAststate opt langs = do
       st = State 
         { cFile = unsavedDoc
         , textchanged = False
-        , cursor = CursorP 0 0
+        , lastSelection = CursorSelection 0 0 0 0
         , languages = langs
         }
 
@@ -68,8 +68,8 @@ buildAststate opt langs = do
 -- -------------------------------------------------------------------
 
 -- |builds combobox label for a language
-buildLabel :: Language -> String
-buildLabel l = name l ++ " [" ++ concatMap (" "++) (exts l) ++ "]"
+buildLabel :: Lang -> String
+buildLabel l = langName l ++ " [" ++ concatMap (" "++) (langExts l) ++ "]"
 
 -- | setup the GtkSourceView and add it to the ScrollPane. return the 
 -- underlying textbuffer

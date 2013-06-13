@@ -20,11 +20,11 @@ data2tree = gdefault `extQ` atString
     atString x = Node x []
     gdefault x = Node (showConstr $ toConstr x) (gmapQ data2tree x) 
   
-
+{-
 -- |try to flatten degenerated trees (lists of cons). NOT WORKING YET!
 flat :: Tree String -> Tree String
 flat = id -- do nothing, see commentary below
-
+-}
 
 
 

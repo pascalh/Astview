@@ -23,7 +23,7 @@ Description:
 
 Category:        Language
 
-Cabal-Version:   >= 1.2
+Cabal-Version:   >= 1.8
 Build-Type:      Simple 
 Data-Files:
                  data/astview.glade
@@ -33,11 +33,16 @@ Library
                    Language.Astview.SourceLocation
                    Language.Astview.DataTree
                    Language.Astview.Languages
-  Build-Depends:     base
+                   Language.Astview.GUIData
+  Build-Depends:     base == 4.6.0.0
+                   , containers == 0.5.0.0
                    , gio 
-                   , haskell-src-exts >= 1.9.0
+                   , haskell-src-exts == 1.13.5
                    , syb
-  extensions:      ExistentialQuantification,
+                   , syz
+                   , gtksourceview2 == 0.12.3.1
+                   , gtk == 0.12.4
+  extensions:      FlexibleInstances,
                    DeriveDataTypeable
 
 Executable         astview
@@ -46,15 +51,16 @@ Executable         astview
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
   Other-Modules:   Language.Astview.GUI
   extensions:      TemplateHaskell,
-                   ExistentialQuantification,
+                   FlexibleInstances,
                    DeriveDataTypeable
 
-  Build-Depends:   base
+  Build-Depends:   base == 4.6.0.0
                    , filepath
                    , bytestring
                    , Glob
                    , containers
                    , syb
+                   , syz
                    , glib
                    , gtk
                    , glade
@@ -62,3 +68,16 @@ Executable         astview
                    , directory
                    , mtl
                    , hscolour
+                   , haskell-src-exts == 1.13.5
+
+test-suite basic
+    type: exitcode-stdio-1.0
+    Hs-Source-Dirs: test 
+    main-is: Main.hs
+    build-depends: base == 4.6.0.0, 
+                   astview == 0.3,
+                   containers ,
+                   test-framework == 0.8, 
+                   test-framework-hunit == 0.3.0,
+                   HUnit == 1.2.5.1 
+
