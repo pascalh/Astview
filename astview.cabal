@@ -25,6 +25,7 @@ Category:        Language
 
 Cabal-Version:   >= 1.8
 Build-Type:      Simple 
+Tested-with:     GHC==7.6.1
 Data-Files:
                  data/astview.glade
 Library
@@ -36,10 +37,10 @@ Library
                    Language.Astview.GUIData
   Build-Depends:     base == 4.6.0.0
                    , containers == 0.5.0.0
-                   , gio 
+                   , gio == 0.12.4
                    , haskell-src-exts == 1.13.5
-                   , syb
-                   , syz
+                   , syb == 0.3.7
+                   , syz == 0.2.0.0
                    , gtksourceview2 == 0.12.3.1
                    , gtk == 0.12.4
   extensions:      FlexibleInstances,
@@ -55,19 +56,19 @@ Executable         astview
                    DeriveDataTypeable
 
   Build-Depends:   base == 4.6.0.0
-                   , filepath
-                   , bytestring
-                   , Glob
-                   , containers
-                   , syb
-                   , syz
-                   , glib
-                   , gtk
-                   , glade
-                   , gtksourceview2
-                   , directory
-                   , mtl
-                   , hscolour
+                   , filepath == 1.3.0.1
+                   , bytestring == 0.10.0.0
+                   , Glob == 0.7.2
+                   , containers == 0.5.0.0
+                   , syb == 0.3.7
+                   , syz == 0.2.0.0
+                   , glib == 0.12.4
+                   , gtk == 0.12.4
+                   , glade == 0.12.1
+                   , gtksourceview2 == 0.12.3.1
+                   , directory == 1.2.0.0
+                   , mtl ==2.1.2
+                   , hscolour == 1.20.3
                    , haskell-src-exts == 1.13.5
 
 test-suite basic
@@ -76,7 +77,7 @@ test-suite basic
     main-is: Main.hs
     build-depends: base == 4.6.0.0, 
                    astview == 0.3,
-                   containers ,
+                   containers == 0.5.0.0,
                    test-framework == 0.8, 
                    test-framework-hunit == 0.3.0,
                    HUnit == 1.2.5.1 
