@@ -6,13 +6,11 @@ a couple of useful helper functions for source locations.
 -}
 module Language.Astview.SourceLocation
   (findSrcLoc
-  ,getAssociatedValue
   ,pathToValues
-  ,Path(Path),path
+  ,Path(Path)
+  ,path
   ) where
 import Data.List(find)
-import Data.Monoid(First(..),(<>))
-
 import Data.Data(Data)
 import Data.Typeable(Typeable)
 import qualified Data.Generics.Zipper as Z
@@ -21,6 +19,9 @@ import Data.Generics.Aliases(GenericQ)
 import Language.Astview.Language
 import Language.Astview.GUIData
 
+selectionToSpan :: CursorSelection -> SrcLocation
+selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
+
 -- |given a cursor selection and a list of source locations, findSrcLoc determines 
 -- the source location (from the list) which is nearest to the position given
 -- by the line and the row.
@@ -28,28 +29,19 @@ findSrcLoc :: CursorSelection
            -> [SrcLocation] 
            -> Maybe SrcLocation
 findSrcLoc sele srcLocs = 
-  getFirst $  sameElement sele srcLocs <> smallestSpanContaining sele srcLocs 
+  sameElement sele srcLocs >> smallestSpanContaining sele srcLocs 
 
 -- |returns the source position given by line and row, 
 -- iff it is element of the list
-sameElement :: CursorSelection -> [SrcLocation] -> First SrcLocation
-sameElement (CursorSelection lb rb le re) = 
-  First . find (\s -> s==(SrcSpan lb rb le re))
+sameElement :: CursorSelection -> [SrcLocation] -> Maybe SrcLocation
+sameElement selection = 
+  find (\s -> s==selectionToSpan selection)
 
 -- |the source location which is the smallest one containing the position
 -- given by line and row
-smallestSpanContaining :: CursorSelection -> [SrcLocation] -> First SrcLocation
-smallestSpanContaining (CursorSelection lb rb le re) =
-  First . smallestSpan . filter (\s -> contains s (SrcSpan lb rb le re)) 
-
--- |returns the value which is associated with given source location
-getAssociatedValue :: Maybe SrcLocation -> [(SrcLocation,[a])] -> [a] 
-getAssociatedValue Nothing _ = []
-getAssociatedValue _ [] = []
-getAssociatedValue (Just s) ((loc,v):xs)
-  | s == loc  = v
-  | otherwise = getAssociatedValue (Just s) xs
-
+smallestSpanContaining :: CursorSelection -> [SrcLocation] -> Maybe SrcLocation
+smallestSpanContaining selection =
+  smallestSpan . filter (\s -> contains s (selectionToSpan selection)) 
 
 -- |returns the smallest span, i.e. the span with does not contain any other.
 smallestSpan :: [SrcLocation] -> Maybe SrcLocation
