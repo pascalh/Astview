@@ -9,19 +9,13 @@ You can extend the list with your own parsers
 module Language.Astview.Languages where
 
 -- -- local imports
-import Language.Astview.Language 
-import Data.Data(Data)
-import Data.Generics.Aliases
-import Data.Typeable
-
-import qualified Language.Haskell.Exts.Annotated.Syntax as Hs
-import qualified Language.Haskell.Exts.SrcLoc as HsSrcLoc
+import Language.Astview.Language (Language)
 import Haskell  
 
 -- |  astview
-knownLanguages :: [Lang]
-knownLanguages = [langHaskell]
-
+knownLanguages :: [Language]
+knownLanguages = [haskellexts]
+{-
 langHaskell :: Lang
 langHaskell = HaskellLang haskellexts
 
@@ -52,5 +46,5 @@ langToSrcLoc (HaskellLang l) = do
 sybFoo :: (SrcLoc -> SrcLocation) -> Lang -> GenericQ ( Maybe SrcLocation)
 sybFoo f (HaskellLang _) = fmap (f . HsSrcLoc) . cast
 
-
+-}
 

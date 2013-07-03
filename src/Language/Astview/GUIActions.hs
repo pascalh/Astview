@@ -9,14 +9,11 @@ import Language.Astview.GUIData
 
 -- base
 import Prelude hiding (writeFile)
-import Data.Maybe(fromJust,isJust)
 import Data.List (find)
 import Control.Monad (when)
 import Data.Char (toLower)
 -- io
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
-
-import Language.Astview.DataTree (data2tree)
 
 -- filepath
 import System.FilePath (takeExtension,takeFileName)
@@ -34,7 +31,6 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView 
 
 import Language.Astview.Language 
-import Language.Astview.Languages
 import Language.Astview.SourceLocation 
 
 -- |unsaved document
@@ -101,19 +97,19 @@ actionLoadHeadless file ref = do
 
 -- |tries to find a language based on the extension of 
 -- current file name
-getLanguage :: AstAction (Maybe Lang)
+getLanguage :: AstAction (Maybe Language)
 getLanguage ref = do
   file <- getFile ref
   langs <- getLangs ref
-  return $ find (elem (takeExtension file) . langExts) langs
+  return $ find (elem (takeExtension file) . exts) langs
 
 
-actionGetAst :: Lang -> AstAction (Either Error Ast)
+actionGetAst :: Language -> AstAction (Either Error Ast)
 actionGetAst l ref = do
-  fmap (langParse l) . getText =<< getSourceBuffer ref 
+  fmap (parse l) . getText =<< getSourceBuffer ref 
 
 -- | parses the contents of the sourceview with the selected language
-actionParse :: Lang -> AstAction (Tree String) 
+actionParse :: Language -> AstAction (Tree String) 
 actionParse l ref = do
   buffer <- getSourceBuffer ref
   view <- getTreeView ref
@@ -123,12 +119,12 @@ actionParse l ref = do
   clearTreeView view
 
   -- error handling
-  let t = case fmap data2tree (langParse l plain) of
+  let t = case (parse l plain) of
            Left Err                  -> Node "Parse error" []
            Left (ErrMessage m)       -> Node m []
            Left (ErrLocation pos message) -> 
                Node ("Parse error at:"++show pos++": "++message) [] 
-           Right ast                 -> ast
+           Right (Ast ast)       -> fmap label  ast
   
   model <- treeStoreNew [t]
   treeViewSetModel view model
@@ -145,12 +141,12 @@ actionParse l ref = do
     
 -- |uses the name of given language to establish syntax highlighting in 
 -- source buffer
-setupSyntaxHighlighting :: SourceBuffer -> Lang -> IO ()
+setupSyntaxHighlighting :: SourceBuffer -> Language -> IO ()
 setupSyntaxHighlighting buffer language = do
   langManager <- sourceLanguageManagerGetDefault
   maybeLang <- sourceLanguageManagerGetLanguage 
         langManager 
-        (map toLower $ langSyntax language)
+        (map toLower $ syntax language)
   case maybeLang of
     Just lang -> do
       sourceBufferSetHighlightSyntax buffer True
@@ -247,22 +243,21 @@ getCursorPosition ref = do
   rowEnd <- textIterGetLineOffset endIter 
   return $ CursorSelection (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
 
--- |opens tree position associated with current cursor position
+-- |opens tree position associated with current cursor position.
+-- Right now we are picking the first path in the list, but there
+-- should be some kind of user interaction.
 actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
-  treePath <- actionGetSrcLoc ref 
-  case treePath of
-    Nothing -> return ()
-    Just p  -> selectPath p ref
+  treePaths <- actionGetAssociatedPaths ref 
+  putStrLn $ "Matching results: "++ show treePaths
+  case treePaths of
+    Just (PathList _ (p:_))  -> activatePath p ref
+    _                        -> return ()
 
--- |returns the position in tree which is associated with the
+-- |returns the paths in tree which are associated with the
 -- current selected source location.
---
--- IMPORTANT: a source pos should be located in the first
--- subtree, thus moving to the immediate parent of a src loc
--- yields the whole tree annotated with that src loc. 
-actionGetSrcLoc :: AstAction (Maybe TreePath)
-actionGetSrcLoc ref = do  
+actionGetAssociatedPaths :: AstAction (Maybe PathList)
+actionGetAssociatedPaths ref = do  
   sele <- getCursorPosition ref 
   maybeLang <- getLanguage ref
   case maybeLang of
@@ -270,40 +265,18 @@ actionGetSrcLoc ref = do
     Just lang -> do 
       astOrError <- actionGetAst lang ref 
       case astOrError of
-        Left _    -> return Nothing
+        Left _    -> return Nothing 
         Right ast -> do
-             putStrLn $ show sele ++ "selected"
-             case extractMinSrcLocWithPath lang sele ast of
-                Nothing -> return Nothing
-                Just (p',srcloc)  -> do
-                  let p = up p'
-                  putStrLn $ "Source location "++show srcloc
-                  putStrLn $ "Selecting path :"++ show p
-                  putStrLn $ replicate 50 '-'
-                  return $ Just p
-
-up :: TreePath -> TreePath
-up [c] = [c-1]
-up (c:cs) = c : up cs
+           putStrLn $ show sele ++ " selected"
+           return $ Just $ select sele ast 
 
 
 -- |select tree path 
-selectPath :: TreePath -> AstAction ()
-selectPath p ref = do 
+activatePath :: TreePath -> AstAction ()
+activatePath p ref = do 
   view <- getTreeView ref
   treeViewExpandToPath view p
   treeViewSetCursor view p Nothing
-
--- |
-extractMinSrcLocWithPath :: Lang -> CursorSelection -> Ast -> Maybe (TreePath,SrcLocation)
-extractMinSrcLocWithPath lang sele term =
-  case langToSrcLoc lang of
-    Nothing -> Nothing
-    Just extrSrcLoc -> do
-      let m = pathToValues (sybFoo extrSrcLoc lang) term
-      srcloc <- findSrcLoc sele $ map fst m 
-      p <- lookup srcloc m
-      return (path p,srcloc)
 
 -- -------------------------------------------------------------------
 -- ** helpmenu menu actions
@@ -444,7 +417,7 @@ whenJust (Just x) action = action x
 whenJustM :: Monad m => m(Maybe a) -> (a -> m ()) -> m ()
 whenJustM val action = do
   m <- val
-  when (isJust m) ((action.fromJust) m)  
+  maybe (return ()) action m
 
 -- |returns the text in given text buffer
 getText :: TextBufferClass c => c -> IO String

@@ -8,8 +8,7 @@ import Data.IORef
 -- gtksourceview
 import Graphics.UI.Gtk hiding (Language,get)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
-
-import Language.Astview.Languages (Lang)
+import Language.Astview.Language(Language)
 
 type AstAction a = IORef AstState -> IO a
 
@@ -31,7 +30,7 @@ data State =  State
   { cFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if file changed
   , lastSelection :: CursorSelection -- ^ last active cursor position
-  , languages :: [Lang] -- ^ known languages
+  , languages :: [Language] -- ^ known languages
   }
 
 -- |main gui data type, contains gtk components
@@ -50,8 +49,8 @@ data CursorSelection = CursorSelection
   Int  -- ^ row end
 
 instance Show CursorSelection where
-  show (CursorSelection a b c d) = "("++show a++":"++show b++") ("++
-                                   show c++":"++show d++")"
+  show (CursorSelection a b c d) = 
+    "("++show a++":"++show b++") ("++show c++":"++show d++")"
 
 -- * getter functions
 
@@ -70,7 +69,7 @@ getGui = fmap gui . readIORef
 getState :: AstAction State 
 getState = fmap state . readIORef 
 
-getLangs :: AstAction [Lang]
+getLangs :: AstAction [Language]
 getLangs = fmap (languages . state) . readIORef
 
 getChanged :: AstAction Bool
