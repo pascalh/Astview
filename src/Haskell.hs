@@ -49,7 +49,7 @@ list (x:xs) = Node (astnode "(:)" Nothing) [toAst x , list xs]
 
 list' :: (t -> Tree AstNode) -> [t] -> Tree AstNode
 list' _ [] = Node (astnode "[]" Nothing) []
-list' k (x:xs) = Node (astnode "(:" Nothing) [k x,list' k xs] 
+list' k (x:xs) = Node (astnode "(:)" Nothing) [k x,list' k xs] 
 
 toSrcLocHs :: HsSrcLoc.SrcSpan -> SrcLocation
 toSrcLocHs (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = SrcSpan c1 c2 c3 c4
