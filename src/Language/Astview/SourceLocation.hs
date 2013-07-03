@@ -24,26 +24,26 @@ selectionToSpan :: CursorSelection -> SrcLocation
 selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 
 -- |every node gains its position in the tree as additional value
-addPaths :: Tree a -> Tree (a,[Int])
+addPaths :: Tree AstNode -> Tree AstNode 
 addPaths = f [0] where
-  f :: [Int] -> Tree a -> Tree (a,[Int])
-  f p (Node v cs) = Node (v,p) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
+  f :: [Int] -> Tree AstNode -> Tree AstNode 
+  f p (Node (AstNode l s _) cs) = 
+    Node (AstNode l s p) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
 
 -- |select the source location path pairs in the tree, s.t.
 -- the source locations are the smallest containing given cursor selection.
 -- Thus the pairs in the resulting list only differ in their paths.
 select :: CursorSelection -> Ast -> PathList
-select sele (Ast ast) = 
-  bruteForce $ addPaths $ fmap srcloc ast where
+select sele (Ast ast) = bruteForce ast where
   
-    bruteForce :: Tree (Maybe SrcLocation,[Int]) -> PathList
+    bruteForce :: Tree AstNode -> PathList
     bruteForce tree = 
       let allSrcLocs = catMaybes $ flatten $ fmap getSrcLocPathPairs tree
       in smallest $ locsContainingSelection allSrcLocs 
 
-    getSrcLocPathPairs :: (Maybe SrcLocation,[Int]) -> Maybe (SrcLocation,[Int])
-    getSrcLocPathPairs (Nothing,_) = Nothing
-    getSrcLocPathPairs (Just s ,p) = Just (s,p)
+    getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,[Int])
+    getSrcLocPathPairs (AstNode _ Nothing  _) = Nothing
+    getSrcLocPathPairs (AstNode _ (Just s) p) = Just (s,p)
 
     locsContainingSelection :: [(SrcLocation,[Int])] -> [(SrcLocation,[Int])] 
     locsContainingSelection = filter (\(s,_) -> s >= selectionToSpan sele )

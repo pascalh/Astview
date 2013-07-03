@@ -52,10 +52,11 @@ instance Ord SrcLocation where
 data AstNode = AstNode
   { label :: String
   , srcloc :: Maybe SrcLocation
+  , path :: [Int]
   }
 
 instance Show AstNode where
-  show (AstNode l s) = 
+  show (AstNode l s _) = 
     l ++ (case s of { Nothing -> ""; 
                       Just x ->replicate 5 ' '  ++"["++show x++"]"})
 

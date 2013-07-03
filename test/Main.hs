@@ -90,14 +90,17 @@ sameBegin =
 -- * select
 groupSelect = testGroup "Select" [t1,t2,t3,t4,t5,t6]
 
+mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
+mkTree l s cs = addPaths $ Node (AstNode l (Just s) []) cs
+
 t1 = testCase "return first occourence" $ 
        (toList $ select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(SrcSpan 1 2 1 7,[0])]  where
-          ast = (Node (AstNode "a" (Just (SrcSpan 1 2 1 7))) [])
+          ast = mkTree "a" (SrcSpan 1 2 1 7) []
        
 t2 = testCase "return immediate successor" $ 
        let r = SrcSpan 1 2 3 9
-           ast = (Node (AstNode "a" (Just (SrcSpan 1 1 16 3))) [c])  
-           c =  Node (AstNode "b" (Just r)) []
+           ast = mkTree "a" (SrcSpan 1 1 16 3) [c]
+           c =  mkTree "b" r []
        in
        (select (CursorSelection 1 3 3 6) (Ast ast)) 
        @?= 
@@ -105,8 +108,8 @@ t2 = testCase "return immediate successor" $
 
 t3 = testCase "return root if successor does not match" $ 
        let r = SrcSpan 1 1 19 7 
-           ast = (Node (AstNode "a" (Just r)) [c])  
-           c =  Node (AstNode "b" (Just (SrcSpan 10 2 17 9 ))) []
+           ast = mkTree "a" r [c]  
+           c =  mkTree "b" (SrcSpan 10 2 17 9 ) []
        in
        (select (CursorSelection 1 2 3 9) (Ast ast)) 
        @?= 
@@ -114,9 +117,9 @@ t3 = testCase "return root if successor does not match" $
 
 t4 = testCase "return leaf in three containing spans" $ 
        let r = SrcSpan 2 1 4 2
-           ast = (Node (AstNode "a" (Just (SrcSpan 1 1 16 3))) [c1])  
-           c1 =  Node (AstNode "b" (Just (SrcSpan 1 1 5 9))) [c2]
-           c2 =  Node (AstNode "b" (Just r)) []
+           ast = mkTree "a" (SrcSpan 1 1 16 3) [c1]
+           c1 =  mkTree "b" (SrcSpan 1 1 5 9) [c2]
+           c2 =  mkTree "b"  r []
        in
        (select (CursorSelection 2 1 3 1) (Ast ast)) 
        @?= 
@@ -125,9 +128,9 @@ t4 = testCase "return leaf in three containing spans" $
 
 t5 = testCase "triangle, select the correct child" $ 
        let r = SrcSpan 2 1 4 2
-           ast = (Node (AstNode "a" (Just (SrcSpan 1 1 16 3))) [c1,c2])  
-           c1 =  Node (AstNode "b" (Just (SrcSpan 10 1 15 9))) []
-           c2 =  Node (AstNode "b" (Just r)) []
+           ast = mkTree "a" (SrcSpan 1 1 16 3) [c1,c2]  
+           c1 =  mkTree "b" (SrcSpan 10 1 15 9) []
+           c2 =  mkTree "b" r []
        in
        (select (CursorSelection 2 1 3 1) (Ast ast)) 
        @?= 
@@ -135,10 +138,10 @@ t5 = testCase "triangle, select the correct child" $
 
 t6 = testCase "triangle, select multiple locations" $ 
        let r = SrcSpan 2 1 4 2
-           ast = Node (AstNode "a" (Just (SrcSpan 1 1 16 3))) [c1,c2]  
-           c1 =  Node (AstNode "b" (Just (SrcSpan 10 1 15 9))) []
-           c2 =  Node (AstNode "b" (Just r)) [c3]
-           c3 =  Node (AstNode "b" (Just r)) []
+           ast = mkTree "a" (SrcSpan 1 1 16 3) [c1,c2]  
+           c1 =  mkTree "b" (SrcSpan 10 1 15 9) []
+           c2 =  mkTree "b" r [c3]
+           c3 =  mkTree "b" r []
        in
        (select (CursorSelection 2 1 3 1) (Ast ast))
        @?= 

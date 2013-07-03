@@ -3,6 +3,7 @@ module Haskell where
 
 -- local imports
 import Language.Astview.Language 
+import Language.Astview.SourceLocation (addPaths)
 
 import qualified Language.Haskell.Exts.Parser as HsParser 
 import Language.Haskell.Exts.Annotated.Syntax
@@ -20,39 +21,42 @@ haskellexts = Language
   [".hs",".lhs"] 
   parsehs 
 
+astnode :: String -> Maybe SrcLocation -> AstNode 
+astnode l s = AstNode l s []
+
 parsehs :: String -> Either Error Ast 
 parsehs s = case HsParser.parse s :: HsParser.ParseResult (Module HsSrcLoc.SrcSpan) of
-    HsParser.ParseOk t   -> Right $ Ast $ toAst t 
+    HsParser.ParseOk t   -> Right $ Ast $ addPaths $ toAst t 
     HsParser.ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> 
       Left $ ErrLocation (SrcPosition l c) m
 
 
 pair' :: (t1 -> Tree AstNode) -> (t2 -> Tree AstNode) -> (t1,t2) -> Tree AstNode
-pair' k1 k2 (x,y) = Node (AstNode "(,)" Nothing) [k1 x,k2 y]
+pair' k1 k2 (x,y) = Node (astnode "(,)" Nothing) [k1 x,k2 y]
 
 mb' :: (t -> Tree AstNode) -> Maybe t -> Tree AstNode
-mb' _ Nothing = Node (AstNode "Nothing" Nothing) []
-mb' k  (Just t)= Node (AstNode "Just" Nothing) [k t]
+mb' _ Nothing = Node (astnode "Nothing" Nothing) []
+mb' k  (Just t)= Node (astnode "Just" Nothing) [k t]
 
 mb :: ToAst f => Maybe (f HsSrcLoc.SrcSpan) -> Tree AstNode
-mb Nothing = Node (AstNode "Nothing" Nothing) []
-mb (Just t)= Node (AstNode "Just" Nothing) [toAst t]
+mb Nothing = Node (astnode "Nothing" Nothing) []
+mb (Just t)= Node (astnode "Just" Nothing) [toAst t]
 
 list :: ToAst f => [f HsSrcLoc.SrcSpan] -> Tree AstNode
-list [] = Node (AstNode "[]" Nothing) []
-list (x:xs) = Node (AstNode "(:)" Nothing) [toAst x , list xs]
+list [] = Node (astnode "[]" Nothing) []
+list (x:xs) = Node (astnode "(:)" Nothing) [toAst x , list xs]
 
 
 list' :: (t -> Tree AstNode) -> [t] -> Tree AstNode
-list' _ [] = Node (AstNode "[]" Nothing) []
-list' k (x:xs) = Node (AstNode "(:" Nothing) [k x,list' k xs] 
+list' _ [] = Node (astnode "[]" Nothing) []
+list' k (x:xs) = Node (astnode "(:" Nothing) [k x,list' k xs] 
 
 toSrcLocHs :: HsSrcLoc.SrcSpan -> SrcLocation
 toSrcLocHs (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = SrcSpan c1 c2 c3 c4
 
 class (Data (f HsSrcLoc.SrcSpan),Annotated f) => ToAst f where
   toAstNode :: f HsSrcLoc.SrcSpan -> AstNode
-  toAstNode t = AstNode (showConstr $ toConstr t) (Just $ toSrcLocHs $ ann t)  
+  toAstNode t = astnode (showConstr $ toConstr t) (Just $ toSrcLocHs $ ann t)  
 
   toAst :: f HsSrcLoc.SrcSpan -> Tree AstNode
 
@@ -255,7 +259,7 @@ instance ToAst GuardedRhs where
      toAst t@(GuardedRhs _ xs0 x0)= Node (toAstNode t) [list xs0,toAst x0]
 
 boxed :: Show a => a -> Tree AstNode
-boxed x = Node (AstNode (show x) Nothing) []
+boxed x = Node (astnode (show x) Nothing) []
 
 instance ToAst Type where
      toAst t@(TyForall _ mbxs0 mb0 x0)= Node (toAstNode t) [mb' list mbxs0,mb mb0,toAst x0]
@@ -387,7 +391,7 @@ instance ToAst ModulePragma where
     toAst t@(AnnModulePragma _ x0)= Node (toAstNode t) [toAst x0]
 
 tool :: Tool -> Tree AstNode
-tool (UnknownTool s) = Node (AstNode "UnknownTool" Nothing) [str s]
+tool (UnknownTool s) = Node (astnode "UnknownTool" Nothing) [str s]
 tool GHC = str "GHC" 
 tool HUGS = str "HUGS"
 tool NHC98 = str "NHC98"
@@ -433,10 +437,10 @@ instance ToAst Pat where
     toAst t@(PBangPat _ x0                    )= Node (toAstNode t) [toAst x0]
 
 leaf :: Show a => a -> Tree AstNode
-leaf i = Node (AstNode (show i) Nothing) []
+leaf i = Node (astnode (show i) Nothing) []
 
 str :: String -> Tree AstNode
-str s = Node (AstNode s Nothing) []
+str s = Node (astnode s Nothing) []
 
 instance ToAst PXAttr where
   toAst t@(PXAttr _ x0 x1) = Node (toAstNode t) [toAst x0,toAst x1]
