@@ -22,7 +22,7 @@ haskellexts = Language
   parsehs 
 
 astnode :: String -> Maybe SrcLocation -> AstNode 
-astnode l s = AstNode l s []
+astnode l s = AstNode l s [] Operation
 
 parsehs :: String -> Either Error Ast 
 parsehs s = case HsParser.parse s :: HsParser.ParseResult (Module HsSrcLoc.SrcSpan) of
@@ -440,7 +440,7 @@ leaf :: Show a => a -> Tree AstNode
 leaf i = Node (astnode (show i) Nothing) []
 
 str :: String -> Tree AstNode
-str s = Node (astnode s Nothing) []
+str s = Node (AstNode s Nothing [] Identificator) []
 
 instance ToAst PXAttr where
   toAst t@(PXAttr _ x0 x1) = Node (toAstNode t) [toAst x0,toAst x1]

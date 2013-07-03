@@ -27,8 +27,8 @@ selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 addPaths :: Tree AstNode -> Tree AstNode 
 addPaths = f [0] where
   f :: [Int] -> Tree AstNode -> Tree AstNode 
-  f p (Node (AstNode l s _) cs) = 
-    Node (AstNode l s p) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
+  f p (Node (AstNode l s _ t) cs) = 
+    Node (AstNode l s p t) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
 
 -- |select the source location path pairs in the tree, s.t.
 -- the source locations are the smallest containing given cursor selection.
@@ -42,8 +42,8 @@ select sele (Ast ast) = bruteForce ast where
       in smallest $ locsContainingSelection allSrcLocs 
 
     getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,[Int])
-    getSrcLocPathPairs (AstNode _ Nothing  _) = Nothing
-    getSrcLocPathPairs (AstNode _ (Just s) p) = Just (s,p)
+    getSrcLocPathPairs (AstNode _ Nothing  _ _) = Nothing
+    getSrcLocPathPairs (AstNode _ (Just s) p _) = Just (s,p)
 
     locsContainingSelection :: [(SrcLocation,[Int])] -> [(SrcLocation,[Int])] 
     locsContainingSelection = filter (\(s,_) -> s >= selectionToSpan sele )

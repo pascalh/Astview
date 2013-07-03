@@ -6,6 +6,7 @@ to be defined. Store the file to the data folder and add it to the cabal file.
 module Language.Astview.Language 
   ( Language(..)
   , SrcLocation(..)
+  , NodeType(..)
   , AstNode(..)
   , Ast(..)
   , Error (..)
@@ -48,15 +49,19 @@ instance Ord SrcLocation where
   s1 >= s2 = s2 <= s1
   s1 > s2 = s2 < s1
 
+-- |a node represents either an operation or an identificator
+data NodeType = Operation | Identificator
+
 -- |a node represents an algebraic operation
 data AstNode = AstNode
   { label :: String
   , srcloc :: Maybe SrcLocation
   , path :: [Int]
+  , nodeType :: NodeType
   }
 
 instance Show AstNode where
-  show (AstNode l s _) = 
+  show (AstNode l s _ _) = 
     l ++ (case s of { Nothing -> ""; 
                       Just x ->replicate 5 ' '  ++"["++show x++"]"})
 

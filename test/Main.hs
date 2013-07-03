@@ -91,7 +91,7 @@ sameBegin =
 groupSelect = testGroup "Select" [t1,t2,t3,t4,t5,t6]
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
-mkTree l s cs = addPaths $ Node (AstNode l (Just s) []) cs
+mkTree l s cs = addPaths $ Node (AstNode l (Just s) [] Identificator) cs
 
 t1 = testCase "return first occourence" $ 
        (toList $ select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(SrcSpan 1 2 1 7,[0])]  where
