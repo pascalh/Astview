@@ -117,16 +117,8 @@ actionParse l ref = do
   setupSyntaxHighlighting buffer l
   plain <- getText buffer
   clearTreeView view
-
-  -- error handling
-  let t = case (parse l plain) of
-           Left Err                  -> Node "Parse error" []
-           Left (ErrMessage m)       -> Node m []
-           Left (ErrLocation pos message) -> 
-               Node ("Parse error at:"++show pos++": "++message) [] 
-           Right (Ast ast)       -> fmap label  ast
-  
-  model <- treeStoreNew [t]
+  let ast = buildAst l plain 
+  model <- treeStoreNew [ast]
   treeViewSetModel view model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
@@ -137,7 +129,18 @@ actionParse l ref = do
     model 
     (\row -> [ cellText := row ] )
   treeViewAppendColumn view col 
-  return t
+  return ast
+
+-- |given a language and input string buildAst constructs the tree
+--which will be presented by our gtk-treeview
+buildAst :: Language -> String -> Tree String
+buildAst l s =
+  case (parse l s) of
+     Left Err                  -> Node "Parse error" []
+     Left (ErrMessage m)       -> Node m []
+     Left (ErrLocation pos message) -> 
+         Node ("Parse error at:"++show pos++": "++message) [] 
+     Right (Ast ast)       -> fmap label  ast
     
 -- |uses the name of given language to establish syntax highlighting in 
 -- source buffer
