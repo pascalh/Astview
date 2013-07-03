@@ -5,7 +5,7 @@ a couple of useful helper functions for source locations.
 module Language.Astview.SourceLocation
   (select
   ,addPaths
-  ,PathList(..)
+  ,PathList
   ,toList
   ,singleton
   ,ins
@@ -14,6 +14,7 @@ module Language.Astview.SourceLocation
 where
 import Data.Maybe(catMaybes)
 import Data.Tree(Tree(..),flatten)
+import Data.List(sort)
 
 import Language.Astview.Language
 import Language.Astview.GUIData(CursorSelection(..))
@@ -55,13 +56,15 @@ data PathList
   = Empty -- ^ the empty list
   | PathList  SrcLocation [[Int]] -- ^ a source location and positions in the tree
                                 -- where this location occurs
-  deriving Eq
 
+instance Eq PathList where
+  Empty             == Empty             = True
+  (PathList s1 ps1) == (PathList s2 ps2) = s1 == s2 && (sort ps1) == (sort ps2)
+  _ == _ = False
 
 instance Show PathList where
   show Empty = "<>"
   show (PathList s p) = "<"++show s++" @ "++show p++">"
-
 
 singleton :: (SrcLocation,[Int]) -> PathList
 singleton (x,p) = PathList x [p]

@@ -253,9 +253,9 @@ actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
   treePaths <- actionGetAssociatedPaths ref 
   putStrLn $ "Matching results: "++ show treePaths
-  case treePaths of
-    Just (PathList _ (p:_))  -> activatePath p ref
-    _                        -> return ()
+  case fmap toList treePaths of
+    Just ((_,p):_)  -> activatePath p ref
+    _               -> return ()
 
 -- |returns the paths in tree which are associated with the
 -- current selected source location.

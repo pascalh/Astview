@@ -140,10 +140,6 @@ t6 = testCase "triangle, select multiple locations" $
            c2 =  Node (AstNode "b" (Just r)) [c3]
            c3 =  Node (AstNode "b" (Just r)) []
        in
-       (toList $ select (CursorSelection 2 1 3 1) (Ast ast))
+       (select (CursorSelection 2 1 3 1) (Ast ast))
        @?= 
-       [(r,[0,1]),(r,[0,1,0])] 
-{-
-c1 = testCase "1" $ (SrcSpan 1 1 10 1) > (SrcSpan 3 1 7 10) @?= True
-c2 = testCase "1" $ (SrcSpan 1 9 10 2) > (SrcSpan 1 11 10  1) @?= True
--}
+       (ins (r,[0,1]) $ singleton (r,[0,1,0]))
