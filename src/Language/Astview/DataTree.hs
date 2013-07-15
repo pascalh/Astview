@@ -1,7 +1,6 @@
 {-| This module contains datatype-generic functions to gain a 'Ast' 
 out of an arbitrary term.
 -}
-{-#LANGUAGE ExistentialQuantification , Rank2Types #-}
 module Language.Astview.DataTree (data2Ast,data2AstHo) where
 
 -- syb
