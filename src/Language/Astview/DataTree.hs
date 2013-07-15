@@ -1,7 +1,8 @@
-{-| This module contains datatype-generic functions to gain a 'Tree' 'String'
+{-| This module contains datatype-generic functions to gain a 'Ast' 
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree (data2tree) where
+{-#LANGUAGE ExistentialQuantification , Rank2Types #-}
+module Language.Astview.DataTree (data2Ast,data2AstHo) where
 
 -- syb
 import Data.Generics (Data
@@ -9,39 +10,35 @@ import Data.Generics (Data
                      ,gmapQ
                      ,showConstr
                      ,toConstr)
-
--- containers
 import Data.Tree (Tree(Node))
 
+import Language.Astview.Language
+
 -- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
-data2tree :: Data a => a -> Tree String
-data2tree = gdefault `extQ` atString
-  where 
-    atString x = Node x []
-    gdefault x = Node (showConstr $ toConstr x) (gmapQ data2tree x) 
-  
-{-
--- |try to flatten degenerated trees (lists of cons). NOT WORKING YET!
-flat :: Tree String -> Tree String
-flat = id -- do nothing, see commentary below
--}
+data2treeHO :: (Data t) => (forall a . Data a => a -> Maybe SrcLocation) 
+                        -> t -> Tree AstNode
+data2treeHO f = gdefault `extQ` atString where
 
+  atString :: String -> Tree AstNode 
+  atString s = Node (AstNode s Nothing [] Identificator) []
 
+  gdefault :: Data t => t -> Tree  AstNode 
+  gdefault x = Node (AstNode (showConstr $ toConstr x) (f x) [] Operation ) 
+                    (gmapQ (data2treeHO f) x) 
 
+-- |see 'data2AstHo' but no 'SrcLocation's will be annotated
+data2Ast :: Data t => t -> Ast
+data2Ast = data2AstHo (const Nothing) 
 
-{- -- 
+-- |gains a 'SrcLocation'-selection function an a term. Returns the 'Ast'
+-- which is completely annotated (i.e. all fields of type 'AstNode' will
+-- hold values).
+data2AstHo :: Data t => (forall a . Data a => a -> Maybe SrcLocation) -> t -> Ast
+data2AstHo f = Ast . annotateWithPaths . data2treeHO f
 
-
-flat (Node a xs) = Node a xs --(flat <$> (children False =<< xs))    
-
--- use a boolean marker to notice whether we are inside a list (True) 
--- or should start a new list, then recurse
-children :: Bool -> Tree String -> [Tree String]
-children False (Node "(:)" [left,right])        = [Node ("ListOf"++(rootLabel left)) (left:(children True right)) ]
-children True  (Node "(:)" [left,Node "[]" []]) = [left]
-children True  (Node "(:)" [left,right])        = left:(children True right)
-children _ (Node a xs) 
- | null xs  =  [Node a []]
- |otherwise =  [Node a xs]
-children x y = error ("No pattern match for children " ++ show x ++ " " ++ (drawTree y))
--}
+-- |every node will be annotated with its path.
+annotateWithPaths :: Tree AstNode -> Tree AstNode 
+annotateWithPaths = f [0] where
+  f :: [Int] -> Tree AstNode -> Tree AstNode 
+  f p (Node (AstNode l s _ t) cs) = 
+    Node (AstNode l s p t) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs

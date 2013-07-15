@@ -4,7 +4,6 @@ a couple of useful helper functions for source locations.
 -}
 module Language.Astview.SourceLocation
   (select
-  ,addPaths
   ,PathList
   ,toList
   ,singleton
@@ -22,13 +21,6 @@ import Language.Astview.GUIData(CursorSelection(..))
 -- |transforms a CursorSelection to a SrcSpan
 selectionToSpan :: CursorSelection -> SrcLocation
 selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
-
--- |every node gains its position in the tree as additional value
-addPaths :: Tree AstNode -> Tree AstNode 
-addPaths = f [0] where
-  f :: [Int] -> Tree AstNode -> Tree AstNode 
-  f p (Node (AstNode l s _ t) cs) = 
-    Node (AstNode l s p t) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
 
 -- |select the source location path pairs in the tree, s.t.
 -- the source locations are the smallest containing given cursor selection.
