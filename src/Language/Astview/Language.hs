@@ -38,11 +38,11 @@ instance Show SrcLocation where
 instance Ord SrcLocation where
   s1 <= s2 = s2 `contains` s1 where
     contains :: SrcLocation -> SrcLocation -> Bool
-    contains (SrcSpan bl br el er) (SrcPosition l r) = 
-      (bl == el && l == el && br <= r && r <= er) || -- everything in one line
-      (bl < l && l < el) ||
-      (bl == l && br <= r && bl < el) ||
-      (el== l && bl < el && r <=er)
+    contains (SrcSpan br bc er ec) (SrcPosition r c) = 
+      (br == er && r == er && bc <= c && c <= ec) || -- everything in one line
+      (br < r && r < er) ||
+      (br == r && bc <= c && br < er) ||
+      (er == r && br < er && c <= ec)
     contains s (SrcSpan bl br el er) =
       contains s (SrcPosition bl br) && contains s (SrcPosition el er)
     contains _ _ = False
