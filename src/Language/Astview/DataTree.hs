@@ -1,7 +1,7 @@
 {-| This module contains datatype-generic functions to gain a 'Ast' 
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree (data2Ast,data2AstHo) where
+module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths) where
 
 -- syb
 import Data.Generics (Data

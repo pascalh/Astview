@@ -8,6 +8,7 @@ import Data.Tree
 import Language.Astview.GUIData
 import Language.Astview.SourceLocation
 import Language.Astview.Language
+import Language.Astview.DataTree(annotateWithPaths)
 
 main :: IO ()
 main = defaultMain tests
@@ -91,7 +92,7 @@ sameBegin =
 groupSelect = testGroup "Select" [t1,t2,t3,t4,t5,t6]
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
-mkTree l s cs = addPaths $ Node (AstNode l (Just s) [] Identificator) cs
+mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) cs
 
 t1 = testCase "return first occourence" $ 
        (toList $ select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(SrcSpan 1 2 1 7,[0])]  where
