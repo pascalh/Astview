@@ -2,7 +2,7 @@ module Haskell (haskellexts) where
 
 -- local imports
 import Language.Astview.Language hiding (parse)
-import Language.Astview.DataTree (data2AstHo)
+import Language.Astview.DataTree (data2AstHoIg)
 
 import Language.Haskell.Exts.Parser 
 import Language.Haskell.Exts.Annotated.Syntax
@@ -20,9 +20,8 @@ haskellexts = Language
 
 parsehs :: String -> Either Error Ast 
 parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
-    ParseOk t   -> Right $ data2AstHo getSrcLoc t 
-    ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> 
-      Left $ ErrLocation (SrcPosition l c) m
+  ParseOk t  -> Right $ data2AstHoIg getSrcLoc (undefined::HsSrcLoc.SrcSpan) t 
+  ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> Left $ ErrLocation (SrcPosition l c) m
 
 getSrcLoc :: Data t => t -> Maybe SrcLocation
 getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
