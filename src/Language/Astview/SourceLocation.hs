@@ -51,7 +51,7 @@ data PathList
 
 instance Eq PathList where
   Empty             == Empty             = True
-  (PathList s1 ps1) == (PathList s2 ps2) = s1 == s2 && (sort ps1) == (sort ps2)
+  (PathList s1 ps1) == (PathList s2 ps2) = s1 == s2 && sort ps1 == sort ps2
   _ == _ = False
 
 instance Show PathList where
@@ -75,5 +75,4 @@ toList (PathList s ps) = map (\p -> (s,p)) ps
 -- |returns the smallest source location and all paths to operations
 -- annotated with this location.
 smallest :: [(SrcLocation,[Int])] -> PathList
-smallest []     = Empty 
-smallest (x:xs) = ins x (smallest xs)
+smallest = foldr ins Empty 

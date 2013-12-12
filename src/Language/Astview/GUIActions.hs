@@ -10,7 +10,7 @@ import Language.Astview.GUIData
 -- base
 import Prelude hiding (writeFile)
 import Data.List (find)
-import Control.Monad (when)
+import Control.Monad (when,unless,void,zipWithM_)
 import Data.Char (toLower)
 -- io
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
@@ -43,7 +43,7 @@ menuActions =
   [("mNew",actionEmptyGUI)
   ,("mReparse",actionReparse)
   ,("mSaveAs",actionSaveAs)
-  ,("mOpen",actionDlgOpenRun)
+  ,("mOpen",actionDlgOpen)
   ,("mSave",actionSave)
   ,("mCut",actionCutSource)
   ,("mCopy",actionCopySource)
@@ -93,7 +93,7 @@ actionLoadHeadless file ref = do
   deleteStar ref
   whenJustM
     (getLanguage ref) $
-    \l -> actionParse l ref >> return ()
+    \l -> void $ actionParse l ref 
 
 -- |tries to find a language based on the extension of 
 -- current file name
@@ -105,8 +105,7 @@ getLanguage ref = do
 
 
 actionGetAst :: Language -> AstAction (Either Error Ast)
-actionGetAst l ref = do
-  fmap (parse l) . getText =<< getSourceBuffer ref 
+actionGetAst l ref = fmap (parse l) . getText =<< getSourceBuffer ref 
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String) 
@@ -135,7 +134,7 @@ actionParse l ref = do
 --which will be presented by our gtk-treeview
 buildAst :: Language -> String -> Tree String
 buildAst l s =
-  case (parse l s) of
+  case parse l s of
      Left Err                  -> Node "Parse error" []
      Left (ErrMessage m)       -> Node m []
      Left (ErrLocation pos message) -> 
@@ -162,35 +161,42 @@ actionSave ref = do
   file <- getFile ref
   text <- getText =<< getSourceBuffer ref
   case file of
-    "Unsaved document"  -> actionDlgSaveRun ref
+    "Unsaved document"  -> actionDlgSave ref
     _                   -> do 
       deleteStar ref 
       writeFile file text 
 
--- |lanches the "save as"-dialog
-actionSaveAs :: AstAction ()
-actionSaveAs ref = do 
+-- |sets up a simple filechooser dialog, whose response to Ok 
+-- is given by argument function
+actionMkDialog :: FileChooserAction -> (FileChooserDialog  -> t -> IO ()) -> t -> IO()
+actionMkDialog fileChooser actionOnOkay ref = do
   dia <- fileChooserDialogNew 
     (Just "astview") 
     Nothing 
-    FileChooserActionSave 
+    fileChooser 
     []
-  dialogAddButton dia stockCancel ResponseCancel
-  dialogAddButton dia stockOpen ResponseOk
+
+  zipWithM_ (dialogAddButton dia) [stockCancel   ,stockOpen] 
+                                  [ResponseCancel,ResponseOk]
 
   widgetShowAll dia
   response <- dialogRun dia
   case response of 
     ResponseCancel -> return ()
-    ResponseOk     -> do
-       maybeFile <- fileChooserGetFilename dia
-       case maybeFile of
-         Nothing-> return () 
-         Just file -> do
-           setcFile file ref
-           writeFile file =<< getText =<< getSourceBuffer ref
+    ResponseOk     -> actionOnOkay dia ref
     _ -> return ()
   widgetHide dia
+
+-- |lanches the "save as"-dialog
+actionSaveAs :: AstAction ()
+actionSaveAs = actionMkDialog FileChooserActionSave onOkay where
+  onOkay dia ref = do
+    maybeFile <- fileChooserGetFilename dia 
+    case maybeFile of
+       Nothing-> return () 
+       Just file -> do
+         setcFile file ref
+         writeFile file =<< getText =<< getSourceBuffer ref
 
 -- |removes @*@ from window title if existing and updates state
 deleteStar :: AstAction ()
@@ -231,9 +237,9 @@ actionPasteSource ref = do
 
 -- |deletes selected source
 actionDeleteSource :: AstAction ()
-actionDeleteSource ref = do
+actionDeleteSource ref = void $ do
   buffer <- getSourceBuffer ref
-  textBufferDeleteSelection buffer False False >> return ()
+  textBufferDeleteSelection buffer False False 
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
@@ -302,7 +308,7 @@ actionBufferChanged ref = do
   w <- fmap window (getGui ref)
   t <- windowGetTitle w 
   c <- getChanged ref
-  when (not c) (windowSetTitle w ('*':t))
+  unless c (windowSetTitle w ('*':t))
   setChanged True ref
 
 -- | destroys window widget 
@@ -315,85 +321,55 @@ actionQuit ref = do
 
 actionQuitWorker :: AstAction ()  
 actionQuitWorker ref = do
-      dia <- dialogNew
-      dialogAddButton dia stockYes ResponseYes
-      dialogAddButton dia stockNo ResponseNo
-      dialogAddButton dia stockCancel ResponseCancel
-      contain <- dialogGetUpper dia
-  
-      windowSetTitleSuffix dia "Quit" 
-      containerSetBorderWidth dia 2
-      file <- getFile ref
-      lbl <- labelNew 
-        (Just $ "Save changes to document \""++
-                takeFileName file ++
-                "\" before closing?")
-      boxPackStartDefaults contain lbl
+  dia <- dialogNew
+  dialogAddButton dia stockYes ResponseYes
+  dialogAddButton dia stockNo ResponseNo
+  dialogAddButton dia stockCancel ResponseCancel
+  contain <- dialogGetUpper dia
 
-      widgetShowAll dia
-      response <- dialogRun dia
-      case response of 
-        ResponseYes   -> actionSave ref
-        _             -> return ()
-      widgetHide dia
+  windowSetTitleSuffix dia "Quit" 
+  containerSetBorderWidth dia 2
+  file <- getFile ref
+  lbl <- labelNew 
+    (Just $ "Save changes to document \""++
+            takeFileName file ++
+            "\" before closing?")
+  boxPackStartDefaults contain lbl
+
+  widgetShowAll dia
+  response <- dialogRun dia
+  case response of 
+    ResponseYes   -> actionSave ref
+    _             -> return ()
+  widgetHide dia
 
 
 -- | launches open dialog
-actionDlgOpenRun :: AstAction ()
-actionDlgOpenRun ref = do
-  dia <- fileChooserDialogNew 
-    (Just "astview") 
-    Nothing 
-    FileChooserActionOpen 
-    []
-  dialogAddButton dia stockCancel ResponseCancel
-  dialogAddButton dia stockOpen ResponseOk
-
-  widgetShowAll dia
-  response <- dialogRun dia
-  case response of 
-    ResponseCancel -> return ()
-    ResponseOk     -> 
-      whenJustM
-        (fileChooserGetFilename dia) $ 
-        \file -> actionLoadHeadless file ref
-    _ -> return ()
-  widgetHide dia
+actionDlgOpen :: AstAction ()
+actionDlgOpen = actionMkDialog FileChooserActionOpen onOkay where
+  onOkay dia ref = whenJustM (fileChooserGetFilename dia) $ \file -> 
+    actionLoadHeadless file ref
 
 -- | launches save dialog
-actionDlgSaveRun :: AstAction ()
-actionDlgSaveRun ref = do
-  dia <- fileChooserDialogNew 
-    (Just "astview") 
-    Nothing 
-    FileChooserActionSave 
-    []
-  dialogAddButton dia stockCancel ResponseCancel
-  dialogAddButton dia stockOpen ResponseOk
-
-  widgetShowAll dia
-  response <- dialogRun dia
-  case response of 
-    ResponseCancel -> return ()
-    ResponseOk     -> do
-       maybeFile <- fileChooserGetFilename dia
-       case maybeFile of
-         Nothing-> return () 
-         Just file -> do
-            g <- getGui ref
-            setChanged False ref
-            setcFile file ref
-            writeFile file =<< getText =<< getSourceBuffer ref
-            windowSetTitle 
-              (window g) 
-              (takeFileName file)
-    _ -> return ()
-  widgetHide dia
+actionDlgSave :: AstAction ()
+actionDlgSave = actionMkDialog FileChooserActionSave onOkay where
+  onOkay dia ref = do
+     maybeFile <- fileChooserGetFilename dia
+     case maybeFile of
+       Nothing-> return () 
+       Just file -> do
+          g <- getGui ref
+          setChanged False ref
+          setcFile file ref
+          writeFile file =<< getText =<< getSourceBuffer ref
+          windowSetTitle 
+            (window g) 
+            (takeFileName file)
 
 -- |applies current parser to sourcebuffer 
 actionReparse :: AstAction ()
 actionReparse ref = 
-  whenJustM (getLanguage ref) $ \l -> actionParse l ref >> return ()
+  whenJustM (getLanguage ref) $ \l -> void $ actionParse l ref 
 
 -- |prints the current selected path to console. Mainly used for 
 -- debugging purposes.

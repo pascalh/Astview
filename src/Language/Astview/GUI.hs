@@ -109,7 +109,7 @@ hooks ref = do
     "p" <- eventKeyName
     liftIO $ actionReparse ref 
 
-  dlgAbout g `onResponse` (const $ widgetHide $ dlgAbout g)
+  dlgAbout g `onResponse` const (widgetHide $ dlgAbout g)
         
   window g `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
   
