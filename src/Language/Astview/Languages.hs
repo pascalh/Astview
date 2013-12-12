@@ -9,7 +9,8 @@ module Language.Astview.Languages where
 -- -- local imports
 import Language.Astview.Language (Language)
 import Haskell  
+import Python
 
 -- |  astview
 knownLanguages :: [Language]
-knownLanguages = [haskellexts]
+knownLanguages = [haskellexts,python]

@@ -35,12 +35,13 @@ Library
                    Language.Astview.DataTree
                    Language.Astview.Languages
                    Language.Astview.GUIData
-  Build-Depends:     base == 4.6.0.0
+  Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.0.0
                    , gio == 0.12.4
-                   , haskell-src-exts == 1.13.5
-                   , syb == 0.3.7
-                   , syz == 0.2.0.0
+                   , haskell-src-exts >= 1.13.5
+                   , language-python >= 0.4
+                   , syb >= 0.3.7
+                   , syz >= 0.2.0.0
                    , gtksourceview2 == 0.12.3.1
                    , gtk == 0.12.4
   extensions:      FlexibleInstances,
@@ -57,27 +58,28 @@ Executable         astview
                    DeriveDataTypeable,
                    RankNTypes
 
-  Build-Depends:   base == 4.6.0.0
+  Build-Depends:   base >= 4.6.0.0
                    , filepath == 1.3.0.1
-                   , bytestring == 0.10.0.0
-                   , Glob == 0.7.2
+                   , bytestring >= 0.10.0.0
+                   , Glob >= 0.7.2
                    , containers == 0.5.0.0
-                   , syb == 0.3.7
-                   , syz == 0.2.0.0
+                   , syb >= 0.3.7
+                   , syz >= 0.2.0.0
                    , glib == 0.12.4
                    , gtk == 0.12.4
                    , glade == 0.12.1
                    , gtksourceview2 == 0.12.3.1
-                   , directory == 1.2.0.0
+                   , directory >= 1.2.0.0
                    , mtl ==2.1.2
                    , hscolour == 1.20.3
-                   , haskell-src-exts == 1.13.5
+                   , haskell-src-exts >= 1.13.5
+                   , language-python >= 0.4
 
 test-suite basic
     type: exitcode-stdio-1.0
     Hs-Source-Dirs: test 
     main-is: Main.hs
-    build-depends: base == 4.6.0.0, 
+    build-depends: base >= 4.6.0.0, 
                    astview == 0.3,
                    containers == 0.5.0.0,
                    test-framework == 0.8, 
