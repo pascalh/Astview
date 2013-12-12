@@ -12,11 +12,7 @@ import Data.Generics (Data,extQ)
 import Data.Generics.Zipper(toZipper,down',query)
 
 haskellexts :: Language 
-haskellexts = Language 
-  "Haskell" 
-  "Haskell" 
-  [".hs",".lhs"] 
-  parsehs 
+haskellexts = Language "Haskell" "Haskell" [".hs",".lhs"] parsehs 
 
 parsehs :: String -> Either Error Ast 
 parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
@@ -30,8 +26,4 @@ getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
   def _ = Nothing
 
   atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcLocation 
-  atSpan = Just . toSrcLocHs
-
-  toSrcLocHs :: HsSrcLoc.SrcSpan -> SrcLocation
-  toSrcLocHs (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = SrcSpan c1 c2 c3 c4
-
+  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4 
