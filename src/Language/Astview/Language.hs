@@ -6,6 +6,8 @@ to be defined. Store the file to the data folder and add it to the cabal file.
 module Language.Astview.Language 
   ( Language(..)
   , SrcLocation(..)
+  , CursorSelection(..)
+  , selectionToSpan
   , NodeType(..)
   , AstNode(..)
   , Ast(..)
@@ -66,6 +68,21 @@ instance Arbitrary SrcLocation where
       (NonNegative i3) <- arbitrary 
       (NonNegative i4) <- arbitrary 
       return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
+
+-- |a cursor selection in a text buffer
+data CursorSelection = CursorSelection
+  Int -- ^ line start
+  Int  -- ^ row start
+  Int -- ^ line end
+  Int  -- ^ row end
+
+instance Show CursorSelection where
+  show (CursorSelection a b c d) = 
+    "("++show a++":"++show b++") ("++show c++":"++show d++")"
+
+-- |transforms a CursorSelection to a SrcSpan
+selectionToSpan :: CursorSelection -> SrcLocation
+selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 
 -- |a node represents either an operation or an identificator
 data NodeType = Operation | Identificator

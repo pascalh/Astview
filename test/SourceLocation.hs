@@ -8,7 +8,6 @@ import Test.Tasty.HUnit
 
 import Data.Tree
 
-import Language.Astview.GUIData
 import Language.Astview.SourceLocation
 import Language.Astview.Language
 import Language.Astview.DataTree(annotateWithPaths)

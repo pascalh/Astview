@@ -16,11 +16,7 @@ import Data.Tree(Tree(..),flatten)
 import Data.List(sort)
 
 import Language.Astview.Language
-import Language.Astview.GUIData(CursorSelection(..))
 
--- |transforms a CursorSelection to a SrcSpan
-selectionToSpan :: CursorSelection -> SrcLocation
-selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 
 -- |select the source location path pairs in the tree, s.t.
 -- the source locations are the smallest containing given cursor selection.

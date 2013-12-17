@@ -8,7 +8,7 @@ import Data.IORef
 -- gtksourceview
 import Graphics.UI.Gtk hiding (Language,get)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
-import Language.Astview.Language(Language)
+import Language.Astview.Language(Language,CursorSelection(..))
 
 type AstAction a = IORef AstState -> IO a
 
@@ -41,16 +41,6 @@ data GUI = GUI
   , dlgAbout :: AboutDialog -- ^ about dialog
   }
 
--- |a cursor selection in a text buffer
-data CursorSelection = CursorSelection
-  Int -- ^ line start
-  Int  -- ^ row start
-  Int -- ^ line end
-  Int  -- ^ row end
-
-instance Show CursorSelection where
-  show (CursorSelection a b c d) = 
-    "("++show a++":"++show b++") ("++show c++":"++show d++")"
 
 -- * getter functions
 

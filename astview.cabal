@@ -34,7 +34,6 @@ Library
                    Language.Astview.SourceLocation
                    Language.Astview.DataTree
                    Language.Astview.Languages
-                   Language.Astview.GUIData
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.0.0
                    , gio == 0.12.4
