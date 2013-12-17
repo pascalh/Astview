@@ -27,11 +27,12 @@ selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 -- Thus the pairs in the resulting list only differ in their paths.
 select :: CursorSelection -> Ast -> PathList
 select sele (Ast ast) = bruteForce ast where
+
+    findAllSrcLocations :: Tree AstNode -> [(SrcLocation,[Int])]
+    findAllSrcLocations = catMaybes . flatten . fmap getSrcLocPathPairs
   
     bruteForce :: Tree AstNode -> PathList
-    bruteForce tree = 
-      let allSrcLocs = catMaybes $ flatten $ fmap getSrcLocPathPairs tree
-      in smallest $ locsContainingSelection allSrcLocs 
+    bruteForce = smallest . locsContainingSelection . findAllSrcLocations
 
     getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,[Int])
     getSrcLocPathPairs (AstNode _ Nothing  _ _) = Nothing

@@ -14,6 +14,7 @@ module Language.Astview.Language
 where
 import Data.Tree(Tree(..))
 import Data.Generics (Typeable)
+import Test.QuickCheck
 
 -- |specifies a source location in text area
 data SrcLocation 
@@ -38,6 +39,7 @@ instance Show SrcLocation where
 instance Ord SrcLocation where
   s1 <= s2 = s2 `contains` s1 where
     contains :: SrcLocation -> SrcLocation -> Bool
+    contains (SrcPosition c1 r1) (SrcPosition c2 r2) = c1 == c2 && r1 == r2
     contains (SrcSpan br bc er ec) (SrcPosition r c) = 
       (br == er && r == er && bc <= c && c <= ec) || -- everything in one line
       (br < r && r < er) ||
@@ -45,9 +47,25 @@ instance Ord SrcLocation where
       (er == r && br < er && c <= ec)
     contains s (SrcSpan bl br el er) =
       contains s (SrcPosition bl br) && contains s (SrcPosition el er)
-    contains _ _ = False
   s1 >= s2 = s2 <= s1
   s1 > s2 = s2 < s1
+
+instance Arbitrary SrcLocation where
+  arbitrary = oneof [arbitrarySrcPos,arbitrarySrcSpan] where
+
+    arbitrarySrcPos :: Gen SrcLocation
+    arbitrarySrcPos = do
+      (NonNegative i1) <- arbitrary
+      (NonNegative i2) <- arbitrary
+      return $ SrcPosition i1 i2
+
+    arbitrarySrcSpan:: Gen SrcLocation
+    arbitrarySrcSpan = do 
+      (NonNegative i1) <- arbitrary 
+      (NonNegative i2) <- arbitrary 
+      (NonNegative i3) <- arbitrary 
+      (NonNegative i4) <- arbitrary 
+      return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
 
 -- |a node represents either an operation or an identificator
 data NodeType = Operation | Identificator

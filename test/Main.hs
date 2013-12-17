@@ -1,8 +1,7 @@
 module Main where
-import Test.Framework (defaultMain)
-import Test.Framework.Providers.HUnit(hUnitTestToTests)
+import Test.Tasty (defaultMain)
 
 import SourceLocation(testSourceLocations)
 
 main :: IO ()
-main = defaultMain $ concatMap hUnitTestToTests [testSourceLocations]
+main = defaultMain testSourceLocations
