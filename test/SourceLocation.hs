@@ -17,7 +17,7 @@ testSourceLocations =
 
 groupContains :: Test
 groupContains = 
-  TestLabel "Contains" $ TestList
+  TestLabel "ord instance for source locations implements contains" $ TestList
             [groupInOneline
             ,groupSorrounded
             ,groupSameBegin
@@ -71,7 +71,8 @@ groupEx = TestLabel "Extreme cases" $ TestList
 -- * select
 
 groupSelect :: Test
-groupSelect = TestLabel "Select" $ TestList [t1,t2,t3,t4,t5,t6]
+groupSelect = TestLabel "selecting the greatest sorrounding source location" $ 
+  TestList [t1,t2,t3,t4,t5,t6]
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
 mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) cs
