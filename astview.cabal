@@ -14,66 +14,52 @@ Description:
                  of scrap-your-boilerplate (i.e. data2tree) 
                  and works with all parsers that generate trees 
                  that are instances of the Data.Data class. 
-                 Custom parsers can be dynamically loaded 
-                 (via package hint) at startup.
-                 .
-                 For installation you need gtk2hs and hscolour before. 
-                 The latter will not be automatically installed by 
-                 cabal since it is used by Setup.hs.
 
 Category:        Language
 
 Cabal-Version:   >= 1.8
 Build-Type:      Simple 
 Tested-with:     GHC==7.6.1
-Data-Files:
-                 data/astview.glade
+Data-Files:      data/astview.glade
+
 Library
-  Hs-Source-Dirs:  src
+  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
+  Hs-Source-Dirs:  src/core
   Exposed-Modules: Language.Astview.Language
                    Language.Astview.SourceLocation
                    Language.Astview.DataTree
                    Language.Astview.Languages
+  Other-Modules:   Haskell
+                   Python
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.0.0
-                   , gio == 0.12.4
                    , QuickCheck >= 2.6
                    , haskell-src-exts >= 1.13.5
                    , language-python >= 0.4
                    , syb >= 0.3.7
                    , syz >= 0.2.0.0
-                   , gtksourceview2 == 0.12.3.1
-                   , gtk == 0.12.4
   extensions:      FlexibleInstances,
                    DeriveDataTypeable,
                    RankNTypes
 
 Executable         astview
-  Hs-Source-Dirs:  src
+  Hs-Source-Dirs:  src/gui
   Main-is:         Main.hs
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
-  extensions:      TemplateHaskell,
-                   FlexibleInstances,
-                   DeriveDataTypeable,
-                   RankNTypes
 
   Build-Depends:   base >= 4.6.0.0
+                   , astview == 0.3
                    , filepath == 1.3.0.1
                    , bytestring >= 0.10.0.0
                    , Glob >= 0.7.2
                    , QuickCheck >= 2.6
                    , containers == 0.5.0.0
-                   , syb >= 0.3.7
-                   , syz >= 0.2.0.0
                    , glib == 0.12.4
                    , gtk == 0.12.4
                    , glade == 0.12.1
                    , gtksourceview2 == 0.12.3.1
                    , directory >= 1.2.0.0
                    , mtl ==2.1.2
-                   , hscolour == 1.20.3
-                   , haskell-src-exts >= 1.13.5
-                   , language-python >= 0.4
 
 test-suite basic
     type: exitcode-stdio-1.0
