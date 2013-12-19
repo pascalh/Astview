@@ -50,7 +50,8 @@ buildAststate opt langs = do
       st = State 
         { cFile = unsavedDoc
         , textchanged = False
-        , lastSelection = CursorSelection 0 0 0 0
+        , lastSelectionInText  = CursorSelection 0 0 0 0
+        , lastSelectionInTree = []
         , languages = langs
         }
 
@@ -102,6 +103,11 @@ hooks ref = do
     actionBufferChanged ref
     cp <- getCursorPosition ref
     setCursor cp ref
+
+  -- tree view
+  onCursorChanged (tv g) $ do
+    (p,_) <- treeViewGetCursor $ tv g
+    setTreePath p ref 
 
   -- ctrl+p to reparse
   window g `on` keyPressEvent $ tryEvent $ do

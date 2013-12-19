@@ -40,7 +40,7 @@ OTHER DEALINGS IN THE SOFTWARE.</property>
     <property name="authors">Sebastian Menge &lt;sebastian.menge@uni-dortmund.de&gt;
 Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
     <property name="documenters">Haddock: Sebastian Menge &lt;sebastian.menge@uni-dortmund.de&gt;</property>
-    <property name="artists"></property>
+    <property name="artists"/>
     <property name="wrap_license">True</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="vboxAbout">
@@ -84,7 +84,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
               <widget class="GtkMenuItem" id="mFile">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child>
@@ -96,7 +95,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-new</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -106,7 +104,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-open</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -116,7 +113,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-save</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -126,7 +122,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-save-as</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -142,7 +137,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -155,7 +149,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
               <widget class="GtkMenuItem" id="mEdit">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
                 <child>
@@ -167,7 +160,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-cut</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -177,7 +169,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-copy</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -187,7 +178,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-paste</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -197,7 +187,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-delete</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
@@ -213,17 +202,15 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-refresh</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="mPath">
-                        <property name="label">Print Path</property>
+                      <widget class="GtkImageMenuItem" id="mTextLoc">
+                        <property name="label">&lt;&lt;&lt; Jump to text location</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_stock">False</property>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image2">
@@ -236,10 +223,9 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                     </child>
                     <child>
                       <widget class="GtkImageMenuItem" id="mSrcLoc">
-                        <property name="label">--&gt; (Jump to position in tree)</property>
+                        <property name="label">&gt;&gt;&gt; Jump to position in tree)</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_stock">False</property>
                         <child internal-child="image">
                           <widget class="GtkImage" id="image3">
@@ -258,7 +244,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
               <widget class="GtkMenuItem" id="mHelp">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child>
@@ -270,7 +255,6 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </widget>

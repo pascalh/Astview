@@ -29,7 +29,8 @@ data Options = Options
 data State =  State
   { cFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if file changed
-  , lastSelection :: CursorSelection -- ^ last active cursor position
+  , lastSelectionInText :: CursorSelection -- ^ last active cursor position
+  , lastSelectionInTree :: TreePath -- ^ last clicked tree cell
   , languages :: [Language] -- ^ known languages
   }
 
@@ -66,7 +67,10 @@ getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
 
 getCursor :: AstAction CursorSelection
-getCursor = fmap (lastSelection . state) . readIORef
+getCursor = fmap (lastSelectionInText . state) . readIORef
+
+getPath :: AstAction TreePath
+getPath = fmap (lastSelectionInTree. state) . readIORef
 
 getFile :: AstAction String
 getFile = fmap (cFile . state) . readIORef
@@ -80,16 +84,22 @@ getWindow = fmap (window . gui) . readIORef
 setCursor :: CursorSelection -> AstAction ()
 setCursor cp r = modifyIORef r m  where
   m :: AstState -> AstState
-  m s@(AstState (State f c _ ls ) _ _) = s { state = State f c cp ls}
+  m s@(AstState (State f c _ t ls ) _ _) = s { state = State f c cp t ls}
+
+-- |stores the current selection 
+setTreePath :: TreePath -> AstAction ()
+setTreePath p r = modifyIORef r m  where
+  m :: AstState -> AstState
+  m s@(AstState (State f cp c _ ls ) _ _) = s { state = State f cp c p ls}
 
 -- |stores file path of current opened file 
 setcFile :: FilePath -> AstAction ()
 setcFile file r = modifyIORef r m where
   m :: AstState -> AstState
-  m s@(AstState (State _ cp c ls) _ _) = s { state = State file cp c ls}
+  m s@(AstState (State _ cp c t ls) _ _) = s { state = State file cp c t ls}
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()
 setChanged b r = modifyIORef r m where
   m :: AstState -> AstState
-  m s@(AstState (State file _ c ls) _ _) = s { state = State file b c ls}
+  m s@(AstState (State file _ c t ls) _ _) = s { state = State file b c t ls}

@@ -50,7 +50,7 @@ menuActions =
   ,("mPaste",actionPasteSource)
   ,("mDelete",actionDeleteSource)
   ,("mSrcLoc",actionJumpToSrcLoc)
-  ,("mPath",actionShowPath)
+  ,("mTextLoc",actionJumpToTextLoc)
   ,("mAbout",actionAbout)
   ,("mQuit",actionQuit)
   ]
@@ -240,6 +240,39 @@ actionDeleteSource :: AstAction ()
 actionDeleteSource ref = void $ do
   buffer <- getSourceBuffer ref
   textBufferDeleteSelection buffer False False 
+
+-- |launches a dialog which displays the text position associated to
+-- last clicked tree node.
+actionJumpToTextLoc :: AstAction ()
+actionJumpToTextLoc ref = do
+  maybeLang <- getLanguage ref
+  case maybeLang of
+    Nothing -> return () 
+    Just lang -> do 
+      astOrError <- actionGetAst lang ref 
+      case astOrError of
+        Left _    -> return () 
+        Right (Ast ast) -> do
+          gtkPath <- getPath ref
+          let astPath = tail gtkPath
+              loc = ast `at` astPath 
+          showDialogSrcLoc loc 
+
+-- |launches a dialog which displays the text position associated to
+-- last clicked tree node.
+showDialogSrcLoc :: Maybe SrcLocation -> IO ()
+showDialogSrcLoc mbSrcLoc= do
+  let message = case mbSrcLoc of
+        Nothing -> "No matching source location found."
+        Just loc -> "Selected tree represents text position "++ show loc++"."
+  dia <- messageDialogNew Nothing [] MessageInfo ButtonsOk message 
+  dialogRun dia
+  widgetHide dia
+      
+
+at :: Tree AstNode -> TreePath -> Maybe SrcLocation 
+at (Node n _ )  []     = srcloc n
+at (Node _ cs) (i:is)  = cs!!i `at` is
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
