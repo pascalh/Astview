@@ -97,27 +97,44 @@ registerMenuAction xml ref (gtkId,action) = do
 -- | adds actions to some widgets
 hooks :: AstAction (ConnectId Window)
 hooks ref = do
-  g <- getGui ref
-  -- textbuffer
-  onBufferChanged (sb g) $ do 
+  (GUI win tree text _) <- getGui ref
+
+  storeLastActiveTextPosition text ref
+  storeLastActiveTreePosition tree ref
+  controlPtoReparse win ref
+  closeAstviewOnWindowClosed win ref
+  close win ref
+
+
+type Hook a = a -> AstAction (ConnectId a)
+
+-- |stores the last active cursor position in text to the program state
+storeLastActiveTextPosition :: Hook SourceBuffer 
+storeLastActiveTextPosition buffer ref = onBufferChanged buffer $ do
     actionBufferChanged ref
     cp <- getCursorPosition ref
     setCursor cp ref
 
-  -- tree view
-  onCursorChanged (tv g) $ do
-    (p,_) <- treeViewGetCursor $ tv g
+-- |stores the path to the last selected tree cell to the program state
+storeLastActiveTreePosition :: Hook TreeView 
+storeLastActiveTreePosition tree ref =
+  onCursorChanged tree  $ do
+    (p,_) <- treeViewGetCursor tree 
     setTreePath p ref 
 
-  -- ctrl+p to reparse
-  window g `on` keyPressEvent $ tryEvent $ do
+-- |bind ctrl+p to the reparse action
+controlPtoReparse :: Hook Window
+controlPtoReparse w ref =     
+  w `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
     liftIO $ actionReparse ref 
 
-  dlgAbout g `onResponse` const (widgetHide $ dlgAbout g)
-        
-  window g `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
-  
-  -- window    
-  onDestroy (window g) mainQuit
+-- |softly terminate application on main window closed
+closeAstviewOnWindowClosed :: Hook Window
+closeAstviewOnWindowClosed w ref =  
+  w `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
+
+-- |terminate application on main window closed
+close :: Hook Window
+close w _ = onDestroy w mainQuit

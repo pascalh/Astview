@@ -330,6 +330,9 @@ actionAbout ref = do
   dlg <- fmap dlgAbout (getGui ref)
   aboutDialogSetUrlHook (\_ -> return ())
   widgetShow dlg
+  dlg `onResponse` const (widgetHide dlg)
+  return ()
+
 
 -- -------------------------------------------------------------------
 -- ** other actions 
