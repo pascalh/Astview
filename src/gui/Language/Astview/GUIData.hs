@@ -10,6 +10,10 @@ import Graphics.UI.Gtk hiding (Language,get)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
 import Language.Astview.Language(Language,CursorSelection(..))
 
+-- |a type class for default values, compareable to mempty in class 'Monoid'
+class Default a where
+  defaultVaule :: a
+
 type AstAction a = IORef AstState -> IO a
 
 -- |union of intern program state and gui
@@ -25,6 +29,9 @@ data Options = Options
   , fsize :: Int -- ^ font size of textbuffer
   }
 
+instance Default Options where
+  defaultVaule = Options "Monospace" 9
+
 -- |data type for the intern program state
 data State =  State
   { cFile :: String -- ^ current file
@@ -34,7 +41,20 @@ data State =  State
   , languages :: [Language] -- ^ known languages
   }
 
+instance Default State where
+  defaultVaule = State 
+        { cFile = unsavedDoc
+        , textchanged = False
+        , lastSelectionInText  = CursorSelection 0 0 0 0
+        , lastSelectionInTree = []
+        , languages = [] 
+        }
+
+-- |unsaved document
+unsavedDoc :: String
+unsavedDoc = "Unsaved document"
 -- |main gui data type, contains gtk components
+
 data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: TreeView -- ^ treeview

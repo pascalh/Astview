@@ -1,7 +1,8 @@
-{- contains the main GUI functions
+{- provides 'setupGUI' the main gui initialization
+function
  -
  -}
-module Language.Astview.GUI where
+module Language.Astview.GUI(setupGUI) where
 
 -- guiactions
 import Language.Astview.GUIData
@@ -23,65 +24,52 @@ import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 -- astview-utils
-import Language.Astview.Language
+import Language.Astview.Languages(knownLanguages)
 
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName) 
 
--- | initiates aststate
-buildAststate :: Options -> [Language] -> IO (IORef AstState)
-buildAststate opt langs = do
-  -- GTK init
-  initGUI 
-
-  -- load GladeXML
-  Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
- 
-  -- get or create widgets
+-- |builds initial gui state from glade xml file
+gladeToGUI :: GladeXML -> IO GUI
+gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
-
-  tb <- buildSourceView opt =<< xmlGetWidget xml castToScrolledWindow "swSource" 
-
+  tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource" 
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
+  return $ GUI win treeview tb dialogAbout
 
-  -- build compound datatype
-  let g = GUI win treeview tb dialogAbout
-      st = State 
-        { cFile = unsavedDoc
-        , textchanged = False
-        , lastSelectionInText  = CursorSelection 0 0 0 0
-        , lastSelectionInTree = []
-        , languages = langs
-        }
+-- |creates initial program state and provides an IORef to that
+buildState :: GladeXML -> IO (IORef AstState)
+buildState xml = do
+  g <- gladeToGUI xml
+  let astSt = AstState st g defaultVaule
+      st = defaultVaule { languages = knownLanguages }
+  newIORef astSt 
 
-  r <- newIORef $ AstState st g opt
-   
+-- | initiates gui and returns intitial program state
+setupGUI :: IO (IORef AstState)
+setupGUI = do
+  initGUI 
+  Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
+  r <- buildState xml 
   hooks r
-
-  -- get all menuitems from xml and register guiactions to them
   mapM_ (registerMenuAction xml r) menuActions
-  
   return r
 
 -- -------------------------------------------------------------------
 -- ** some helper functions
 -- -------------------------------------------------------------------
 
--- |builds combobox label for a language
-buildLabel :: Language -> String
-buildLabel l = name l ++ " [" ++ concatMap (" "++) (exts l) ++ "]"
-
 -- | setup the GtkSourceView and add it to the ScrollPane. return the 
 -- underlying textbuffer
-buildSourceView :: Options -> ScrolledWindow -> IO SourceBuffer
-buildSourceView opt sw = do
+buildSourceView :: ScrolledWindow -> IO SourceBuffer
+buildSourceView sw = do
   sourceBuffer <- sourceBufferNew Nothing
   sourceBufferSetHighlightSyntax sourceBuffer True
   sourceView <- sourceViewNewWithBuffer sourceBuffer
   sourceViewSetShowLineNumbers sourceView True
   sourceViewSetHighlightCurrentLine sourceView True
-  srcfont <- fontDescriptionFromString $ font opt ++" "++show (fsize opt)
+  srcfont <- fontDescriptionFromString $ font defaultVaule ++" "++show (fsize defaultVaule)
   widgetModifyFont sourceView (Just srcfont)
   containerAdd sw sourceView
   return sourceBuffer

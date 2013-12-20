@@ -10,9 +10,8 @@ import Graphics.UI.Gtk hiding (get)
 
 -- local
 import Language.Astview.GUIActions (actionEmptyGUI,actionLoadHeadless) 
-import Language.Astview.GUIData
-import Language.Astview.GUI (buildAststate)
-import Language.Astview.Languages(knownLanguages)
+import Language.Astview.GUIData(getGui,window)
+import Language.Astview.GUI (setupGUI)
 
 
 -- --------------------------------------------------------
@@ -23,8 +22,7 @@ import Language.Astview.Languages(knownLanguages)
 -- CLI-argument (one file to parse) and finally starts the GTK-GUI
 main :: IO ()
 main = do 
-  let os = Options "Monospace" 9
-  ref <- buildAststate os knownLanguages 
+  ref <- setupGUI 
   
   args <- getArgs
   case args of

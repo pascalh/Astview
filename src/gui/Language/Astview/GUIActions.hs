@@ -33,10 +33,6 @@ import Graphics.UI.Gtk.SourceView
 import Language.Astview.Language 
 import Language.Astview.SourceLocation 
 
--- |unsaved document
-unsavedDoc :: String
-unsavedDoc = "Unsaved document"
-
 -- | a list of pairs of gtk-ids and GUIActions 
 menuActions :: [(String,AstAction ())]
 menuActions = 
