@@ -9,9 +9,9 @@ import System.Environment(getArgs)
 import Graphics.UI.Gtk hiding (get) 
 
 -- local
-import Language.Astview.GUIActions (actionEmptyGUI,actionLoadHeadless) 
-import Language.Astview.GUIData(getGui,window)
-import Language.Astview.GUI (setupGUI)
+import Language.Astview.Gui.Actions (actionEmptyGUI,actionLoadHeadless) 
+import Language.Astview.Gui.Types(getGui,window)
+import Language.Astview.Gui.Init(setupGUI)
 
 
 -- --------------------------------------------------------

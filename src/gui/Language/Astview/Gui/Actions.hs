@@ -2,10 +2,10 @@
  -
  -}
 
-module Language.Astview.GUIActions where
+module Language.Astview.Gui.Actions where
 
 -- gui data types
-import Language.Astview.GUIData 
+import Language.Astview.Gui.Types
 
 -- base
 import Prelude hiding (writeFile)

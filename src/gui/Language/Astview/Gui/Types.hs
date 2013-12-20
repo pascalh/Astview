@@ -1,7 +1,7 @@
 {- contains the GUI data types
  -
  -}
-module Language.Astview.GUIData where
+module Language.Astview.Gui.Types where
 
 import Data.IORef
 

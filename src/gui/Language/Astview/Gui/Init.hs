@@ -2,11 +2,11 @@
 function
  -
  -}
-module Language.Astview.GUI(setupGUI) where
+module Language.Astview.Gui.Init(setupGUI) where
 
 -- guiactions
-import Language.Astview.GUIData
-import Language.Astview.GUIActions 
+import Language.Astview.Gui.Types
+import Language.Astview.Gui.Actions 
 
 -- base
 import Control.Monad.Trans (liftIO)
