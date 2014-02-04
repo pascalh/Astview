@@ -2,11 +2,11 @@
  -
  -}
 module Language.Astview.Gui.Types where
-
+import Data.Label
 import Data.IORef
 
 -- gtksourceview
-import Graphics.UI.Gtk hiding (Language,get)
+import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
 import Language.Astview.Language(Language,CursorSelection(..))
 
@@ -65,6 +65,12 @@ data GUI = GUI
 
 -- * getter functions
 
+mkLabels [ ''AstState
+         , ''Options
+         , ''State
+         , ''GUI
+         ]
+
 getSourceBuffer :: AstAction SourceBuffer
 getSourceBuffer = fmap (sb . gui) . readIORef 
 
@@ -103,26 +109,25 @@ getWindow = fmap (window . gui) . readIORef
 
 -- * setter functions
 
--- |stores the current selection 
-setCursor :: CursorSelection -> AstAction ()
-setCursor cp r = modifyIORef r m  where
-  m :: AstState -> AstState
-  m s@(AstState (State f c _ t ls ) _ _) = s { state = State f c cp t ls}
+lensSetIoRef :: (AstState :-> a) -> (a :-> b) -> b -> AstAction ()
+lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
 
--- |stores the current selection 
-setTreePath :: TreePath -> AstAction ()
-setTreePath p r = modifyIORef r m  where
   m :: AstState -> AstState
-  m s@(AstState (State f cp c _ ls ) _ _) = s { state = State f cp c p ls}
+  m = modify outerLens (set innerLens value)
+
+-- |stores the given cursor selection 
+setCursor :: CursorSelection -> AstAction ()
+setCursor cursor ref = lensSetIoRef lState lLastSelectionInText cursor ref
+
+-- |stores the given tree selection 
+setTreePath :: TreePath -> AstAction ()
+setTreePath path ref = lensSetIoRef lState lLastSelectionInTree path ref
 
 -- |stores file path of current opened file 
 setcFile :: FilePath -> AstAction ()
-setcFile file r = modifyIORef r m where
-  m :: AstState -> AstState
-  m s@(AstState (State _ cp c t ls) _ _) = s { state = State file cp c t ls}
+setcFile file ref = lensSetIoRef lState lCFile file ref
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()
-setChanged b r = modifyIORef r m where
-  m :: AstState -> AstState
-  m s@(AstState (State file _ c t ls) _ _) = s { state = State file b c t ls}
+setChanged changed ref = lensSetIoRef lState lTextchanged changed ref
+
