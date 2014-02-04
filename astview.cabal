@@ -26,9 +26,10 @@ Library
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
   Hs-Source-Dirs:  src/core
   Exposed-Modules: Language.Astview.Language
-                   Language.Astview.SourceLocation
+                   Language.Astview.SmallestSrcLocContainingCursor
                    Language.Astview.DataTree
                    Language.Astview.Languages
+                   Language.Astview.Pathlist
   Other-Modules:   Language.Astview.Languages.Haskell
                    Language.Astview.Languages.Python
   Build-Depends:     base >= 4.6.0.0

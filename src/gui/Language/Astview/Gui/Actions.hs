@@ -31,7 +31,9 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView 
 
 import Language.Astview.Language 
-import Language.Astview.SourceLocation 
+import Language.Astview.SmallestSrcLocContainingCursor
+  (smallestSrcLocContainingCursorPos)
+import Language.Astview.Pathlist(toList,PathList)
 
 -- | a list of pairs of gtk-ids and GUIActions 
 menuActions :: [(String,AstAction ())]
@@ -306,7 +308,7 @@ actionGetAssociatedPaths ref = do
         Left _    -> return Nothing 
         Right ast -> do
            putStrLn $ show sele ++ " selected"
-           return $ Just $ select sele ast 
+           return $ Just $ smallestSrcLocContainingCursorPos sele ast 
 
 
 -- |select tree path 
