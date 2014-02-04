@@ -76,7 +76,7 @@ actionEmptyGUI ref = do
 -- extension and parses the file
 actionLoadHeadless :: FilePath -> AstAction ()
 actionLoadHeadless file ref = do
-  setcFile file ref
+  setCurrentFile file ref
   s <- getAstState ref
 
   windowSetTitleSuffix 
@@ -95,9 +95,9 @@ actionLoadHeadless file ref = do
 -- current file name
 getLanguage :: AstAction (Maybe Language)
 getLanguage ref = do
-  file <- getFile ref
-  langs <- getLangs ref
-  return $ find (elem (takeExtension file) . exts) langs
+  file <- getCurrentFile ref
+  languages <- getKnownLanguages ref
+  return $ find (elem (takeExtension file) . exts) languages 
 
 
 actionGetAst :: Language -> AstAction (Either Error Ast)
@@ -154,7 +154,7 @@ setupSyntaxHighlighting buffer language = do
 -- |saves current file if a file is active or calls "save as"-dialog
 actionSave :: AstAction ()
 actionSave ref = do
-  file <- getFile ref
+  file <- getCurrentFile ref
   text <- getText =<< getSourceBuffer ref
   case file of
     "Unsaved document"  -> actionDlgSave ref
@@ -191,7 +191,7 @@ actionSaveAs = actionMkDialog FileChooserActionSave onOkay where
     case maybeFile of
        Nothing-> return () 
        Just file -> do
-         setcFile file ref
+         setCurrentFile file ref
          writeFile file =<< getText =<< getSourceBuffer ref
 
 -- |removes @*@ from window title if existing and updates state
@@ -361,7 +361,7 @@ actionQuitWorker ref = do
 
   windowSetTitleSuffix dia "Quit" 
   containerSetBorderWidth dia 2
-  file <- getFile ref
+  file <- getCurrentFile ref
   lbl <- labelNew 
     (Just $ "Save changes to document \""++
             takeFileName file ++
@@ -392,7 +392,7 @@ actionDlgSave = actionMkDialog FileChooserActionSave onOkay where
        Just file -> do
           g <- getGui ref
           setChanged False ref
-          setcFile file ref
+          setCurrentFile file ref
           writeFile file =<< getText =<< getSourceBuffer ref
           windowSetTitle 
             (window g) 

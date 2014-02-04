@@ -34,20 +34,20 @@ instance Default Options where
 
 -- |data type for the intern program state
 data State =  State
-  { cFile :: String -- ^ current file
+  { currentFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if file changed
   , lastSelectionInText :: CursorSelection -- ^ last active cursor position
   , lastSelectionInTree :: TreePath -- ^ last clicked tree cell
-  , languages :: [Language] -- ^ known languages
+  , knownLanguages :: [Language] -- ^ known languages, which can be parsed
   }
 
 instance Default State where
   defaultVaule = State 
-        { cFile = unsavedDoc
+        { currentFile = unsavedDoc
         , textchanged = False
         , lastSelectionInText  = CursorSelection 0 0 0 0
         , lastSelectionInTree = []
-        , languages = [] 
+        , knownLanguages = [] 
         }
 
 -- |unsaved document
@@ -89,8 +89,8 @@ getGui = fmap gui . readIORef
 getState :: AstAction State 
 getState = fmap state . readIORef 
 
-getLangs :: AstAction [Language]
-getLangs = fmap (languages . state) . readIORef
+getKnownLanguages :: AstAction [Language]
+getKnownLanguages = fmap (knownLanguages . state) . readIORef
 
 getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
@@ -101,8 +101,8 @@ getCursor = fmap (lastSelectionInText . state) . readIORef
 getPath :: AstAction TreePath
 getPath = fmap (lastSelectionInTree. state) . readIORef
 
-getFile :: AstAction String
-getFile = fmap (cFile . state) . readIORef
+getCurrentFile :: AstAction String
+getCurrentFile = fmap (currentFile . state) . readIORef
 
 getWindow :: AstAction Window
 getWindow = fmap (window . gui) . readIORef
@@ -124,8 +124,8 @@ setTreePath :: TreePath -> AstAction ()
 setTreePath path ref = lensSetIoRef lState lLastSelectionInTree path ref
 
 -- |stores file path of current opened file 
-setcFile :: FilePath -> AstAction ()
-setcFile file ref = lensSetIoRef lState lCFile file ref
+setCurrentFile :: FilePath -> AstAction ()
+setCurrentFile file ref = lensSetIoRef lState lCurrentFile file ref
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()

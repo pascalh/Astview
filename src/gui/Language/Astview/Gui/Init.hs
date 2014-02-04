@@ -24,7 +24,7 @@ import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 
 -- astview-utils
-import Language.Astview.Languages(knownLanguages)
+import Language.Astview.Languages(languages)
 
 -- generated on-the-fly by cabal
 import Paths_astview (getDataFileName) 
@@ -43,7 +43,7 @@ buildState :: GladeXML -> IO (IORef AstState)
 buildState xml = do
   g <- gladeToGUI xml
   let astSt = AstState st g defaultVaule
-      st = defaultVaule { languages = knownLanguages }
+      st = defaultVaule { knownLanguages = languages}
   newIORef astSt 
 
 -- | initiates gui and returns intitial program state

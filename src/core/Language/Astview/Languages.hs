@@ -4,13 +4,13 @@ You can extend the list with your own parsers
 
 -}
 
-module Language.Astview.Languages where
+module Language.Astview.Languages(languages) where
 
 -- -- local imports
 import Language.Astview.Language (Language)
 import Haskell  
 import Python
 
--- |  astview
-knownLanguages :: [Language]
-knownLanguages = [haskellexts,python]
+-- |all languages, whose ast can be viewed in astview 
+languages :: [Language]
+languages = [haskellexts,python]
