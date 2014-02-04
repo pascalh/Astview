@@ -8,8 +8,8 @@ module Language.Astview.Languages(languages) where
 
 -- -- local imports
 import Language.Astview.Language (Language)
-import Haskell  
-import Python
+import Language.Astview.Languages.Haskell (haskellexts)
+import Language.Astview.Languages.Python (python)
 
 -- |all languages, whose ast can be viewed in astview 
 languages :: [Language]

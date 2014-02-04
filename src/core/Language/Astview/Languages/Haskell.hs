@@ -1,4 +1,4 @@
-module Haskell (haskellexts) where
+module Language.Astview.Languages.Haskell (haskellexts) where
 
 -- local imports
 import Language.Astview.Language hiding (parse)

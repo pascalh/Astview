@@ -29,8 +29,8 @@ Library
                    Language.Astview.SourceLocation
                    Language.Astview.DataTree
                    Language.Astview.Languages
-  Other-Modules:   Haskell
-                   Python
+  Other-Modules:   Language.Astview.Languages.Haskell
+                   Language.Astview.Languages.Python
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.0.0
                    , QuickCheck >= 2.6

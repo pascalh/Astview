@@ -1,4 +1,4 @@
-module Python (python) where
+module Language.Astview.Languages.Python (python) where
 
 import Language.Astview.Language 
 import Language.Astview.DataTree (data2AstHoIg)
