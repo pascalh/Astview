@@ -23,7 +23,7 @@ Tested-with:     GHC==7.6.1
 Data-Files:      data/astview.glade
 
 Library
-  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
+  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
   Hs-Source-Dirs:  src/core
   Exposed-Modules: Language.Astview.Language
                    Language.Astview.SourceLocation
@@ -45,7 +45,7 @@ Library
 Executable         astview
   Hs-Source-Dirs:  src/gui
   Main-is:         Main.hs
-  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind
+  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
 
   Build-Depends:   base >= 4.6.0.0
                    , astview == 0.3

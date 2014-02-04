@@ -129,5 +129,5 @@ setCurrentFile file ref = lensSetIoRef lState lCurrentFile file ref
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()
-setChanged changed ref = lensSetIoRef lState lTextchanged changed ref
+setChanged hasChanged ref = lensSetIoRef lState lTextchanged hasChanged ref
 
