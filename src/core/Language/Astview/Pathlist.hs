@@ -4,9 +4,10 @@ syntax tree.  A pathlist stores a source location and the associated tree
 positions. 
 
 This data structure is specialized to find the smallest source location
-surrounded by a given cursor position in moule 'SourceLocation'. Thus,
-if during insertion we find a smaller source location than the current,
-the current one is replaced by the new. See function 'ins' for details.
+surrounded by a given cursor position in module 
+'Language.Astview.SourceLocation'. Thus, if we find a smaller source 
+location than the current during insertion , the current one is replaced 
+by the new. See function 'ins' for details.
 
 -}
 module Language.Astview.Pathlist
@@ -23,7 +24,7 @@ import Language.Astview.Language (SrcLocation(..))
 data PathList 
   = Empty -- ^ the empty list
   | PathList  SrcLocation [[Int]] 
-    -- ^ a source location and positions  where this location occurs
+    -- ^ a source location and their associated tree positions
 
 instance Eq PathList where
   Empty             == Empty             = True
