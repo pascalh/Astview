@@ -79,19 +79,12 @@ actionEmptyGUI ref = do
 actionLoadHeadless :: FilePath -> AstAction ()
 actionLoadHeadless file ref = do
   setCurrentFile file ref
-  s <- getAstState ref
-
-  windowSetTitleSuffix 
-    (window $ gui s) 
-    (takeFileName file)
-  contents <- withFile 
-    file ReadMode (fmap BS.unpack . BS.hGetContents)
+  w <- getWindow ref
+  windowSetTitleSuffix w (takeFileName file)
   buffer <- getSourceBuffer ref 
-  textBufferSetText buffer contents
+  textBufferSetText buffer =<< withFile file ReadMode (fmap BS.unpack . BS.hGetContents)
   deleteStar ref
-  whenJustM
-    (getLanguage ref) $
-    \l -> void $ actionParse l ref 
+  whenJustM (getLanguage ref) (\l -> void $ actionParse l ref)
 
 -- |tries to find a language based on the extension of 
 -- current file name
@@ -131,13 +124,11 @@ actionParse l ref = do
 -- |given a language and input string buildAst constructs the tree
 --which will be presented by our gtk-treeview
 buildAst :: Language -> String -> Tree String
-buildAst l s =
-  case parse l s of
-     Left Err                  -> Node "Parse error" []
-     Left (ErrMessage m)       -> Node m []
-     Left (ErrLocation pos message) -> 
-         Node ("Parse error at:"++show pos++": "++message) [] 
-     Right (Ast ast)       -> fmap label  ast
+buildAst l s = case parse l s of
+  Left Err                  -> Node "Parse error" []
+  Left (ErrMessage m)       -> Node m []
+  Left (ErrLocation pos m ) -> Node ("Parse error at:"++show pos++": "++m) [] 
+  Right (Ast ast)           -> fmap label  ast
     
 -- |uses the name of given language to establish syntax highlighting in 
 -- source buffer
@@ -430,7 +421,7 @@ whenJust (Just x) action = action x
 whenJustM :: Monad m => m(Maybe a) -> (a -> m ()) -> m ()
 whenJustM val action = do
   m <- val
-  maybe (return ()) action m
+  whenJust m action
 
 -- |returns the text in given text buffer
 getText :: TextBufferClass c => c -> IO String
@@ -439,7 +430,9 @@ getText tb = do
   end <- textBufferGetEndIter tb
   textBufferGetText tb start end True
 
--- |uses the given string to set the title of given window with suffix "-astview"
+-- |uses the given string to set the title of given window with 
+-- suffix "-astview". Window titles should only be set by this
+-- function, hence it replaces the corresponding gtk function.
 windowSetTitleSuffix :: WindowClass w => w -> String -> IO ()
 windowSetTitleSuffix win title = windowSetTitle win (title++" - astview")
   
