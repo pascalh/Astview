@@ -280,7 +280,6 @@ getCursorPosition ref = do
 actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
   treePaths <- actionGetAssociatedPaths ref 
-  putStrLn $ "Matching results: "++ show treePaths
   case fmap toList treePaths of
     Just ((_,p):_)  -> activatePath p ref
     _               -> return ()
@@ -298,7 +297,6 @@ actionGetAssociatedPaths ref = do
       case astOrError of
         Left _    -> return Nothing 
         Right ast -> do
-           putStrLn $ show sele ++ " selected"
            return $ Just $ smallestSrcLocContainingCursorPos sele ast 
 
 
@@ -395,11 +393,6 @@ actionDlgSave = actionMkDialog FileChooserActionSave onOkay where
 actionReparse :: AstAction ()
 actionReparse ref = 
   whenJustM (getLanguage ref) $ \l -> void $ actionParse l ref 
-
--- |prints the current selected path to console. Mainly used for 
--- debugging purposes.
-actionShowPath :: AstAction ()
-actionShowPath ref = actionGetPath ref >>= print
 
 actionGetPath :: AstAction [Int]
 actionGetPath ref = do 
