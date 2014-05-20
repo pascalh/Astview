@@ -8,8 +8,10 @@ import Test.Tasty.HUnit
 
 import Data.Tree
 
-import Language.Astview.SourceLocation
 import Language.Astview.Language
+import Language.Astview.Pathlist
+import Language.Astview.SmallestSrcLocContainingCursor 
+  (smallestSrcLocContainingCursorPos) 
 import Language.Astview.DataTree(annotateWithPaths)
 
 testSourceLocations :: TestTree
@@ -92,6 +94,10 @@ groupSelect :: TestTree
 groupSelect = 
   testGroup "selecting the greatest sorrounding source location" 
             [t1,t2,t3,t4,t5,t6]
+
+-- |a shorter name
+select :: CursorSelection -> Ast -> PathList
+select = smallestSrcLocContainingCursorPos 
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
 mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) cs

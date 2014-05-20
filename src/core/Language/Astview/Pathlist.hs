@@ -13,6 +13,7 @@ by the new. See function 'ins' for details.
 module Language.Astview.Pathlist
   (PathList
   ,toList
+  ,singleton
   ,ins
   ,fromList
   ) where
