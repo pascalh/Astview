@@ -26,18 +26,31 @@ groupContains =
 groupAlgebraicProperties :: TestTree
 groupAlgebraicProperties = testGroup "algebraic properties" 
   [propReflexivity 
+  ,propDuality
   ]
 
 propReflexivity :: TestTree
 propReflexivity = testGroup "Reflexivity" [propLEQ,propGEQ] where
 
-  propLEQ = testProperty "Reflexivity of <=" p where
-    p :: SrcLocation -> Bool
-    p s = s <= s 
+  propLEQ = testProperty "Reflexivity of <=" prop where
 
-  propGEQ = testProperty "Reflexivity of >=" p where
-    p :: SrcLocation -> Bool
-    p s = s >= s 
+    prop :: SrcLocation -> Bool
+    prop s = s <= s 
+
+  propGEQ = testProperty "Reflexivity of >=" prop where
+
+    prop :: SrcLocation -> Bool
+    prop s = s >= s 
+
+propDuality:: TestTree
+propDuality = testProperty "Duality of < and >" prop where
+
+  prop :: SrcLocation -> SrcLocation -> Bool 
+  prop a b 
+    | a < b     = b > a 
+    | a == b    = b == a
+    | a > b     = b < a
+    | otherwise = True
 
 groupInOneline :: TestTree
 groupInOneline = testGroup "Everything in one line" $ map (testCase []) 
