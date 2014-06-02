@@ -25,7 +25,7 @@ mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) c
 
 t1 :: TestTree
 t1 = testCase "return first occourence" $ 
-       toList (select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(SrcSpan 1 2 1 7,[0])]  where
+       toList (select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(linear 1 2 7,[0])]  where
           ast = mkTree "a" (SrcSpan 1 2 1 7) []
 
 t2 :: TestTree
