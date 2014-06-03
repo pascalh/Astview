@@ -29,7 +29,6 @@ Library
                    Language.Astview.SmallestSrcLocContainingCursor
                    Language.Astview.DataTree
                    Language.Astview.Languages
-                   Language.Astview.Pathlist
   Other-Modules:   Language.Astview.Languages.Haskell
                    Language.Astview.Languages.Python
   Build-Depends:     base >= 4.6.0.0
