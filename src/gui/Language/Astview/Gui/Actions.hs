@@ -33,7 +33,6 @@ import Graphics.UI.Gtk.SourceView
 import Language.Astview.Language 
 import Language.Astview.SmallestSrcLocContainingCursor
   (smallestSrcLocContainingCursorPos)
-import Language.Astview.Pathlist(toList,PathList)
 
 -- | a list of pairs of gtk-ids and GUIActions 
 menuActions :: [(String,AstAction ())]
@@ -275,19 +274,17 @@ getCursorPosition ref = do
   return $ CursorSelection (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
 
 -- |opens tree position associated with current cursor position.
--- Right now we are picking the first path in the list, but there
--- should be some kind of user interaction.
 actionJumpToSrcLoc :: AstAction ()
 actionJumpToSrcLoc ref = do
-  treePaths <- actionGetAssociatedPaths ref 
-  case fmap toList treePaths of
-    Just ((_,p):_)  -> activatePath p ref
-    _               -> return ()
+  treePath <- actionGetAssociatedPath ref 
+  case treePath of
+    Just p  -> activatePath p ref
+    Nothing -> return ()
 
--- |returns the paths in tree which are associated with the
+-- |returns the shortest path in tree which is associated with the
 -- current selected source location.
-actionGetAssociatedPaths :: AstAction (Maybe PathList)
-actionGetAssociatedPaths ref = do  
+actionGetAssociatedPath :: AstAction (Maybe TreePath)
+actionGetAssociatedPath ref = do  
   sele <- getCursorPosition ref 
   maybeLang <- getLanguage ref
   case maybeLang of
@@ -297,7 +294,7 @@ actionGetAssociatedPaths ref = do
       case astOrError of
         Left _    -> return Nothing 
         Right ast -> do
-           return $ Just $ smallestSrcLocContainingCursorPos sele ast 
+           return $ smallestSrcLocContainingCursorPos sele ast 
 
 
 -- |select tree path 

@@ -8,14 +8,47 @@ module Language.Astview.SmallestSrcLocContainingCursor
 where
 import Data.Maybe(catMaybes)
 import Data.Tree(flatten)
+import qualified Data.Set as S
+import Data.Function(on)  
+import Data.List (minimumBy)
 
-import Language.Astview.Pathlist(PathList,fromList)
 import Language.Astview.Language
 
+
+type Path = [Int]
+
+-- |a pathlist stores a source location and paths to all subtrees annotated
+-- with the source location
+data PathList 
+  = Empty -- ^ the empty list
+  | PathList  SrcLocation (S.Set Path) 
+    -- ^ a source location and their associated tree positions
+  deriving (Show,Eq)
+
+singleton :: (SrcLocation,Path) -> PathList
+singleton (x,p) = ins (x,p) Empty 
+
+ins :: (SrcLocation,Path) -> PathList -> PathList 
+ins (s   ,p   ) Empty = PathList s $ S.singleton p 
+ins (sNew,pNew) (PathList s ps) 
+  | s == sNew  = PathList s $ S.insert pNew ps
+  | s > sNew   = singleton (sNew,pNew)
+  | otherwise  = PathList s ps 
+
+-- |Creates a PathList from a given list if pairs.
+-- Thus, it returns the smallest source location and all paths to operations
+-- in the tree annotated with this source location.
+fromList :: [(SrcLocation,Path)] -> PathList
+fromList = foldr ins Empty 
+
+selectShortestPath :: PathList -> Maybe Path 
+selectShortestPath Empty           = Nothing
+selectShortestPath (PathList _ ps) = Just $ minimumBy (compare `on` length)  $ S.toList ps
+
 -- |selects the smallest source location containing given cursor selection
-smallestSrcLocContainingCursorPos :: CursorSelection -> Ast -> PathList
+smallestSrcLocContainingCursorPos :: CursorSelection -> Ast -> Maybe Path 
 smallestSrcLocContainingCursorPos sele = 
-  fromList . locsContainingSelection sele . findAllSrcLocations
+ selectShortestPath . fromList . locsContainingSelection sele . findAllSrcLocations
 
 -- |extracts all source locations from abstract syntax tree
 findAllSrcLocations :: Ast -> [(SrcLocation,[Int])]

@@ -3,7 +3,6 @@ module SmallestSrcLocContainingCursor (testSelect) where
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Language.Astview.Pathlist
 import Language.Astview.SmallestSrcLocContainingCursor 
   (smallestSrcLocContainingCursorPos) 
 import Language.Astview.DataTree(annotateWithPaths)
@@ -17,7 +16,7 @@ testSelect =
             [t1,t2,t3,t4,t5,t6]
 
 -- |a shorter name
-select :: CursorSelection -> Ast -> PathList
+select :: CursorSelection -> Ast -> Maybe [Int] 
 select = smallestSrcLocContainingCursorPos 
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
@@ -25,7 +24,7 @@ mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) c
 
 t1 :: TestTree
 t1 = testCase "return first occourence" $ 
-       toList (select (CursorSelection 1 2 1 7) (Ast ast)) @?= [(linear 1 2 7,[0])]  where
+       select (CursorSelection 1 2 1 7) (Ast ast) @?= Just [0]  where
           ast = mkTree "a" (SrcSpan 1 2 1 7) []
 
 t2 :: TestTree
@@ -36,7 +35,7 @@ t2 = testCase "return immediate successor" $
        in
        select (CursorSelection 1 3 3 6) (Ast ast) 
        @?= 
-       singleton (r,[0,0]) 
+       Just [0,0] 
 
 t3 :: TestTree
 t3 = testCase "return root if successor does not match" $ 
@@ -46,7 +45,7 @@ t3 = testCase "return root if successor does not match" $
        in
        select (CursorSelection 1 2 3 9) (Ast ast) 
        @?= 
-       singleton (r,[0]) 
+       Just [0] 
 
 
 t4 :: TestTree
@@ -58,7 +57,7 @@ t4 = testCase "return leaf in three containing spans" $
        in
        select (CursorSelection 2 1 3 1) (Ast ast) 
        @?= 
-       singleton (r,[0,0,0]) 
+       Just [0,0,0] 
 
 t5 :: TestTree
 t5 = testCase "triangle, select the correct child" $ 
@@ -69,7 +68,7 @@ t5 = testCase "triangle, select the correct child" $
        in
        select (CursorSelection 2 1 3 1) (Ast ast) 
        @?= 
-       singleton (r,[0,1]) 
+       Just [0,1] 
 
 t6 :: TestTree
 t6 = testCase "triangle, select multiple locations" $ 
@@ -81,4 +80,4 @@ t6 = testCase "triangle, select multiple locations" $
        in
        select (CursorSelection 2 1 3 1) (Ast ast)
        @?= 
-       ins (r,[0,1]) (singleton (r,[0,1,0]))
+       Just [0,1]
