@@ -11,6 +11,7 @@ module Language.Astview.Language
   , CursorSelection(..)
   , selectionToSpan
   , NodeType(..)
+  , Path
   , AstNode(..)
   , Ast(..)
   , Error (..)
@@ -87,11 +88,14 @@ selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
 -- |a node represents either an operation or an identificator
 data NodeType = Operation | Identificator
 
+
+type Path = [Int]
+
 -- |a node represents an algebraic operation
 data AstNode = AstNode
   { label :: String
   , srcloc :: Maybe SrcLocation
-  , path :: [Int]
+  , path :: Path 
   , nodeType :: NodeType
   }
 

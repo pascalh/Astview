@@ -15,8 +15,6 @@ import Data.List (minimumBy)
 
 import Language.Astview.Language
 
-type Path = [Int]
-
 -- |selects the path to the smallest source location containing given cursor 
 smallestSrcLocContainingCursorPos :: CursorSelection -> Ast -> Maybe Path 
 smallestSrcLocContainingCursorPos sele = 

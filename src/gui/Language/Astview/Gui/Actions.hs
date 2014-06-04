@@ -258,7 +258,7 @@ showDialogSrcLoc mbSrcLoc= do
   widgetHide dia
       
 
-at :: Tree AstNode -> TreePath -> Maybe SrcLocation 
+at :: Tree AstNode -> Path -> Maybe SrcLocation 
 at (Node n _ )  []     = srcloc n
 at (Node _ cs) (i:is)  = cs!!i `at` is
 
@@ -283,7 +283,7 @@ actionJumpToSrcLoc ref = do
 
 -- |returns the shortest path in tree which is associated with the
 -- current selected source location.
-actionGetAssociatedPath :: AstAction (Maybe TreePath)
+actionGetAssociatedPath :: AstAction (Maybe Path)
 actionGetAssociatedPath ref = do  
   sele <- getCursorPosition ref 
   maybeLang <- getLanguage ref
@@ -298,7 +298,7 @@ actionGetAssociatedPath ref = do
 
 
 -- |select tree path 
-activatePath :: TreePath -> AstAction ()
+activatePath :: Path -> AstAction ()
 activatePath p ref = do 
   view <- getTreeView ref
   treeViewExpandToPath view p
@@ -391,7 +391,7 @@ actionReparse :: AstAction ()
 actionReparse ref = 
   whenJustM (getLanguage ref) $ \l -> void $ actionParse l ref 
 
-actionGetPath :: AstAction [Int]
+actionGetPath :: AstAction Path 
 actionGetPath ref = do 
   rows <- treeSelectionGetSelectedRows =<< treeViewGetSelection =<< getTreeView ref
   return $ case rows of 
