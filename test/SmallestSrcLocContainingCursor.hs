@@ -16,7 +16,7 @@ testSelect =
             [t1,t2,t3,t4,t5,t6]
 
 -- |a shorter name
-select :: CursorSelection -> Ast -> Maybe [Int] 
+select :: SrcLocation -> Ast -> Maybe [Int] 
 select = smallestSrcLocContainingCursorPos 
 
 mkTree :: String -> SrcLocation -> [Tree AstNode] -> Tree AstNode
@@ -24,7 +24,7 @@ mkTree l s cs = annotateWithPaths $ Node (AstNode l (Just s) [] Identificator) c
 
 t1 :: TestTree
 t1 = testCase "return first occourence" $ 
-       select (CursorSelection 1 2 1 7) (Ast ast) @?= Just [0]  where
+       select (SrcSpan 1 2 1 7) (Ast ast) @?= Just [0]  where
           ast = mkTree "a" (SrcSpan 1 2 1 7) []
 
 t2 :: TestTree
@@ -33,7 +33,7 @@ t2 = testCase "return immediate successor" $
            ast = mkTree "a" (SrcSpan 1 1 16 3) [c]
            c =  mkTree "b" r []
        in
-       select (CursorSelection 1 3 3 6) (Ast ast) 
+       select (SrcSpan 1 3 3 6) (Ast ast) 
        @?= 
        Just [0,0] 
 
@@ -43,7 +43,7 @@ t3 = testCase "return root if successor does not match" $
            ast = mkTree "a" r [c]  
            c =  mkTree "b" (SrcSpan 10 2 17 9 ) []
        in
-       select (CursorSelection 1 2 3 9) (Ast ast) 
+       select (SrcSpan 1 2 3 9) (Ast ast) 
        @?= 
        Just [0] 
 
@@ -55,7 +55,7 @@ t4 = testCase "return leaf in three containing spans" $
            c1 =  mkTree "b" (SrcSpan 1 1 5 9) [c2]
            c2 =  mkTree "b"  r []
        in
-       select (CursorSelection 2 1 3 1) (Ast ast) 
+       select (SrcSpan 2 1 3 1) (Ast ast) 
        @?= 
        Just [0,0,0] 
 
@@ -66,7 +66,7 @@ t5 = testCase "triangle, select the correct child" $
            c1 =  mkTree "b" (SrcSpan 10 1 15 9) []
            c2 =  mkTree "b" r []
        in
-       select (CursorSelection 2 1 3 1) (Ast ast) 
+       select (SrcSpan 2 1 3 1) (Ast ast) 
        @?= 
        Just [0,1] 
 
@@ -78,6 +78,6 @@ t6 = testCase "triangle, select multiple locations" $
            c2 =  mkTree "b" r [c3]
            c3 =  mkTree "b" r []
        in
-       select (CursorSelection 2 1 3 1) (Ast ast)
+       select (SrcSpan 2 1 3 1) (Ast ast)
        @?= 
        Just [0,1]

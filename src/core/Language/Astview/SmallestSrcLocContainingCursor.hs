@@ -15,8 +15,12 @@ import Data.List (minimumBy)
 
 import Language.Astview.Language
 
--- |selects the path to the smallest source location containing given cursor 
-smallestSrcLocContainingCursorPos :: CursorSelection -> Ast -> Maybe Path 
+-- |selects the (shortest) path to the smallest source location containing 
+-- given cursor selection.
+smallestSrcLocContainingCursorPos 
+  :: SrcLocation  -- ^ the cursor selection
+  -> Ast  -- ^ the abstract syntax tree
+  -> Maybe Path 
 smallestSrcLocContainingCursorPos sele = 
  selectShortestPath . locsContainingSelection sele . findAllSrcLocations
 
@@ -45,7 +49,7 @@ getSrcLocPathPairs (AstNode _ (Just s) p _) = Just (s,p)
 
 -- |removes all source locations from list, 
 -- which are not surrounded by given cursor selection
-locsContainingSelection :: CursorSelection -> [(SrcLocation,Path)] -> [(SrcLocation,Path)] 
-locsContainingSelection sele = filter (\(s,_) -> s >= selectionToSpan sele)
+locsContainingSelection :: SrcLocation -> [(SrcLocation,Path)] -> [(SrcLocation,Path)] 
+locsContainingSelection sele = filter (\(s,_) -> s >= sele)
 
 

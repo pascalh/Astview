@@ -8,7 +8,7 @@ import Data.IORef
 -- gtksourceview
 import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer) 
-import Language.Astview.Language(Language,CursorSelection(..))
+import Language.Astview.Language(Language,SrcLocation(..),Path)
 
 -- |a type class for default values, compareable to mempty in class 'Monoid'
 class Default a where
@@ -36,8 +36,8 @@ instance Default Options where
 data State =  State
   { currentFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if file changed
-  , lastSelectionInText :: CursorSelection -- ^ last active cursor position
-  , lastSelectionInTree :: TreePath -- ^ last clicked tree cell
+  , lastSelectionInText :: SrcLocation -- ^ last active cursor position
+  , lastSelectionInTree :: Path -- ^ last clicked tree cell
   , knownLanguages :: [Language] -- ^ known languages, which can be parsed
   }
 
@@ -45,7 +45,7 @@ instance Default State where
   defaultVaule = State 
         { currentFile = unsavedDoc
         , textchanged = False
-        , lastSelectionInText  = CursorSelection 0 0 0 0
+        , lastSelectionInText  = SrcSpan 0 0 0 0
         , lastSelectionInTree = []
         , knownLanguages = [] 
         }
@@ -95,7 +95,7 @@ getKnownLanguages = fmap (knownLanguages . state) . readIORef
 getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
 
-getCursor :: AstAction CursorSelection
+getCursor :: AstAction SrcLocation 
 getCursor = fmap (lastSelectionInText . state) . readIORef
 
 getPath :: AstAction TreePath
@@ -116,11 +116,11 @@ lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
   m = modify outerLens (set innerLens value)
 
 -- |stores the given cursor selection 
-setCursor :: CursorSelection -> AstAction ()
+setCursor :: SrcLocation -> AstAction ()
 setCursor cursor ref = lensSetIoRef lState lLastSelectionInText cursor ref
 
 -- |stores the given tree selection 
-setTreePath :: TreePath -> AstAction ()
+setTreePath :: Path -> AstAction ()
 setTreePath path ref = lensSetIoRef lState lLastSelectionInTree path ref
 
 -- |stores file path of current opened file 

@@ -264,14 +264,14 @@ at (Node _ cs) (i:is)  = cs!!i `at` is
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
-getCursorPosition :: AstAction CursorSelection 
+getCursorPosition :: AstAction SrcLocation 
 getCursorPosition ref = do
   (startIter,endIter) <- textBufferGetSelectionBounds =<< getSourceBuffer ref
   lineStart <- textIterGetLine startIter 
   rowStart <- textIterGetLineOffset startIter 
   lineEnd <- textIterGetLine endIter  
   rowEnd <- textIterGetLineOffset endIter 
-  return $ CursorSelection (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
+  return $ SrcSpan (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
 
 -- |opens tree position associated with current cursor position.
 actionJumpToSrcLoc :: AstAction ()

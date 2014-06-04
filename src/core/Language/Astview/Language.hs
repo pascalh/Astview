@@ -8,8 +8,6 @@ module Language.Astview.Language
   , SrcLocation(SrcSpan)
   , position
   , linear
-  , CursorSelection(..)
-  , selectionToSpan
   , NodeType(..)
   , Path
   , AstNode(..)
@@ -117,17 +115,3 @@ linear :: Int -- ^ the line
      -> SrcLocation
 linear line beginRow = SrcSpan line beginRow line 
 
--- |a cursor selection in a text buffer
-data CursorSelection = CursorSelection
-  Int -- ^ line start
-  Int  -- ^ row start
-  Int -- ^ line end
-  Int  -- ^ row end
-
-instance Show CursorSelection where
-  show (CursorSelection a b c d) = 
-    "("++show a++":"++show b++") ("++show c++":"++show d++")"
-
--- |transforms a CursorSelection to a SrcSpan
-selectionToSpan :: CursorSelection -> SrcLocation
-selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
