@@ -21,6 +21,53 @@ import Data.Tree(Tree(..))
 import Data.Generics (Typeable)
 import Test.QuickCheck
 
+-- |a node represents either an operation or an identificator
+data NodeType = Operation | Identificator
+
+-- |a position in a tree is uniquely determined by a list of positive numbers.
+-- The value at position i says that we follow the i-th successor of a node.
+type Path = [Int]
+
+-- |a node represents an algebraic operation
+data AstNode = AstNode
+  { label :: String
+  , srcloc :: Maybe SrcLocation
+  , path :: Path 
+  , nodeType :: NodeType
+  }
+
+instance Show AstNode where
+  show (AstNode l s _ _) = 
+    l ++ (case s of { Nothing -> ""; 
+                      Just x ->replicate 5 ' '  ++"["++show x++"]"})
+
+-- |an (untyped) abstract syntax is just a tree of AstNodes
+newtype Ast = Ast (Tree AstNode) 
+
+-- |datatype for one language. Some parsers support source locations
+-- which enables us to connect locations in text area with locations
+-- in a tree. 
+data Language = Language
+  { name :: String -- ^ language name
+  , syntax :: String -- ^ syntax highlighter name
+  , exts :: [String]
+   -- ^ file extentions which should be associated with this language
+  , parse :: String -> Either Error Ast -- ^ parse function
+  } 
+
+instance Eq Language where
+  l1 == l2 = name l1 == name l2
+
+-- |datatype to specify parse errors. Since parsers offer different
+-- amounts of information about parse errors, we offer the following
+-- three parse errors: 
+data Error
+  = Err -- ^ no error information
+  | ErrMessage String -- ^ simple error message
+  | ErrLocation SrcLocation String -- ^ error message and src loc
+
+-- * source locations
+
 -- |specifies a source location in text area. Use smart constructors 'linear'
 -- and 'position' to create special source locations.
 data SrcLocation 
@@ -84,50 +131,3 @@ instance Show CursorSelection where
 -- |transforms a CursorSelection to a SrcSpan
 selectionToSpan :: CursorSelection -> SrcLocation
 selectionToSpan (CursorSelection lb rb le re) = SrcSpan lb rb le re
-
--- |a node represents either an operation or an identificator
-data NodeType = Operation | Identificator
-
-
-type Path = [Int]
-
--- |a node represents an algebraic operation
-data AstNode = AstNode
-  { label :: String
-  , srcloc :: Maybe SrcLocation
-  , path :: Path 
-  , nodeType :: NodeType
-  }
-
-instance Show AstNode where
-  show (AstNode l s _ _) = 
-    l ++ (case s of { Nothing -> ""; 
-                      Just x ->replicate 5 ' '  ++"["++show x++"]"})
-
--- |an (untyped) abstract syntax is just a tree of AstNodes
-newtype Ast = Ast (Tree AstNode) 
-
--- |datatype for one language. Some parsers support source locations
--- which enables us to connect locations in text area with locations
--- in a tree. Selector function @srcLoc@ supports extracting source
--- locations from a subtree (@srcLoc@ will be mapped over the whole
--- tree) to find source location of type @s@. 
-data Language = Language
-  { name :: String -- ^ language name
-  , syntax :: String -- ^ syntax highlighter name
-  , exts :: [String]
-   -- ^ file extentions which should be associated with this language
-  , parse :: String -> Either Error Ast -- ^ parse function
-  } 
-
-instance Eq Language where
-  l1 == l2 = name l1 == name l2
-
--- |datatype to specify parse errors. Since parsers offer different
--- amounts of information about parse errors, we offer the following
--- three parse errors: 
-data Error
-  = Err -- ^ no error information
-  | ErrMessage String -- ^ simple error message
-  | ErrLocation SrcLocation String -- ^ error message and src loc
-
