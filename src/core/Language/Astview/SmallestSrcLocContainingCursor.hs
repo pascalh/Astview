@@ -1,65 +1,53 @@
 {-|
-this module contains a brute force algorithm to compute the smallest 
-source location in a tree which is surrounded by a given cursor selection.
-The size of a source location is the size of the represented interval.
+this module contains a brute force algorithm to compute the path to the smallest 
+source location in an abstract syntax tree which is surrounded by a given 
+cursor selection.
+If multiple subtrees represent the smallest source location
+ we select the biggest subtree. This is done by 'selectShortestPath'.
 -}
 module Language.Astview.SmallestSrcLocContainingCursor 
   (smallestSrcLocContainingCursorPos) 
 where
 import Data.Maybe(catMaybes)
 import Data.Tree(flatten)
-import qualified Data.Set as S
 import Data.Function(on)  
 import Data.List (minimumBy)
 
 import Language.Astview.Language
 
-
 type Path = [Int]
 
--- |a pathlist stores a source location and paths to all subtrees annotated
--- with the source location
-data PathList 
-  = Empty -- ^ the empty list
-  | PathList  SrcLocation (S.Set Path) 
-    -- ^ a source location and their associated tree positions
-  deriving (Show,Eq)
-
-singleton :: (SrcLocation,Path) -> PathList
-singleton (x,p) = ins (x,p) Empty 
-
-ins :: (SrcLocation,Path) -> PathList -> PathList 
-ins (s   ,p   ) Empty = PathList s $ S.singleton p 
-ins (sNew,pNew) (PathList s ps) 
-  | s == sNew  = PathList s $ S.insert pNew ps
-  | s > sNew   = singleton (sNew,pNew)
-  | otherwise  = PathList s ps 
-
--- |Creates a PathList from a given list if pairs.
--- Thus, it returns the smallest source location and all paths to operations
--- in the tree annotated with this source location.
-fromList :: [(SrcLocation,Path)] -> PathList
-fromList = foldr ins Empty 
-
-selectShortestPath :: PathList -> Maybe Path 
-selectShortestPath Empty           = Nothing
-selectShortestPath (PathList _ ps) = Just $ minimumBy (compare `on` length)  $ S.toList ps
-
--- |selects the smallest source location containing given cursor selection
+-- |selects the path to the smallest source location containing given cursor 
 smallestSrcLocContainingCursorPos :: CursorSelection -> Ast -> Maybe Path 
 smallestSrcLocContainingCursorPos sele = 
- selectShortestPath . fromList . locsContainingSelection sele . findAllSrcLocations
+ selectShortestPath . locsContainingSelection sele . findAllSrcLocations
+
+-- |computes the shortest path in given association list. In case of an empty 
+-- list  'Nothing' is being returned.
+selectShortestPath :: [(SrcLocation,Path)] -> Maybe Path 
+selectShortestPath []       = Nothing
+selectShortestPath ps@(_:_) = 
+  Just $ minimumBy (compare `on` length) $ pathsToSmallestSrcLoc ps 
+
+-- |returns all paths with are associated with the smallest source location.
+-- Precondition: input list is nonempty.
+pathsToSmallestSrcLoc :: [(SrcLocation,Path)] -> [Path]
+pathsToSmallestSrcLoc ps = 
+  let smallestSrcLoc = minimum $ map fst ps
+  in map snd $ filter (\(s,_) -> s==smallestSrcLoc) ps
 
 -- |extracts all source locations from abstract syntax tree
-findAllSrcLocations :: Ast -> [(SrcLocation,[Int])]
+findAllSrcLocations :: Ast -> [(SrcLocation,Path)]
 findAllSrcLocations (Ast ast) = (catMaybes . flatten . fmap getSrcLocPathPairs) ast
 
 -- |returns the source locations associated to given node if existing  
-getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,[Int])
+getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,Path)
 getSrcLocPathPairs (AstNode _ Nothing  _ _) = Nothing
 getSrcLocPathPairs (AstNode _ (Just s) p _) = Just (s,p)
 
 -- |removes all source locations from list, 
 -- which are not surrounded by given cursor selection
-locsContainingSelection :: CursorSelection -> [(SrcLocation,[Int])] -> [(SrcLocation,[Int])] 
+locsContainingSelection :: CursorSelection -> [(SrcLocation,Path)] -> [(SrcLocation,Path)] 
 locsContainingSelection sele = filter (\(s,_) -> s >= selectionToSpan sele)
+
+
