@@ -5,10 +5,7 @@
 
 Astview is a little desktop program to be used by people that want
 to investigate syntax trees, e.g. students and lecturers in compiler
-construction courses. Given a parse function `p :: String -> a`, where `a` is a member of Haskell's `Data`
-type class, astview can show syntax trees in a standard tree
-widget.
-
+construction courses. 
 The program evolved as a case study in generic programming and
 building graphical user interfaces in Haskell.
 
@@ -18,7 +15,8 @@ Astview is under continuous development. The sources can be found at [Github](ht
 
 ### Installing astview
 
-First of all download the sources of astview, which can be easily achieved by a `git clone`. To install astview, just run `cabal install` in the astview-directory.
+First of all download the sources of astview, which can be easily achieved by  `git clone https://github.com/pascalh/Astview`. 
+To install astview, just run `cabal install` in the astview-directory.
 
 ### Opening astview
 Astview will be installed in our local cabal directory. Thus you will
@@ -29,47 +27,43 @@ find the executable `astview` in `~/.cabal/bin`.
 
 We tried to make the user interface as common as possible by
 following the [
-GNOME human interface guidelines](http://library.gnome.org/devel/hig-book/stable/) closely. You can open a file by
-giving the filename at the command line:
+GNOME human interface guidelines](http://library.gnome.org/devel/hig-book/stable/) closely. 
+You can open a file by giving the filename at the command line:
 
 ```Bash
 astview path/to/mysource.hs
 ```
-or simply open it via the file menu. 
+or simply open it directly from astview via the file menu. 
 
-The file's extension will
-determine the parser automatically. If there are multiple parsers for
-one extension, the first one will be taken. Launching astview without
-any files will not enable any parser. Saving works as
-expected: Ctrl-S saves, Save-As has to be done via the menu. After changing
-a file in astview's text editor, the usual star appears in the title bar, next to the
-filename.
 
-Cut-and-Paste functionality works as usual (Ctrl-C/P/X), allowing
-to copy-paste source code to or from other programs.
+#### Basic text editor functionality 
 
-Astview uses the same syntax-higlighting sourceview widget as
-GNOME's standard editor gedit, so any language recognized there will
-be highlighted by astview. 
+The menu file offers the functionality to work with files.
+Saving a edited file works as usual: Ctrl-S saves, Save-As has to be done via the menu. 
+After changing a file in astview's source editor, a star appears in the title bar next to the
+filename to indicate that the file has been changed.
 
-If the current language supports source locations, one can jump from a position
-in the source editor to the associated position in the tree by clicking on `Edit/-->(Jump to position in tree)`.
+Cut-and-Paste functionality works as usual (Ctrl-C/V/X), allowing to copy-paste source code around. 
+The correspondent menu items can be found in menu `Edit`.
 
-As noted above, the parser is chosen automatically when opening a
-file. When editing source code, one can change the parser using the
-parser menu issuing an immediate reparse. Ctrl-P reparses the source
-at any time.
+#### Source location specific functionality
 
-## Adding custom parsers
+If the current language supports source locations, one can jump from a selected text position in the source editor to the associated position in the abtract syntax tree by clicking on `Edit/>>>`.
 
-The module `Language.Astview.Languages` contains
-a list of all languages (and thus parsers) which are known. You can 
-append new languages right here. In this section we show how to add custom parsers
-to astview.
+The menu entry `Edit/<<<` displays the corresponding position in the source editor for a selected subtree.
 
-### The data type for languages
-First of all we introduce the following data type for parse errors. Since parsers return different amount of error information, we distinguish
-between three different types of parsers:
+## Developer guide 
+
+The rest of this Readme is aimed to developers and describes how to add support for your own languages to astview.
+
+### Adding custom parsers without source location support
+
+The module `Language.Astview.Languages` contains a list of all languages (and thus parsers) which are known to astview. 
+You can append new languages right here. 
+See now how to define a new language.
+
+First of all we introduce the data type for parse errors. 
+Since parsers return different amount of error information, we distinguish between three different types of parsers:
 ```Haskell
 data Error
   = Err -- ^ no error information
@@ -77,79 +71,105 @@ data Error
   | ErrLocation SrcLocation String -- ^ error message and src loc
 ```
 
-In order to extend astview with your own language you need to know the structure
-of the data type `Language`, which we use to represent languages
-and their parsers.
+In order to extend astview with your own language you need to know the structure of the data type `Language`, which we use to represent languages and their parsers.
 
 ```Haskell
-data Language = forall a . Language
-  { name :: String -- ^ language name
-  , syntax :: String -- ^ syntax highlighter name
+data Language = Language
+  { name :: String 
+  , syntax :: String 
   , exts :: [String] 
-   -- ^ file extentions which should be associated with this language
-  , parse :: String -> Either Error a -- ^ parse function
-  , toTree :: a -> Tree String -- ^ how to get a Tree String?
-  , srcLoc :: Tree String -> Maybe SrcLocation
-    -- ^ selector function for source locations (if supported)
+  , parse :: String -> Either Error Ast 
   } 
 ```
-The name is just a string for gui-issues, whereas the second attribute is the name
-of the syntax highlighter, which should be associated with that language. As
-described above, we use the same syntax highlighting as gedit. 
+The name is just a string for gui-issues, whereas the second attribute is the name of the syntax highlighter, which should be associated with that language. 
+We use the same syntax highlighting as gedit. 
 
-The parse function maps the input string either to an error value or to an 
-abstract syntax tree. Up to now we do not work on the abstract syntax tree, but
-on a tree with string-labeled nodes. In module `Language.Astview.DataTree` you
-find the type-generic function `data2tree` transforming an arbitary value
-whose type implements class `Data` to a tree with string nodes.
-After a file's parse we directly apply the given `toTree`
-function throwing away all type informations. Thus we internally represent abstract syntax trees as a tree of strings.
+The parse function maps the input string either to an error value or to an abstract syntax tree. 
+Astview does not work generically on the abstract syntax trees of the different languages, but on a tree with string-labeled nodes called `Ast`. 
 
-The last component of the data type is about source locations. Our implementation of source locations can be found in module `Language.Astview.SourceLocation`. Since we want to
-associate positions in the source text with tree positions, we need to reason about
-source locations in the syntax tree. Languages respectively parsers not supporting source 
-location use the constant `Nothing` function here. For the others we map the given
-function over the tree of strings in order to get all source locations being represented in the tree. Note that you do not have to reason about the whole tree. The function `srcLoc` will be automatically applied to all nodes of the tree.
+After an input string has been parsed, one has to transform the parsed tree into our internal representation type `Ast`.
+The module `Language.Astview.DataTree` offers a bunch of different type-generic functions for that purpose.
+The very basic one is the function `data2Ast :: Data t => t -> Ast` transforming an arbitary value whose type implements class `Data` into our internal type `Ast` by just printing the constructors and storing them in a tree.
 
-### Example: Adding your own language
+#### Example: Adding Haskell support to astview
 
-In this section we will introduce you to extending astview with our own languages. As
-a running example we will use the language Haskell based on the abstract syntax and parser from package [haskell-src-exts](http://hackage.haskell.org/packages/archive/haskell-src-exts/latest/doc/html/Language-Haskell-Exts.html). The name and the syntax highlighter are both the string `"Haskell"`. Although we associate both classical haskell files `".hs"` and literate haskell files `".lhs"` with this language. The following code applies the parser to our file content and puts the result in the right context to fit with our resulting data type:
-
+In this section we will introduce you to adding Haskell support to astview. 
+We use the abstract syntax and parser from package [haskell-src-exts](http://hackage.haskell.org/packages/archive/haskell-src-exts/latest/doc/html/Language-Haskell-Exts.html). 
+The name and the syntax highlighter are both the string `"Haskell"`. 
+Although we associate both classical haskell files `".hs"` and literate haskell files `".lhs"` with this language. 
+The following code applies the parser to our file content and transforms the aparsed value in the right context to fit with our data type `Ast` using `data2Ast`:
 
 ```Haskell
-parHaskell :: String -> Either Error (Module SrcSpan)
-parHaskell s =
-  case parse s of
-    ParseOk t                    -> Right t
+parsehs :: String -> Either Error Ast 
+parsehs s =
+  case parse s :: ParseResult (Module SrcSpan) of
+    ParseOk t                    -> Right $ data2Ast t
     ParseFailed (SrcLoc _ l c) m -> 
-      Left $ ErrLocation (SrcPosition l c) m
+      Left $ ErrLocation (position l c) m
 ```
 
-If the parse fails, the parser returns information about the incorrect source. We reuse this data to help the user of astview finding the faulty sources. Have a look at module 
-`Language.Astview.SourceLocation` to get an impression of our source location types. 
+If the parse fails, the parser returns information about the incorrect source.
+We reuse this data to help the user of astview finding the faulty source positions.
 
-The last missing component of our language definition is the extraction of source locations. Currently this is done in an unsafe way, since the algorithm assumes that every constructor named `"SrcSpan"` is the beginning of a source location and we simply extract the source span information. 
-```Haskell
-toSrcLoc :: Tree String -> Maybe SrcLocation
-toSrcLoc (Node "SrcSpan" [_,c1,c2,c3,c4]) = 
-  Just $ SrcSpan (to c1) (to c2) (to c3) (to c4)
-   where 
-     to :: Tree String -> Int
-     to = read . rootLabel 
-toSrcLoc _        = Nothing 
-```
-Applying the constructor `Language` to all those functions, we get the value representing the language Haskell in astview:
+Putting it all together we can now define a value of type `Language` in order to support Haskell sources in astview:
+
 ```Haskell
 haskellexts :: Language
-haskellexts = Language 
-  "Haskell" 
-  "Haskell" 
-  [".hs",".lhs"] 
-  parHaskell
-  (data2tree::Module SrcSpan ->Tree String)
-  toSrcLoc
+haskellexts = Language "Haskell" "Haskell" [".hs",".lhs"] parsehs 
 ```
-In the end one has to append this value to the list `knownLanguages` in module `Language.Astview.Languages` to introduce your new language to astview.
+After appending `haskellexts` to the list of known languages `languages` in module `Language.Astview.Languages` and a recompilation, astview can now display the abstract synax tree of Haskell files.
 
+### Adding custom parsers with source location support
+
+In order to get astview to work this source locations, a bit more work has to be done. 
+We now assume that the parser builds an abstract syntax tree annotated with source locations. 
+The function `data2Ast` doesn't know which values in the tree are source locations.
+
+Our type for source locations is defined in module `Language.Astview.Language`:
+```Haskell
+data SrcLocation 
+  =  SrcSpan
+     Int -- ^begin line 
+     Int -- ^begin row
+     Int -- ^end line
+     Int -- ^end row
+```
+
+One can use the constructor functions `position` and `linear` to create special cases of source locations.
+
+Instead of the function `data2Ast` which does not support creation of source locations, we use `data2AstHo :: Data t => (forall a . Data a => a -> Maybe SrcLocation) -> t -> Ast` which gets a source location selector as an argument.
+The given function will be automatically applied to all nodes of the tree to extract their source location. 
+The target type is wrapped in `Maybe` since not every node of a tree has a associated source location.
+
+#### Example: Adding source location support for Haskell 
+
+We only need to change the function `parsehs` from our example above in order to add source location support to Haskell.
+Since we have to care with the type for source locations from `haskell-src-exts` and our internal type, we import the Haskell source locations in a qualified manner:
+```Haskell
+import qualifed Language.Haskell.Exts.SrcLoc as HsSrcLoc
+```
+First of all we need to define a function, which returns the associated source location for an arbitrary node in the abstract syntax.
+Thank to the structure of the abstract syntax in `hasskell-src-exts` this can be done completely type-generic.
+The source location is always of type `SrcSpan` and can be found as the left-most subtree of a tree if existing.
+We use a zipper from package `syz` to go the left-most subtree and extract the source location information: 
+```Haskell
+getSrcLoc :: Data t => t -> Maybe SrcLocation
+getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
+
+  def :: a -> Maybe SrcLocation
+  def _ = Nothing
+
+  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcLocation 
+  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4 
+```
+
+To add the source location support, we now need to give `getSrcLoc` as an argument to the function `data2AstHo` as a selector for source locations:
+```Haskell
+parsehs :: String -> Either Error Ast
+parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
+  ParseOk t  -> Right $ data2AstHo getSrcLoc  t
+  ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> 
+    Left $ ErrLocation (position l c) m
+```
+Using this version of `parsehs` as a parse function causes astview to support juming between associated positions in source text and abstract syntax tree.
 
