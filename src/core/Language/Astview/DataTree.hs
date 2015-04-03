@@ -6,6 +6,7 @@ module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths,data2Ast
 -- syb
 import Data.Generics (Data
                      ,extQ
+                     , ext1Q
                      ,gmapQ
                      ,showConstr
                      ,toConstr)
@@ -13,16 +14,41 @@ import Data.Typeable
 import Data.Tree (Tree(Node))
 import Language.Astview.Language
 
+import qualified Outputable as GHC
+import qualified RdrName as GHC
+import qualified OccName as GHC
+import qualified GHC as GHC
+import qualified DynFlags as GHC
+import qualified SrcLoc as GHC
+
+import Debug.Trace
+
+rdrName2String :: GHC.RdrName -> String
+rdrName2String r =
+  case GHC.isExact_maybe r of
+    Just n  -> showGhc n
+    Nothing ->
+      case r of
+        GHC.Unqual _occ       -> GHC.occNameString $ GHC.rdrNameOcc r
+        GHC.Qual modname _occ -> GHC.moduleNameString modname ++ "."
+                            ++ GHC.occNameString (GHC.rdrNameOcc r)
+        GHC.Orig _ _          -> error "GHC.Orig introduced after renaming"
+        GHC.Exact _           -> error "GHC.Exact introduced after renaming"
+
+showGhc :: (GHC.Outputable a) => a -> String
+showGhc = GHC.showPpr GHC.unsafeGlobalDynFlags
+
 -- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
 data2treeHO :: (Data t) => (forall a . Data a => a -> Maybe SrcLocation)
-                        -> t -> Tree AstNode
-data2treeHO f = gdefault `extQ` atString where
+                        -> t ->  Tree AstNode
+data2treeHO f = gdefault `extQ` atString  where
 
   atString :: String -> Tree AstNode
   atString s = Node (AstNode s Nothing [] Identificator) []
 
+
   gdefault :: Data t => t -> Tree  AstNode
-  gdefault x = Node (AstNode (showConstr $ toConstr x) (f x) [] Operation )
+  gdefault x = Node (AstNode ("a" ++ (showConstr $ toConstr x)) (f x) [] Operation )
                     (gmapQ (data2treeHO f) x)
 
 -- |see 'data2AstHo' but no 'SrcLocation's will be annotated
@@ -55,10 +81,19 @@ data2AstHoIg f marker = Ast . annotateWithPaths . removeNothings . worker where
          => t -> Tree (Maybe AstNode)
   worker term
    | term `equalTypes` marker = Node Nothing []
-   | otherwise                = (gdefault `extQ` atString) term where
+   | otherwise                = (gdefault `ext1Q` atL `extQ` atRdrName `extQ` atOccName `extQ` atString) term where
 
       atString :: String -> Tree (Maybe AstNode)
       atString s = Node (Just $ AstNode s Nothing [] Identificator) []
+
+      atRdrName :: GHC.RdrName -> Tree (Maybe AstNode)
+      atRdrName rdr = Node (Just $ AstNode (rdrName2String rdr) (f rdr) [] Identificator) []
+
+      atOccName :: GHC.OccName -> Tree (Maybe AstNode)
+      atOccName o = Node (Just $ AstNode (GHC.occNameString o) (f o) [] Identificator) []
+
+      atL :: (Typeable t, Data t) => GHC.GenLocated GHC.SrcSpan t -> Tree (Maybe AstNode)
+      atL (GHC.L _ a) = worker a
 
       gdefault :: (Typeable t,Data t) => t -> Tree (Maybe AstNode)
       gdefault x = Node (Just n) cs where
