@@ -2,23 +2,23 @@ Name:            astview
 Version:         0.3
 License:         BSD4
 License-File:    LICENSE
-Author:          
-                 Pascal Hof <pascal.hof@udo.edu>, 
+Author:
+                 Pascal Hof <pascal.hof@udo.edu>,
                  Sebastian Menge <sebastian.menge@udo.edu>
 Maintainer:      Sebastian Menge <sebastian.menge@udo.edu>
-Synopsis:        A GTK-based abstract syntax tree viewer for custom 
+Synopsis:        A GTK-based abstract syntax tree viewer for custom
                  languages and parsers
-Description:     
-                 Astview is a graphical viewer for abstract 
-                 syntax trees. It is implemented on the basis 
-                 of scrap-your-boilerplate (i.e. data2tree) 
-                 and works with all parsers that generate trees 
-                 that are instances of the Data.Data class. 
+Description:
+                 Astview is a graphical viewer for abstract
+                 syntax trees. It is implemented on the basis
+                 of scrap-your-boilerplate (i.e. data2tree)
+                 and works with all parsers that generate trees
+                 that are instances of the Data.Data class.
 
 Category:        Language
 
 Cabal-Version:   >= 1.8
-Build-Type:      Simple 
+Build-Type:      Simple
 Tested-with:     GHC==7.6.1
 Data-Files:      data/astview.glade
 
@@ -38,6 +38,8 @@ Library
                    , language-python >= 0.4
                    , syb >= 0.3.7
                    , syz >= 0.2.0.0
+                   , ghc
+                   , ghc-paths
   extensions:      FlexibleInstances,
                    DeriveDataTypeable,
                    RankNTypes
@@ -62,14 +64,15 @@ Executable         astview
                    , mtl ==2.1.2
                    , fclabels >= 2.0.0.5
 
+
   extensions:        TemplateHaskell
                    , TypeOperators
 
 test-suite basic
     type: exitcode-stdio-1.0
-    Hs-Source-Dirs: test 
+    Hs-Source-Dirs: test
     main-is: Main.hs
-    build-depends: base >= 4.6.0.0, 
+    build-depends: base >= 4.6.0.0,
                    astview == 0.3,
                    containers == 0.5.0.0,
                    tasty,
