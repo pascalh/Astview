@@ -34,7 +34,6 @@ Library
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.0.0
                    , QuickCheck >= 2.6
-                   , haskell-src-exts >= 1.13.5
                    , language-python >= 0.4
                    , syb >= 0.3.7
                    , syz >= 0.2.0.0
