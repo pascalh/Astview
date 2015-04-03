@@ -6,7 +6,7 @@ module Language.Astview.Gui.Init(setupGUI) where
 
 -- guiactions
 import Language.Astview.Gui.Types
-import Language.Astview.Gui.Actions 
+import Language.Astview.Gui.Actions
 
 -- base
 import Control.Monad.Trans (liftIO)
@@ -15,10 +15,10 @@ import Data.IORef
 import System.FilePath ((</>))
 
 -- gtk
-import Graphics.UI.Gtk hiding (Language) 
+import Graphics.UI.Gtk hiding (Language)
 
 -- glade
-import Graphics.UI.Gtk.Glade     
+import Graphics.UI.Gtk.Glade
 
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView
@@ -27,14 +27,14 @@ import Graphics.UI.Gtk.SourceView
 import Language.Astview.Languages(languages)
 
 -- generated on-the-fly by cabal
-import Paths_astview (getDataFileName) 
+import Paths_astview (getDataFileName)
 
 -- |builds initial gui state from glade xml file
 gladeToGUI :: GladeXML -> IO GUI
 gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
-  tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource" 
+  tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
   return $ GUI win treeview tb dialogAbout
 
@@ -44,14 +44,14 @@ buildState xml = do
   g <- gladeToGUI xml
   let astSt = AstState st g defaultVaule
       st = defaultVaule { knownLanguages = languages}
-  newIORef astSt 
+  newIORef astSt
 
 -- | initiates gui and returns intitial program state
 setupGUI :: IO (IORef AstState)
 setupGUI = do
-  initGUI 
+  initGUI
   Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
-  r <- buildState xml 
+  r <- buildState xml
   hooks r
   mapM_ (registerMenuAction xml r) menuActions
   return r
@@ -60,7 +60,7 @@ setupGUI = do
 -- ** some helper functions
 -- -------------------------------------------------------------------
 
--- | setup the GtkSourceView and add it to the ScrollPane. return the 
+-- | setup the GtkSourceView and add it to the ScrollPane. return the
 -- underlying textbuffer
 buildSourceView :: ScrolledWindow -> IO SourceBuffer
 buildSourceView sw = do
@@ -75,8 +75,8 @@ buildSourceView sw = do
   return sourceBuffer
 
 -- | registers one GUIAction with a MenuItem
-registerMenuAction 
-  :: GladeXML -> IORef AstState 
+registerMenuAction
+  :: GladeXML -> IORef AstState
   -> (String,AstAction ()) -> IO (ConnectId MenuItem)
 registerMenuAction xml ref (gtkId,action) = do
   item <- xmlGetWidget xml castToMenuItem gtkId
@@ -97,30 +97,30 @@ hooks ref = do
 type Hook a = a -> AstAction (ConnectId a)
 
 -- |stores the last active cursor position in text to the program state
-storeLastActiveTextPosition :: Hook SourceBuffer 
+storeLastActiveTextPosition :: Hook SourceBuffer
 storeLastActiveTextPosition buffer ref = onBufferChanged buffer $ do
     actionBufferChanged ref
     cp <- getCursorPosition ref
     setCursor cp ref
 
 -- |stores the path to the last selected tree cell to the program state
-storeLastActiveTreePosition :: Hook TreeView 
+storeLastActiveTreePosition :: Hook TreeView
 storeLastActiveTreePosition tree ref =
   onCursorChanged tree  $ do
-    (p,_) <- treeViewGetCursor tree 
-    setTreePath p ref 
+    (p,_) <- treeViewGetCursor tree
+    setTreePath p ref
 
 -- |bind ctrl+p to the reparse action
 controlPtoReparse :: Hook Window
-controlPtoReparse w ref =     
+controlPtoReparse w ref =
   w `on` keyPressEvent $ tryEvent $ do
     [Control] <- eventModifier
     "p" <- eventKeyName
-    liftIO $ actionReparse ref 
+    liftIO $ actionReparse ref
 
 -- |softly terminate application on main window closed
 closeAstviewOnWindowClosed :: Hook Window
-closeAstviewOnWindowClosed w ref =  
+closeAstviewOnWindowClosed w ref =
   w `on` deleteEvent $ tryEvent $ liftIO $ actionQuit ref
 
 -- |terminate application on main window closed
