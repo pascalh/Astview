@@ -5,11 +5,11 @@ module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths,data2Ast
 
 -- syb
 import Data.Generics (Data
-                     ,Typeable(..)
                      ,extQ
                      ,gmapQ
                      ,showConstr
                      ,toConstr)
+import Data.Typeable
 import Data.Tree (Tree(Node))
 import Language.Astview.Language
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {- contains the GUIActions connected to menuItems
  -
  -}
@@ -70,7 +71,7 @@ actionEmptyGUI :: AstAction ()
 actionEmptyGUI ref = do
   g <- getGui ref
   clearTreeView =<< getTreeView ref
-  flip textBufferSetText [] =<< getSourceBuffer ref
+  flip textBufferSetText ("" :: String) =<< getSourceBuffer ref
   windowSetTitleSuffix (window g) unsavedDoc
 
 -- | updates the sourceview with a given file, chooses a language by
@@ -190,7 +191,7 @@ actionSaveAs = actionMkDialog FileChooserActionSave onOkay where
 deleteStar :: AstAction ()
 deleteStar ref = do
   w <- getWindow ref
-  t <- windowGetTitle w
+  (t :: String) <- windowGetTitle w
   bufferChanged <- getChanged ref
   when bufferChanged (windowSetTitle w (tail t))
   setChanged False ref
@@ -212,7 +213,8 @@ actionCopySource ref = do
   buffer <- getSourceBuffer ref
   (start,end) <- textBufferGetSelectionBounds buffer
   clipBoard <- clipboardGet selectionClipboard
-  clipboardSetText clipBoard =<< textBufferGetText buffer start end True
+  s :: String <- textBufferGetText buffer start end True
+  clipboardSetText clipBoard s
 
 -- |pastes text from clipboard at current cursor position
 actionPasteSource :: AstAction ()
@@ -312,7 +314,7 @@ activatePath p ref = do
 actionAbout :: AstAction ()
 actionAbout ref = do
   dlg <- fmap dlgAbout (getGui ref)
-  aboutDialogSetUrlHook (\_ -> return ())
+  aboutDialogSetUrlHook (\(_ :: String) -> return ())
   widgetShow dlg
   dlg `onResponse` const (widgetHide dlg)
   return ()
