@@ -64,6 +64,8 @@ Executable         astview
 
   extensions:        TemplateHaskell
                    , TypeOperators
+                   , ScopedTypeVariables
+                   , OverloadedStrings
 
 test-suite basic
     type: exitcode-stdio-1.0
@@ -74,8 +76,6 @@ test-suite basic
                    containers == 0.5.0.0,
                    tasty,
                    tasty-hunit,
-                   tasty-quickcheck,
-                   HUnit >= 1.2.5.1 ,
-                   QuickCheck >= 2.6
+                   tasty-quickcheck
 
 

@@ -7,7 +7,7 @@ import Data.IORef
 
 -- gtksourceview
 import Graphics.UI.Gtk hiding (Language,get,set)
-import Graphics.UI.Gtk.SourceView (SourceBuffer) 
+import Graphics.UI.Gtk.SourceView (SourceBuffer)
 import Language.Astview.Language(Language,SrcLocation(..),Path)
 
 -- |a type class for default values, compareable to mempty in class 'Monoid'
@@ -42,12 +42,12 @@ data State =  State
   }
 
 instance Default State where
-  defaultVaule = State 
+  defaultVaule = State
         { currentFile = unsavedDoc
         , textchanged = False
         , lastSelectionInText  = SrcSpan 0 0 0 0
         , lastSelectionInTree = []
-        , knownLanguages = [] 
+        , knownLanguages = []
         }
 
 -- |unsaved document
@@ -72,10 +72,10 @@ mkLabels [ ''AstState
          ]
 
 getSourceBuffer :: AstAction SourceBuffer
-getSourceBuffer = fmap (sb . gui) . readIORef 
+getSourceBuffer = fmap (sb . gui) . readIORef
 
 getTreeView :: AstAction TreeView
-getTreeView = fmap (tv . gui) . readIORef 
+getTreeView = fmap (tv . gui) . readIORef
 
 getAboutDialog :: AstAction AboutDialog
 getAboutDialog = fmap (dlgAbout . gui) . readIORef
@@ -84,10 +84,10 @@ getAstState :: AstAction AstState
 getAstState = readIORef
 
 getGui :: AstAction GUI
-getGui = fmap gui . readIORef 
+getGui = fmap gui . readIORef
 
-getState :: AstAction State 
-getState = fmap state . readIORef 
+getState :: AstAction State
+getState = fmap state . readIORef
 
 getKnownLanguages :: AstAction [Language]
 getKnownLanguages = fmap (knownLanguages . state) . readIORef
@@ -95,7 +95,7 @@ getKnownLanguages = fmap (knownLanguages . state) . readIORef
 getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
 
-getCursor :: AstAction SrcLocation 
+getCursor :: AstAction SrcLocation
 getCursor = fmap (lastSelectionInText . state) . readIORef
 
 getPath :: AstAction TreePath
@@ -115,15 +115,15 @@ lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
   m :: AstState -> AstState
   m = modify outerLens (set innerLens value)
 
--- |stores the given cursor selection 
+-- |stores the given cursor selection
 setCursor :: SrcLocation -> AstAction ()
 setCursor cursor ref = lensSetIoRef lState lLastSelectionInText cursor ref
 
--- |stores the given tree selection 
+-- |stores the given tree selection
 setTreePath :: Path -> AstAction ()
 setTreePath path ref = lensSetIoRef lState lLastSelectionInTree path ref
 
--- |stores file path of current opened file 
+-- |stores file path of current opened file
 setCurrentFile :: FilePath -> AstAction ()
 setCurrentFile file ref = lensSetIoRef lState lCurrentFile file ref
 

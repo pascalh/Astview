@@ -1,9 +1,9 @@
 {-|
 This module offers the main data type 'Language'. For every language, whose
 files shall be processed by astview, a value of the data type 'Language' has
-to be defined. 
+to be defined.
 -}
-module Language.Astview.Language 
+module Language.Astview.Language
   ( Language(..)
   , SrcLocation(SrcSpan)
   , position
@@ -30,35 +30,35 @@ type Path = [Int]
 data AstNode = AstNode
   { label :: String
   , srcloc :: Maybe SrcLocation
-  , path :: Path 
+  , path :: Path
   , nodeType :: NodeType
   }
 
 instance Show AstNode where
-  show (AstNode l s _ _) = 
-    l ++ (case s of { Nothing -> ""; 
+  show (AstNode l s _ _) =
+    l ++ (case s of { Nothing -> "";
                       Just x ->replicate 5 ' '  ++"["++show x++"]"})
 
 -- |an (untyped) abstract syntax is just a tree of AstNodes
-newtype Ast = Ast (Tree AstNode) 
+newtype Ast = Ast (Tree AstNode)
 
 -- |datatype for one language. Some parsers support source locations
 -- which enables us to connect locations in text area with locations
--- in a tree. 
+-- in a tree.
 data Language = Language
   { name :: String -- ^ language name
   , syntax :: String -- ^ syntax highlighter name
   , exts :: [String]
    -- ^ file extentions which should be associated with this language
   , parse :: String -> Either Error Ast -- ^ parse function
-  } 
+  }
 
 instance Eq Language where
   l1 == l2 = name l1 == name l2
 
 -- |datatype to specify parse errors. Since parsers offer different
 -- amounts of information about parse errors, we offer the following
--- three parse errors: 
+-- three parse errors:
 data Error
   = Err -- ^ no error information
   | ErrMessage String -- ^ simple error message
@@ -68,9 +68,9 @@ data Error
 
 -- |specifies a source location in text area. Use smart constructors 'linear'
 -- and 'position' to create special source locations.
-data SrcLocation 
+data SrcLocation
   =  SrcSpan
-    Int -- ^begin line 
+    Int -- ^begin line
     Int -- ^begin row
     Int -- ^end line
     Int -- ^end row
@@ -84,26 +84,26 @@ instance Ord SrcLocation where
   s1 >= s2 = s2 <= s1
   s1 > s2 = s2 < s1
   (SrcSpan bl br el er) <= s2 =
-    s2 `contains` (bl,br) && s2 `contains` (el,er)  
+    s2 `contains` (bl,br) && s2 `contains` (el,er)
 
 -- |returns whether the given source location contains the position pair
 -- defined by line and row.
 contains :: SrcLocation -> (Int,Int)-> Bool
-contains (SrcSpan br bc er ec) (r , c) = 
-  (br == er && r == er && bc <= c && c <= ec) || 
+contains (SrcSpan br bc er ec) (r , c) =
+  (br == er && r == er && bc <= c && c <= ec) ||
   (br < r && r < er) ||
   (br == r && bc <= c && br < er) ||
   (er == r && br < er && c <= ec)
 
 instance Arbitrary SrcLocation where
-  arbitrary =  do 
-    (NonNegative i1) <- arbitrary 
-    (NonNegative i2) <- arbitrary 
-    (NonNegative i3) <- arbitrary 
-    (NonNegative i4) <- arbitrary 
+  arbitrary =  do
+    (NonNegative i1) <- arbitrary
+    (NonNegative i2) <- arbitrary
+    (NonNegative i3) <- arbitrary
+    (NonNegative i4) <- arbitrary
     return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
 
--- |a smart constructor for 'SrcLocation' to define exact positions 
+-- |a smart constructor for 'SrcLocation' to define exact positions
 position :: Int -> Int -> SrcLocation
 position line row = SrcSpan line row line row
 
@@ -113,5 +113,5 @@ linear :: Int -- ^ the line
      -> Int  -- ^ begin row
      -> Int  -- ^ end row
      -> SrcLocation
-linear line beginRow = SrcSpan line beginRow line 
+linear line beginRow = SrcSpan line beginRow line
 
