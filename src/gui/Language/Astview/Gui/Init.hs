@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- provides 'setupGUI' the main gui initialization
 function
  -

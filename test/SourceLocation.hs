@@ -1,7 +1,5 @@
 {-| This module contains test cases for functions on source locations. -}
 module SourceLocation(testSourceLocations) where
-import Test.HUnit hiding (Test)
-
 import Test.Tasty
 import Test.Tasty.QuickCheck 
 import Test.Tasty.HUnit

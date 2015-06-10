@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {- contains the GUIActions connected to menuItems
  -
  -}
