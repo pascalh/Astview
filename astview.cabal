@@ -5,7 +5,7 @@ License-File:    LICENSE
 Author:          
                  Pascal Hof <pascal.hof@udo.edu>, 
                  Sebastian Menge <sebastian.menge@udo.edu>
-Maintainer:      Sebastian Menge <sebastian.menge@udo.edu>
+Maintainer:      Pascal Hof <pascal.hof@udo.edu>
 Synopsis:        A GTK-based abstract syntax tree viewer for custom 
                  languages and parsers
 Description:     
@@ -15,12 +15,17 @@ Description:
                  and works with all parsers that generate trees 
                  that are instances of the Data.Data class. 
 
+Homepage:        https://github.com/pascalh/Astview
 Category:        Language
 
 Cabal-Version:   >= 1.8
 Build-Type:      Simple 
 Tested-with:     GHC==7.6.1
 Data-Files:      data/astview.glade
+
+Source-repository head
+  type:          git
+  location:      https://github.com/pascalh/Astview
 
 Library
   GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
