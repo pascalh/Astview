@@ -43,8 +43,8 @@ gladeToGUI xml = do
 buildState :: GladeXML -> IO (IORef AstState)
 buildState xml = do
   g <- gladeToGUI xml
-  let astSt = AstState st g defaultVaule
-      st = defaultVaule { knownLanguages = languages}
+  let astSt = AstState st g defaultValue
+      st = defaultValue { knownLanguages = languages}
   newIORef astSt
 
 -- | initiates gui and returns initial program state
@@ -75,7 +75,7 @@ buildSourceView sw = do
   sourceView <- sourceViewNewWithBuffer sourceBuffer
   sourceViewSetShowLineNumbers sourceView True
   sourceViewSetHighlightCurrentLine sourceView True
-  srcfont <- fontDescriptionFromString $ font defaultVaule ++" "++show (fsize defaultVaule)
+  srcfont <- fontDescriptionFromString $ font defaultValue ++" "++show (fsize defaultValue)
   widgetModifyFont sourceView (Just srcfont)
   containerAdd sw sourceView
   return sourceBuffer

@@ -11,7 +11,7 @@ import Language.Astview.Language(Language,SrcLocation(..),Path)
 
 -- |a type class for default values, compareable to mempty in class 'Monoid'
 class Default a where
-  defaultVaule :: a
+  defaultValue :: a
 
 type AstAction a = IORef AstState -> IO a
 
@@ -30,7 +30,7 @@ data Options = Options
   }
 
 instance Default Options where
-  defaultVaule = Options "Monospace" 9 True
+  defaultValue = Options "Monospace" 9 True
 
 -- |data type for the intern program state
 data State =  State
@@ -42,7 +42,7 @@ data State =  State
   }
 
 instance Default State where
-  defaultVaule = State
+  defaultValue = State
         { currentFile = unsavedDoc
         , textchanged = False
         , lastSelectionInText  = SrcSpan 0 0 0 0
