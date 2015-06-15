@@ -5,7 +5,6 @@ module Language.Astview.Gui.Types where
 import Data.Label
 import Data.IORef
 
--- gtksourceview
 import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer)
 import Language.Astview.Language(Language,SrcLocation(..),Path)
@@ -16,7 +15,7 @@ class Default a where
 
 type AstAction a = IORef AstState -> IO a
 
--- |union of intern program state and gui
+-- |union of internal program state and gui
 data AstState = AstState
   { state :: State -- ^ intern program state
   , gui :: GUI -- ^ gtk data types
@@ -27,10 +26,11 @@ data AstState = AstState
 data Options = Options
   { font :: String -- ^ font name of textbuffer
   , fsize :: Int -- ^ font size of textbuffer
+  , flattenLists :: Bool -- ^should lists be flattened
   }
 
 instance Default Options where
-  defaultVaule = Options "Monospace" 9
+  defaultVaule = Options "Monospace" 9 True
 
 -- |data type for the intern program state
 data State =  State
@@ -59,6 +59,7 @@ data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: TreeView -- ^ treeview
   , sb :: SourceBuffer -- ^ sourceview
+  , mToggleFlatten :: CheckMenuItem -- ^ indicates whether trees should be flattened
   , dlgAbout :: AboutDialog -- ^ about dialog
   }
 
@@ -79,6 +80,9 @@ getTreeView = fmap (tv . gui) . readIORef
 
 getAboutDialog :: AstAction AboutDialog
 getAboutDialog = fmap (dlgAbout . gui) . readIORef
+
+getCheckMenuFlatten :: AstAction CheckMenuItem 
+getCheckMenuFlatten = fmap (mToggleFlatten . gui) . readIORef
 
 getAstState :: AstAction AstState
 getAstState = readIORef
@@ -107,6 +111,9 @@ getCurrentFile = fmap (currentFile . state) . readIORef
 getWindow :: AstAction Window
 getWindow = fmap (window . gui) . readIORef
 
+getFlattenLists :: AstAction Bool
+getFlattenLists = fmap (flattenLists . options) . readIORef
+
 -- * setter functions
 
 lensSetIoRef :: (AstState :-> a) -> (a :-> b) -> b -> AstAction ()
@@ -131,3 +138,6 @@ setCurrentFile file ref = lensSetIoRef lState lCurrentFile file ref
 setChanged :: Bool -> AstAction ()
 setChanged hasChanged ref = lensSetIoRef lState lTextchanged hasChanged ref
 
+-- |stores whether the lists in trees should be flattened
+setFlattenLists :: Bool -> AstAction () 
+setFlattenLists flatten ref = lensSetIoRef lOptions lFlattenLists flatten ref

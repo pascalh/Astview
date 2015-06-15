@@ -236,6 +236,20 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
                         </child>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="sepFile">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="mFlatten">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label">Flatten lists in tree?</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>

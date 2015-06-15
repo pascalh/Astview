@@ -35,8 +35,9 @@ gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
   tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
+  checkFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten"
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-  return $ GUI win treeview tb dialogAbout
+  return $ GUI win treeview tb checkFlatten dialogAbout
 
 -- |creates initial program state and provides an IORef to that
 buildState :: GladeXML -> IO (IORef AstState)
@@ -46,12 +47,17 @@ buildState xml = do
       st = defaultVaule { knownLanguages = languages}
   newIORef astSt
 
--- | initiates gui and returns intitial program state
+-- | initiates gui and returns initial program state
 setupGUI :: IO (IORef AstState)
 setupGUI = do
   initGUI
   Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
   r <- buildState xml
+  
+  isFlat <- getFlattenLists r
+  mFlatten <- getCheckMenuFlatten r
+  checkMenuItemSetActive mFlatten isFlat
+
   hooks r
   mapM_ (registerMenuAction xml r) menuActions
   return r
@@ -90,6 +96,11 @@ hooks ref = do
 
   tree <- getTreeView ref
   storeLastActiveTreePosition tree ref
+
+  menuFlatten <- getCheckMenuFlatten ref
+  menuFlatten `on` checkMenuItemToggled $ do
+    isActive <- checkMenuItemGetActive menuFlatten
+    setFlattenLists isActive ref
 
   win <- getWindow ref
   controlPtoReparse win ref

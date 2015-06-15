@@ -1,7 +1,7 @@
 {-| This module contains datatype-generic functions to gain a 'Ast'
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths,data2AstHoIg) where
+module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths,data2AstHoIg,flatten) where
 
 -- syb
 import Data.Generics (Data
@@ -80,3 +80,19 @@ isJustNode (Node Nothing _ ) = False
 -- |returns whether both values are of the same type
 equalTypes :: (Typeable b1,Typeable b2)  => b1 -> b2  -> Bool
 equalTypes t1 t2 = typeOf t1 == typeOf t2
+
+-- |transform nested usage of cons operator to one flat operation 
+-- (this drastically reduces the asts depth)
+flatten :: Ast -> Ast
+flatten (Ast t) = Ast (annotateWithPaths $ flat t) where
+
+  flat :: Tree AstNode -> Tree AstNode 
+  flat t@(Node _ []) = t 
+  flat t@(Node (AstNode "(:)" s p Operation) [x,xs]) = 
+    let lbl = '[': replicate (length (collect t) - 1) ',' ++ "]" in
+    Node (AstNode lbl s p Operation)  (collect t)
+  flat (Node n cs) = Node n $ map flat cs
+
+  collect :: Tree AstNode -> [Tree AstNode]
+  collect t@(Node (AstNode "(:)" s p Operation) [t1,t2]) = flat t1 : collect t2 
+  collect (Node (AstNode "[]" s p Operation) []) = [] 

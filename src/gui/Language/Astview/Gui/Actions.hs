@@ -30,9 +30,10 @@ import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 -- gtksourceview
 import Graphics.UI.Gtk.SourceView
 
-import Language.Astview.Language
+import Language.Astview.Language 
 import Language.Astview.SmallestSrcLocContainingCursor
   (smallestSrcLocContainingCursorPos)
+import Language.Astview.DataTree(flatten)
 
 -- | a list of pairs of gtk-ids and GUIActions
 menuActions :: [(String,AstAction ())]
@@ -93,9 +94,14 @@ getLanguage ref = do
   languages <- getKnownLanguages ref
   return $ find (elem (takeExtension file) . exts) languages
 
-
 actionGetAst :: Language -> AstAction (Either Error Ast)
-actionGetAst l ref = fmap (parse l) . getText =<< getSourceBuffer ref
+actionGetAst l ref = do
+  plain <- getText =<< getSourceBuffer ref
+  flattening <- getFlattenLists ref 
+  let r = case parse l plain of
+       Left e -> Left e
+       Right t -> Right (if flattening then flatten t else t)
+  return r 
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
@@ -104,10 +110,9 @@ actionParse l ref = do
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True
   setupSyntaxHighlighting buffer l
-  plain <- getText buffer
+  tree <- fmap buildTree $ actionGetAst l ref
   clearTreeView view
-  let ast = buildAst l plain
-  model <- treeStoreNew [ast]
+  model <- treeStoreNew [tree]
   treeViewSetModel view model
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
@@ -118,16 +123,14 @@ actionParse l ref = do
     model
     (\row -> [ cellText := row ] )
   treeViewAppendColumn view col
-  return ast
+  return tree
 
--- |given a language and input string buildAst constructs the tree
---which will be presented by our gtk-treeview
-buildAst :: Language -> String -> Tree String
-buildAst l s = case parse l s of
-  Left Err                  -> Node "Parse error" []
-  Left (ErrMessage m)       -> Node m []
-  Left (ErrLocation pos m ) -> Node ("Parse error at:"++show pos++": "++m) []
-  Right (Ast ast)           -> fmap label  ast
+-- |constructs the tree which will be presented by our gtk-treeview
+buildTree :: Either Error Ast  -> Tree String
+buildTree (Left Err)                 = Node "Parse error" []
+buildTree (Left (ErrMessage m))      = Node m []
+buildTree (Left (ErrLocation pos m)) = Node ("Parse error at:"++show pos++": "++m) []
+buildTree (Right t)                  = fmap label $ ast t
 
 -- |uses the name of given language to establish syntax highlighting in
 -- source buffer
