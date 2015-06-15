@@ -44,7 +44,9 @@ After changing a file in astview's source editor, a star appears in the title ba
 filename to indicate that the file has been changed.
 
 Cut-and-Paste functionality works as usual (Ctrl-C/V/X), allowing to copy-paste source code around. 
-The correspondent menu items can be found in menu `Edit`.
+The correspondent menu items can be found in menu `Edit`. You can use Ctrl-P to reparse the source code and refresh the tree (the shortcut is not displayed in the menu but works anyway).
+
+One note on the representation of Haskells lists in the tree: By default lists in the abstract syntax tree are flattened, which means that they are displayed as a `n`-ary tuple where `n` is the length of the list. If you like to see the exact Haskell term displayed in the tree view with all of its nested applications of the cons operator, you can disable flattening in menu `Edit`.
 
 #### Source location specific functionality
 
