@@ -85,10 +85,13 @@ registerMenuAction xml ref (gtkId,action) = do
 -- | adds actions to some widgets
 hooks :: AstAction (ConnectId Window)
 hooks ref = do
-  (GUI win tree text _) <- getGui ref
+  textbuffer <- getSourceBuffer ref
+  storeLastActiveTextPosition textbuffer ref
 
-  storeLastActiveTextPosition text ref
+  tree <- getTreeView ref
   storeLastActiveTreePosition tree ref
+
+  win <- getWindow ref
   controlPtoReparse win ref
   closeAstviewOnWindowClosed win ref
   close win ref
