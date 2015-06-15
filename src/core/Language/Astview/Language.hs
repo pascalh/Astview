@@ -20,11 +20,11 @@ import Data.Generics (Typeable)
 import Test.QuickCheck
 
 -- |a node represents either an operation or an identificator
-data NodeType = Operation | Identificator
+data NodeType = Operation | Identificator deriving Eq
 
 -- |a position in a tree is uniquely determined by a list of positive numbers.
 -- The value at position i says that we follow the i-th successor of a node.
-type Path = [Int]
+type Path = [Int] 
 
 -- |a node represents an algebraic operation
 data AstNode = AstNode
@@ -33,6 +33,7 @@ data AstNode = AstNode
   , path :: Path
   , nodeType :: NodeType
   }
+  deriving Eq
 
 instance Show AstNode where
   show (AstNode l s _ _) =
@@ -40,7 +41,7 @@ instance Show AstNode where
                       Just x ->replicate 5 ' '  ++"["++show x++"]"})
 
 -- |an (untyped) abstract syntax is just a tree of AstNodes
-newtype Ast = Ast (Tree AstNode)
+newtype Ast = Ast { ast :: Tree AstNode }
 
 -- |datatype for one language. Some parsers support source locations
 -- which enables us to connect locations in text area with locations
