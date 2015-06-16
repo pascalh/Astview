@@ -71,6 +71,7 @@ Executable         astview
                    , TypeOperators
                    , ScopedTypeVariables
                    , OverloadedStrings
+                   , DoAndIfThenElse
 
 test-suite basic
     type: exitcode-stdio-1.0

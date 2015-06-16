@@ -246,11 +246,14 @@ actionJumpToTextLoc ref = do
         Left _    -> return ()
         Right (Ast ast) -> do
           gtkPath <- getPath ref
-          let astPath = tail gtkPath
-              loc = ast `at` astPath
-          case loc of
-            Nothing -> return ()
-            Just l  -> actionSelectSrcLoc l ref
+          if null gtkPath 
+          then return ()
+          else do
+            let astPath = tail gtkPath
+                loc = ast `at` astPath
+            case loc of
+              Nothing -> return ()
+              Just l  -> actionSelectSrcLoc l ref
 
 -- |selects the given source location in gui textview
 actionSelectSrcLoc :: SrcLocation -> AstAction ()
@@ -264,7 +267,15 @@ actionSelectSrcLoc (SrcSpan bl br el er) ref = do
 
 at :: Tree AstNode -> Path -> Maybe SrcLocation
 at (Node n _ )  []     = srcloc n
-at (Node _ cs) (i:is)  = cs!!i `at` is
+at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where 
+
+  get :: Int -> [a] -> Maybe a
+  get _ [] = Nothing
+  get n (x:xs) 
+    | n == 0 = Just x
+    | n <  0 = Nothing
+    | n >  0 = get (n-1) xs
+              
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
