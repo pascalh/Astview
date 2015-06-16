@@ -124,20 +124,20 @@ lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
 
 -- |stores the given cursor selection
 setCursor :: SrcLocation -> AstAction ()
-setCursor cursor ref = lensSetIoRef lState lLastSelectionInText cursor ref
+setCursor = lensSetIoRef lState lLastSelectionInText 
 
 -- |stores the given tree selection
 setTreePath :: Path -> AstAction ()
-setTreePath path ref = lensSetIoRef lState lLastSelectionInTree path ref
+setTreePath = lensSetIoRef lState lLastSelectionInTree 
 
 -- |stores file path of current opened file
 setCurrentFile :: FilePath -> AstAction ()
-setCurrentFile file ref = lensSetIoRef lState lCurrentFile file ref
+setCurrentFile = lensSetIoRef lState lCurrentFile 
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()
-setChanged hasChanged ref = lensSetIoRef lState lTextchanged hasChanged ref
+setChanged = lensSetIoRef lState lTextchanged 
 
 -- |stores whether the lists in trees should be flattened
 setFlattenLists :: Bool -> AstAction () 
-setFlattenLists flatten ref = lensSetIoRef lOptions lFlattenLists flatten ref
+setFlattenLists = lensSetIoRef lOptions lFlattenLists 

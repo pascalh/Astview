@@ -11,6 +11,7 @@ import Language.Astview.Gui.Types
 import Prelude hiding (writeFile)
 import Data.List (find)
 import Control.Monad (when,unless,void,zipWithM_)
+import Control.Applicative ((<$>))
 import Data.Char (toLower)
 -- io
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
@@ -110,7 +111,7 @@ actionParse l ref = do
   view <- getTreeView ref
   sourceBufferSetHighlightSyntax buffer True
   setupSyntaxHighlighting buffer l
-  tree <- fmap buildTree $ actionGetAst l ref
+  tree <- buildTree <$> actionGetAst l ref
   clearTreeView view
   model <- treeStoreNew [tree]
   treeViewSetModel view model
@@ -130,7 +131,7 @@ buildTree :: Either Error Ast  -> Tree String
 buildTree (Left Err)                 = Node "Parse error" []
 buildTree (Left (ErrMessage m))      = Node m []
 buildTree (Left (ErrLocation pos m)) = Node ("Parse error at:"++show pos++": "++m) []
-buildTree (Right t)                  = fmap label $ ast t
+buildTree (Right t)                  = label <$> ast t
 
 -- |uses the name of given language to establish syntax highlighting in
 -- source buffer
@@ -246,9 +247,7 @@ actionJumpToTextLoc ref = do
         Left _    -> return ()
         Right (Ast ast) -> do
           gtkPath <- getPath ref
-          if null gtkPath 
-          then return ()
-          else do
+          unless (null gtkPath) $ do
             let astPath = tail gtkPath
                 loc = ast `at` astPath
             case loc of
@@ -308,7 +307,7 @@ actionGetAssociatedPath ref = do
       astOrError <- actionGetAst lang ref
       case astOrError of
         Left _    -> return Nothing
-        Right ast -> do
+        Right ast -> 
            return $ smallestSrcLocContainingCursorPos sele ast
 
 

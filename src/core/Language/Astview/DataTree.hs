@@ -95,7 +95,7 @@ flatten (Ast t) = Ast (annotateWithPaths $ flat t) where
 
   collect :: Tree AstNode -> [Tree AstNode]
   collect (Node (AstNode "(:)" _ _ Operation) cs) = case cs of 
-    (t1:t2:[]) -> flat t1 : collect t2 
+    [t1,t2] -> flat t1 : collect t2 
     _          -> err
   collect (Node (AstNode "[]" _ _ Operation) [])       = [] 
   collect _                                            = err
