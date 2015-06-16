@@ -272,9 +272,9 @@ at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where
   get :: Int -> [a] -> Maybe a
   get _ [] = Nothing
   get n (x:xs) 
-    | n == 0 = Just x
-    | n <  0 = Nothing
-    | n >  0 = get (n-1) xs
+    | n <  0    = Nothing
+    | n >  0    = get (n-1) xs
+    | otherwise = Just x
               
 
 -- |returns the current cursor position in a source view.

@@ -88,11 +88,16 @@ flatten (Ast t) = Ast (annotateWithPaths $ flat t) where
 
   flat :: Tree AstNode -> Tree AstNode 
   flat t@(Node _ []) = t 
-  flat t@(Node (AstNode "(:)" s p Operation) [x,xs]) = 
+  flat t@(Node (AstNode "(:)" s p Operation) _) = 
     let lbl = '[': replicate (length (collect t) - 1) ',' ++ "]" in
     Node (AstNode lbl s p Operation)  (collect t)
   flat (Node n cs) = Node n $ map flat cs
 
   collect :: Tree AstNode -> [Tree AstNode]
-  collect t@(Node (AstNode "(:)" s p Operation) [t1,t2]) = flat t1 : collect t2 
-  collect (Node (AstNode "[]" s p Operation) []) = [] 
+  collect (Node (AstNode "(:)" _ _ Operation) cs) = case cs of 
+    (t1:t2:[]) -> flat t1 : collect t2 
+    _          -> err
+  collect (Node (AstNode "[]" _ _ Operation) [])       = [] 
+  collect _                                            = err
+     
+  err = error "Malformed term. Disabling flattening solves the problem."
