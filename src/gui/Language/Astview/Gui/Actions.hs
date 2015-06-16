@@ -248,19 +248,19 @@ actionJumpToTextLoc ref = do
           gtkPath <- getPath ref
           let astPath = tail gtkPath
               loc = ast `at` astPath
-          showDialogSrcLoc loc
+          case loc of
+            Nothing -> return ()
+            Just l  -> actionSelectSrcLoc l ref
 
--- |launches a dialog which displays the text position associated to
--- last clicked tree node.
-showDialogSrcLoc :: Maybe SrcLocation -> IO ()
-showDialogSrcLoc mbSrcLoc= do
-  let message = case mbSrcLoc of
-        Nothing -> "No matching source location found."
-        Just loc -> "Selected tree represents text position "++ show loc++"."
-  dia <- messageDialogNew Nothing [] MessageInfo ButtonsOk message
-  dialogRun dia
-  widgetHide dia
-
+-- |selects the given source location in gui textview
+actionSelectSrcLoc :: SrcLocation -> AstAction ()
+actionSelectSrcLoc (SrcSpan bl br el er) ref = do
+  textBuffer <- getSourceBuffer ref
+  let getIter line row = textBufferGetIterAtLineOffset textBuffer (line-1) (0 `max` row-1) 
+  -- we need to subtract 1 since lines and offsets start with 0 
+  begin <- getIter bl br 
+  end <- getIter el er 
+  textBufferSelectRange textBuffer begin end
 
 at :: Tree AstNode -> Path -> Maybe SrcLocation
 at (Node n _ )  []     = srcloc n

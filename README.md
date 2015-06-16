@@ -52,7 +52,7 @@ One note on the representation of Haskells lists in the tree: By default lists i
 
 If the current language supports source locations, one can jump from a selected text position in the source editor to the associated position in the abtract syntax tree by clicking on `Edit/>>>`.
 
-The menu entry `Edit/<<<` displays the corresponding position in the source editor for a selected subtree.
+The menu entry `Edit/<<<` highlights the corresponding interval in the source editor for the recently selected subtree.
 
 ## Developer guide 
 
