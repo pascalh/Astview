@@ -28,7 +28,11 @@ Source-repository head
   location:      https://github.com/pascalh/Astview
 
 Library
-  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
+  GHC-Options:     -Wall 
+                   -fno-warn-unused-do-bind 
+                   -fno-warn-wrong-do-bind 
+                   -fno-warn-hi-shadowing
+                   -fno-warn-name-shadowing
   Hs-Source-Dirs:  src/core
   Exposed-Modules: Language.Astview.Language
                    Language.Astview.SmallestSrcLocContainingCursor
@@ -50,7 +54,11 @@ Library
 Executable         astview
   Hs-Source-Dirs:  src/gui
   Main-is:         Main.hs
-  GHC-Options:     -Wall -fno-warn-unused-do-bind -fno-warn-wrong-do-bind -fno-warn-hi-shadowing
+  GHC-Options:     -Wall 
+                   -fno-warn-unused-do-bind 
+                   -fno-warn-wrong-do-bind 
+                   -fno-warn-hi-shadowing
+                   -fno-warn-name-shadowing
 
   Build-Depends:   base >= 4.6.0.0
                    , astview == 0.3
