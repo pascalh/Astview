@@ -10,7 +10,8 @@ import Data.Generics (Data
                      ,showConstr
                      ,toConstr)
 import Data.Typeable
-import Data.Tree (Tree(Node))
+import Data.Tree (Tree(..))
+import Data.Maybe(isNothing)
 import Language.Astview.Language
 
 -- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
@@ -49,7 +50,7 @@ annotateWithPaths = f [0] where
 data2AstHoIg :: (Data t,Typeable t,Typeable b,Data b)
        => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
        -> b        -> t -> Ast
-data2AstHoIg f marker = Ast . annotateWithPaths . removeNothings . worker where
+data2AstHoIg f marker = Ast . annotateWithPaths . delegateSrcLoc . removeNothings . worker where
 
   worker :: (Data t,Typeable t)
          => t -> Tree (Maybe AstNode)
@@ -101,3 +102,19 @@ flatten (Ast t) = Ast (annotateWithPaths $ flat t) where
   collect _                                            = err
      
   err = error "Malformed term. Disabling flattening solves the problem."
+
+-- |delegates source location annotation to unique subtrees. This should 
+-- not lead to malformed syntax trees, since every unique subtree which is not
+-- annotated with a source location represents the same source location as its 
+-- direct predecessor. If a subtree represents a smaller source location than 
+-- its predecessor, the subtree has to be explicitly tagged with 
+-- a smaller source location (in this case no delegation takes place).
+delegateSrcLoc :: Tree AstNode -> Tree AstNode
+delegateSrcLoc t@(Node (AstNode _ (Just srcLoc) _ _) [Node n cs]) = 
+  t { subForest = [Node n'(map delegateSrcLoc cs)] } where
+
+    n' :: AstNode
+    n' | isNothing (srcloc n) = n  { srcloc = Just srcLoc }
+       | otherwise            = n
+
+delegateSrcLoc (Node n cs) = Node n (map delegateSrcLoc cs)
