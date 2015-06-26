@@ -1,16 +1,16 @@
-{-
-This File exports the list of known parsers for astview.
-You can extend the list with your own parsers
+{- |
+This module exports the list of languages known to astview.
+You can extend it with your own languages. See
+documentation of 'Language' for details.
 
 -}
 
 module Language.Astview.Languages(languages) where
 
--- -- local imports
 import Language.Astview.Language (Language)
 import Language.Astview.Languages.Haskell (haskellexts)
 import Language.Astview.Languages.Python (python)
 
--- |all languages, whose ast can be viewed in astview
+-- |all languages, whose abstract syntax trees can be viewed in astview.
 languages :: [Language]
 languages = [haskellexts,python]

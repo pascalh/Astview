@@ -1,7 +1,6 @@
 {-|
-This module offers the main data type 'Language'. For every language, whose
-files shall be processed by astview, a value of the data type 'Language' has
-to be defined.
+This module offers the main data type 'Language'. A value of 'Language' 
+states how their files shall be processed by astview.
 -}
 module Language.Astview.Language
   ( Language(..)
@@ -19,19 +18,31 @@ import Data.Tree(Tree(..))
 import Data.Generics (Typeable)
 import Test.QuickCheck
 
--- |a node represents either an operation or an identificator
-data NodeType = Operation | Identificator deriving Eq
+-- |'NodeType' distinguishes two kinds of nodes in arbitrary haskell terms:
+--
+--    * (leaf) nodes representing an identificator (and thus a 'String'). 
+--      Note: usually strings are lists of characters and therefore subtrees 
+--      of an abstract syntax tree, but we flatten these subtrees to one
+--      node, which will then be annotated with 'Identificator'.
+--
+--    * all constructors in a term not representing an identificator are just
+--      an 'Operation'
+--
+data NodeType = Operation  
+              | Identificator 
+              deriving Eq
 
--- |a position in a tree is uniquely determined by a list of positive numbers.
--- The value at position i says that we follow the i-th successor of a node.
+-- |A position in a tree is uniquely determined by a list of natural numbers.
+-- (beginning with @0@).
 type Path = [Int] 
 
--- |a node represents an algebraic operation
+-- |'AstNode' represents a node in an untyped abstract syntax tree
+-- annotated with additional information.
 data AstNode = AstNode
-  { label :: String
-  , srcloc :: Maybe SrcLocation
-  , path :: Path
-  , nodeType :: NodeType
+  { label :: String -- ^ constructor name or the representing string 
+  , srcloc :: Maybe SrcLocation -- ^the source location this node represents in the parsed text (if existing)
+  , path :: Path -- ^ the path from the root of the tree to this node 
+  , nodeType :: NodeType -- ^the node type
   }
   deriving Eq
 
@@ -40,35 +51,39 @@ instance Show AstNode where
     l ++ (case s of { Nothing -> "";
                       Just x ->replicate 5 ' '  ++"["++show x++"]"})
 
--- |an (untyped) abstract syntax is just a tree of AstNodes
+-- |An (untyped) abstract syntax tree is just a tree of 'AstNode's.
 newtype Ast = Ast { ast :: Tree AstNode }
 
--- |datatype for one language. Some parsers support source locations
--- which enables us to connect locations in text area with locations
--- in a tree.
+-- |A value of 'Language' states how files (associated with this language by
+-- their file extentions 'exts') are being parsed.
+-- The file extentions of all languages known to astview may not overlap, since
+-- a language is selected by the extention of the currently opened file.
+-- A future release of astview should support manual language selection and thus
+-- making the restriction obsolete.
 data Language = Language
-  { name :: String -- ^ language name
-  , syntax :: String -- ^ syntax highlighter name
+  { name :: String -- ^ language name 
+  , syntax :: String 
+  -- ^ (kate) syntax highlighter name. Use @[]@ if no highlighting is desired.
   , exts :: [String]
    -- ^ file extentions which should be associated with this language
   , parse :: String -> Either Error Ast -- ^ parse function
   }
 
-instance Eq Language where
-  l1 == l2 = name l1 == name l2
-
--- |datatype to specify parse errors. Since parsers offer different
--- amounts of information about parse errors, we offer the following
--- three parse errors:
+-- |Since parsers return different
+-- amounts of information about parse errors, we distinguish the following
+-- three kinds of parse errors:
 data Error
-  = Err -- ^ no error information
-  | ErrMessage String -- ^ simple error message
-  | ErrLocation SrcLocation String -- ^ error message and src loc
+  = Err -- ^ no specific error information
+  | ErrMessage String -- ^ plain error message
+  | ErrLocation SrcLocation String -- ^ error message with position information
 
 -- * source locations
 
--- |specifies a source span in a text area. Use smart constructors 'linear'
--- and 'position' to create special source locations.
+-- |specifies a source span in a text area consisting of a begin row, begin
+-- column, end row and end column.
+--Use 'linear' and 'position' to create special source locations. 
+-- Both functions do not check validity of source spans, since we
+-- assume that parsers return valid data.
 data SrcLocation =  SrcSpan Int Int Int Int deriving (Eq,Typeable)
 
 instance Show SrcLocation where
@@ -98,13 +113,15 @@ instance Arbitrary SrcLocation where
     (NonNegative i4) <- arbitrary
     return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
 
--- |a smart constructor for 'SrcLocation' to define exact positions
-position :: Int -> Int -> SrcLocation
+-- |a constructor for 'SrcLocation' to define an exact position.
+position :: Int -- ^line
+         -> Int -- ^row
+         -> SrcLocation
 position line row = SrcSpan line row line row
 
--- |a smart constructor for 'SrcLocation' to define spans which range
--- over only one specific line and more than one row.
-linear :: Int -- ^ the line
+-- |a constructor for 'SrcLocation' to define a span which ranges
+-- over one specific line and more than one row. 
+linear :: Int -- ^ line
      -> Int  -- ^ begin row
      -> Int  -- ^ end row
      -> SrcLocation

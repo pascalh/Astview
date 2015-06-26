@@ -1,9 +1,7 @@
 {-|
-this module contains a brute force algorithm to compute the path to the smallest
-source location in an abstract syntax tree which is surrounded by a given
-cursor selection.
-If multiple subtrees represent the smallest source location
- we select the biggest subtree. This is done by 'selectShortestPath'.
+This module contains a brute force algorithm to compute the associated subtree
+for a given source span.
+We need this in the GUI to associate text selections with a subtree of the ast.
 -}
 module Language.Astview.SmallestSrcLocContainingCursor
   (smallestSrcLocContainingCursorPos)
@@ -15,11 +13,15 @@ import Data.List (minimumBy)
 
 import Language.Astview.Language
 
--- |selects the (shortest) path to the smallest source location containing
--- given cursor selection.
+{- |selects the shortest path to the subtree of @t@
+ which is annotated by the smallest source location containing 
+ @s@ (if existing).
+If multiple subtrees represent such source location the greatest subtree
+is chosen. 
+ -}
 smallestSrcLocContainingCursorPos
-  :: SrcLocation  -- ^ the cursor selection
-  -> Ast  -- ^ the abstract syntax tree
+  :: SrcLocation  -- ^ source span @s@
+  -> Ast  -- ^ tree @t@
   -> Maybe Path
 smallestSrcLocContainingCursorPos sele =
  selectShortestPath . locsContainingSelection sele . findAllSrcLocations
