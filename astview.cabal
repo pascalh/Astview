@@ -88,8 +88,9 @@ test-suite basic
     build-depends: base >= 4.6.0.0, 
                    astview == 0.3,
                    containers == 0.5.0.0,
+                   syb >= 0.3.7,
                    tasty,
                    tasty-hunit,
                    tasty-quickcheck
 
-
+  extensions:      DeriveDataTypeable
