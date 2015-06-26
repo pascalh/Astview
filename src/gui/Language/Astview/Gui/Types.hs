@@ -59,7 +59,6 @@ data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: TreeView -- ^ treeview
   , sb :: SourceBuffer -- ^ sourceview
-  , dlgAbout :: AboutDialog -- ^ about dialog
   }
 
 
@@ -76,9 +75,6 @@ getSourceBuffer = fmap (sb . gui) . readIORef
 
 getTreeView :: AstAction TreeView
 getTreeView = fmap (tv . gui) . readIORef
-
-getAboutDialog :: AstAction AboutDialog
-getAboutDialog = fmap (dlgAbout . gui) . readIORef
 
 getAstState :: AstAction AstState
 getAstState = readIORef

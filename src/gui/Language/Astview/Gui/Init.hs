@@ -9,6 +9,7 @@ import Language.Astview.Gui.Types
 import Language.Astview.Gui.Actions
 
 -- base
+import Control.Monad(void)
 import Control.Monad.Trans (liftIO)
 import Data.IORef
 -- filepath
@@ -35,8 +36,7 @@ gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
   tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
-  dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-  return $ GUI win treeview tb dialogAbout
+  return $ GUI win treeview tb 
 
 -- |creates initial program state and provides an IORef to that
 buildState :: GladeXML -> IO (IORef AstState)
@@ -97,9 +97,9 @@ This distinction keeps the type 'Gui' and thus the whole program state
 'State' as small as possible.
 -}
 hookNonGuiStateWidgets :: GladeXML -> AstAction ()
-hookNonGuiStateWidgets xml ref = do
+hookNonGuiStateWidgets xml ref = void $ do
   initFlattenCheckMenuItem xml ref
-  return ()
+  initAboutDialog xml ref
 
 -- |bind the check menu for flattening lists to the boolean value in the state.
 initFlattenCheckMenuItem :: GladeXML -> AstAction (ConnectId CheckMenuItem)
@@ -112,6 +112,17 @@ initFlattenCheckMenuItem xml ref = do
   mFlatten `on` checkMenuItemToggled $ do
     isActive <- checkMenuItemGetActive mFlatten
     setFlattenLists isActive ref
+
+-- |setup about dialog
+initAboutDialog :: GladeXML -> AstAction (ConnectId MenuItem)
+initAboutDialog xml ref = do
+  registerMenuAction xml ref ("mAbout",action) where
+    action _ = do
+      dialog <- xmlGetWidget xml castToAboutDialog "dlgAbout"
+      aboutDialogSetUrlHook (\(_ :: String) -> return ())
+      widgetShow dialog
+      dialog `onResponse` const (widgetHide dialog)
+      return ()
 
 -- *** hooks for widgets which are part the 'Gui' type
 

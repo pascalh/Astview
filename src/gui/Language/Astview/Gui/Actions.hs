@@ -50,7 +50,6 @@ menuActions =
   ,("mDelete",actionDeleteSource)
   ,("mSrcLoc",actionJumpToSrcLoc)
   ,("mTextLoc",actionJumpToTextLoc)
-  ,("mAbout",actionAbout)
   ,("mQuit",actionQuit)
   ]
 
@@ -317,20 +316,6 @@ activatePath p ref = do
   view <- getTreeView ref
   treeViewExpandToPath view p
   treeViewSetCursor view p Nothing
-
--- -------------------------------------------------------------------
--- ** helpmenu menu actions
--- -------------------------------------------------------------------
-
--- | launches info dialog
-actionAbout :: AstAction ()
-actionAbout ref = do
-  dlg <- fmap dlgAbout (getGui ref)
-  aboutDialogSetUrlHook (\(_ :: String) -> return ())
-  widgetShow dlg
-  dlg `onResponse` const (widgetHide dlg)
-  return ()
-
 
 -- -------------------------------------------------------------------
 -- ** other actions
