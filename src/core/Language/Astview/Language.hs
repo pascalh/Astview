@@ -67,15 +67,9 @@ data Error
 
 -- * source locations
 
--- |specifies a source location in text area. Use smart constructors 'linear'
+-- |specifies a source span in a text area. Use smart constructors 'linear'
 -- and 'position' to create special source locations.
-data SrcLocation
-  =  SrcSpan
-    Int -- ^begin line
-    Int -- ^begin row
-    Int -- ^end line
-    Int -- ^end row
-    deriving (Eq,Typeable)
+data SrcLocation =  SrcSpan Int Int Int Int deriving (Eq,Typeable)
 
 instance Show SrcLocation where
   show (SrcSpan bl br el er) = show bl ++ " : " ++ show br ++ " , "++
