@@ -86,6 +86,7 @@ The `parse` function maps the input string either to an error value or to an abs
 After an input string has been parsed, one has to transform the parsed tree into our internal representation type `Ast` (see documentation of `Language.Astview.Language` for details on `Ast`).
 The module `Language.Astview.DataTree` offers a bunch of different type-generic functions for that purpose.
 The very basic one is the function `data2Ast :: Data t => t -> Ast` transforming an arbitary value whose type implements class `Data` into our internal type `Ast` by just printing the constructors and storing them in a tree.
+In order to simplify the tree `data2Ast` represents `String`s not as a list of `Char`, but as a single node in the tree. 
 
 #### Example: Adding Haskell support to astview
 
