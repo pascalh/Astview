@@ -35,9 +35,8 @@ gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
   tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
-  checkFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten"
   dialogAbout <-xmlGetWidget xml castToAboutDialog "dlgAbout"
-  return $ GUI win treeview tb checkFlatten dialogAbout
+  return $ GUI win treeview tb dialogAbout
 
 -- |creates initial program state and provides an IORef to that
 buildState :: GladeXML -> IO (IORef AstState)
@@ -53,11 +52,8 @@ setupGUI = do
   initGUI
   Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
   r <- buildState xml
-  
-  isFlat <- getFlattenLists r
-  mFlatten <- getCheckMenuFlatten r
-  checkMenuItemSetActive mFlatten isFlat
 
+  hookNonGuiStateWidgets xml r
   hooks r
   mapM_ (registerMenuAction xml r) menuActions
   return r
@@ -88,7 +84,38 @@ registerMenuAction xml ref (gtkId,action) = do
   item <- xmlGetWidget xml castToMenuItem gtkId
   onActivateLeaf item $ action ref
 
--- | adds actions to some widgets
+-- *** hooks for widgets which are not part of the 'Gui' type
+
+{- |We distinguish widgets by the property whether they are part of the type 'Gui'. 
+Widgets, which occur in type 'Gui', can be accessed by functions binded to the 
+menu items (see module 'Language.Astview.Gui.Actions' for details). Other widgets
+(like the check menu item for flattening lists for example) only need to be 
+connected to their respective actions, but do not need to be 
+directly accessed by other widgets actions.
+
+This distinction keeps the type 'Gui' and thus the whole program state 
+'State' as small as possible.
+-}
+hookNonGuiStateWidgets :: GladeXML -> AstAction ()
+hookNonGuiStateWidgets xml ref = do
+  initFlattenCheckMenuItem xml ref
+  return ()
+
+-- |bind the check menu for flattening lists to the boolean value in the state.
+initFlattenCheckMenuItem :: GladeXML -> AstAction (ConnectId CheckMenuItem)
+initFlattenCheckMenuItem xml ref = do
+  
+  isFlat <- getFlattenLists ref
+  mFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten" 
+  checkMenuItemSetActive mFlatten isFlat
+
+  mFlatten `on` checkMenuItemToggled $ do
+    isActive <- checkMenuItemGetActive mFlatten
+    setFlattenLists isActive ref
+
+-- *** hooks for widgets which are part the 'Gui' type
+
+-- | adds actions to widgets defined in type 'Gui'. (see 'hookNonGuiStateWidgets')
 hooks :: AstAction (ConnectId Window)
 hooks ref = do
   textbuffer <- getSourceBuffer ref
@@ -97,16 +124,10 @@ hooks ref = do
   tree <- getTreeView ref
   storeLastActiveTreePosition tree ref
 
-  menuFlatten <- getCheckMenuFlatten ref
-  menuFlatten `on` checkMenuItemToggled $ do
-    isActive <- checkMenuItemGetActive menuFlatten
-    setFlattenLists isActive ref
-
   win <- getWindow ref
   controlPtoReparse win ref
   closeAstviewOnWindowClosed win ref
   close win ref
-
 
 type Hook a = a -> AstAction (ConnectId a)
 

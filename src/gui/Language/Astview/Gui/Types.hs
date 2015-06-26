@@ -59,7 +59,6 @@ data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: TreeView -- ^ treeview
   , sb :: SourceBuffer -- ^ sourceview
-  , mToggleFlatten :: CheckMenuItem -- ^ indicates whether trees should be flattened
   , dlgAbout :: AboutDialog -- ^ about dialog
   }
 
@@ -80,9 +79,6 @@ getTreeView = fmap (tv . gui) . readIORef
 
 getAboutDialog :: AstAction AboutDialog
 getAboutDialog = fmap (dlgAbout . gui) . readIORef
-
-getCheckMenuFlatten :: AstAction CheckMenuItem 
-getCheckMenuFlatten = fmap (mToggleFlatten . gui) . readIORef
 
 getAstState :: AstAction AstState
 getAstState = readIORef
