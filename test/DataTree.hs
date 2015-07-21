@@ -9,23 +9,48 @@ import Data.Tree(Tree(..))
 import Control.Monad(liftM,liftM2,liftM3)
 import Data.Foldable (foldrM)
 import Data.Generics (Data)
-import Data.Typeable(Typeable)
+import Data.Typeable(Typeable,typeOf)
 import Language.Astview.DataTree 
 import Language.Astview.Language
 
+
+propIgnoreInt :: TestTree
+propIgnoreInt = testProperty "removing leafs with int values" p where
+ 
+  p (TermUnit t) = act t === exped t
+
+  act :: Term () -> Tree String
+  act = fmap label . ast . data2AstOpt (const Nothing) (\t -> typeOf t == typeOf (1::Int))
+
+  exped :: Term () -> Tree String
+  exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  data2Ast 
+  
+  isEmpty :: Tree String -> Bool
+  isEmpty (Node "" []) = True
+  isEmpty _            = False
+
+  isNumber :: Tree String -> Bool
+  isNumber (Node ('-':xs)  _) = not (null xs) && all (\x -> elem x ['0'..'9']) xs
+  isNumber (Node xs@(_:_)  _) = all (\x -> elem x ['0'..'9']) xs
+  isNumber _                  = False
+
+-- * 
+
 testDataTree :: TestTree
-testDataTree = testGroup "Data to ast" properties where
+testDataTree = testGroup "data to ast" [testsBasic,propIgnoreInt] where
 
-  properties = [mkProp b f | b <- [True,False] , f <- [True,False]]
+testsBasic :: TestTree
+testsBasic = testGroup "Basic data to ast transformations"  
+                       [mkProp b f | b <- [True,False] , f <- [True,False]] where
 
-mkProp ::Bool -> Bool -> TestTree
-mkProp b f = testProperty name p where
+  mkProp ::Bool -> Bool -> TestTree
+  mkProp b f = testProperty name p where
 
-  name = (if b then " " else "remove annotations ") ++ 
-         (if f then "flattened" else "")
+    name = (if b then " " else "remove annotations ") ++ 
+           (if f then "flattened" else "")
 
-  p :: TermUnit -> Property
-  p (TermUnit t) = actual b f t === expected b f t
+    p :: TermUnit -> Property
+    p (TermUnit t) = actual b f t === expected b f t
 
 -- |applies functions from 'Language.Astview.DataTree' to given term
 actual :: Bool  -- ^ should the term contain annotations=

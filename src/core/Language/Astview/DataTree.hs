@@ -1,7 +1,15 @@
 {-| This module contains datatype-generic functions to gain a 'Ast'
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree (data2Ast,data2AstHo,annotateWithPaths,data2AstHoIg,flatten) where
+module Language.Astview.DataTree 
+  (data2Ast
+  ,data2AstHo
+  ,annotateWithPaths
+  ,data2AstHoIg
+  ,flatten
+  ,data2AstOpt
+  ,removeSubtrees
+  ) where
 
 -- syb
 import Data.Generics (Data
@@ -13,6 +21,28 @@ import Data.Typeable
 import Data.Tree (Tree(..))
 import Data.Maybe(isNothing)
 import Language.Astview.Language
+
+data2AstOpt :: (Data t) => (forall srcloc.Data srcloc => srcloc -> Maybe SrcLocation) 
+                        ->  (forall st . Typeable st => st -> Bool) 
+                        -> t -> Ast
+data2AstOpt getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . worker where
+
+  worker :: (Data t,Typeable t) => t -> Tree (Maybe AstNode)
+  worker term | pIgnore term = Node Nothing [] 
+              | otherwise    = (gdefault `extQ` atString) term where
+
+      atString :: String -> Tree (Maybe AstNode)
+      atString s = Node (Just $ AstNode s Nothing [] Identificator) []
+
+      gdefault :: (Typeable t,Data t) => t -> Tree (Maybe AstNode)
+      gdefault x = Node (Just n) cs where
+
+        n :: AstNode
+        n = AstNode (showConstr $ toConstr x) (getSrcLoc x) [] Operation
+
+        cs = gmapQ worker x
+
+
 
 -- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
 data2treeHO :: (Data t) => (forall a . Data a => a -> Maybe SrcLocation)
@@ -72,6 +102,16 @@ data2AstHoIg f marker = Ast . annotateWithPaths . delegateSrcLoc . removeNothing
 removeNothings :: Tree (Maybe AstNode) -> Tree AstNode
 removeNothings (Node Nothing _)   = error "cannot remove the root of a one-noded tree"
 removeNothings (Node (Just n) cs) = Node n (map removeNothings $ filter isJustNode cs)
+
+-- |removes all proper subtrees satisfying the predicate. 
+-- The predicate is not being checked at root node, since the resulting tree
+-- has to be non-empty. 
+removeSubtrees :: (Tree a -> Bool) -> Tree a -> Tree a
+removeSubtrees p (Node n cs) = Node n $ map (removeSubtrees p) $ filter (not . p) cs
+
+isEmpty :: Tree AstNode -> Bool
+isEmpty (Node (AstNode "" _ _ _) []) = True
+isEmpty _            = False
 
 isJustNode :: Tree (Maybe a) -> Bool
 isJustNode (Node (Just _) _) = True
