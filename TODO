@@ -21,6 +21,8 @@ feature requests:
   * propagate source locations to successors: i.e. nodes "Ident" are annotated
     with a src loc, but their successor in the ast (the actual ident value) is not
     annotated with a location. Can this be generalized?
+  * implement searching idents and operations (in the ast)
+  * display of raw ast could be valuable
 
 misc:
 
