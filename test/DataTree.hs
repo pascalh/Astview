@@ -26,8 +26,7 @@ propIgnoreInt = testProperty "removing leafs with int values" p where
   exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  data2Ast 
   
   isEmpty :: Tree String -> Bool
-  isEmpty (Node "" []) = True
-  isEmpty _            = False
+  isEmpty = null . rootLabel
 
   isNumber :: Tree String -> Bool
   isNumber (Node ('-':xs)  _) = not (null xs) && all (\x -> elem x ['0'..'9']) xs
