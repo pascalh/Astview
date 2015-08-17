@@ -1,7 +1,7 @@
 module Language.Astview.Languages.Python (python) where
 
 import Language.Astview.Language
-import Language.Astview.DataTree (data2AstHoIg)
+import Language.Astview.DataTree (dataToAstIgnoreByExample)
 
 import Language.Python.Version3.Parser(parseModule)
 import qualified Language.Python.Common.SrcLocation as Py
@@ -14,7 +14,9 @@ python = Language "Python" "Python" [".py"] parsePy
 
 parsePy :: String -> Either Error Ast
 parsePy s = case parseModule s [] of
-  Right (m,_) -> Right $ data2AstHoIg getSrcLoc (undefined::Py.SrcSpan) m
+  Right (m,_) -> Right $ dataToAstIgnoreByExample getSrcLoc 
+                                                  (undefined::Py.SrcSpan) 
+                                                  m
   Left e      -> Left $ ErrMessage (show e)
 
 getSrcLoc :: Data t => t -> Maybe SrcLocation

@@ -23,7 +23,7 @@ propIgnoreInt = testProperty "removing leafs with int values" p where
   act = fmap label . ast . dataToAst (const Nothing) (\t -> typeOf t == typeOf (1::Int))
 
   exped :: Term () -> Tree String
-  exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  dataToAstSimpl 
+  exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  termToAst 
   
   isEmpty :: Tree String -> Bool
   isEmpty = null . rootLabel
@@ -62,11 +62,11 @@ actual b f = fmap label . ast . mkFlat . mkAst  where
   mkFlat = if f then flatten else id
 
   mkAst :: Term () -> Ast 
-  mkAst = if b then dataToAstSimpl 
+  mkAst = if b then termToAst 
                else dataToAst (const Nothing) (\t -> typeOf t == typeOf ()) 
 
-
-dataToAstSimpl = dataToAst (const Nothing) (const False)
+termToAst :: Term () -> Ast
+termToAst = dataToAst (const Nothing) (const False)
 -- * a toy language
 
 data Term ann

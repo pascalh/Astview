@@ -3,7 +3,7 @@ out of an arbitrary term.
 -}
 module Language.Astview.DataTree 
   (annotateWithPaths
-  ,data2AstHoIg
+  ,dataToAstIgnoreByExample
   ,flatten
   ,dataToAst
   ,removeSubtrees
@@ -39,10 +39,14 @@ dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeS
 
         cs = gmapQ worker x
 
-data2AstHoIg :: (Data t,Typeable t,Typeable b,Data b)
+-- |usually we want to discard all values of one type (the type of term 
+-- annotations) from the ast. Just give one example value of the annotation
+-- type to this function and all values of this type are being discarded from 
+-- the ast.
+dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable b,Data b)
        => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
        -> b        -> t -> Ast
-data2AstHoIg getLoc igExample = dataToAst getLoc ignore where
+dataToAstIgnoreByExample getLoc igExample = dataToAst getLoc ignore where
   ignore t = equalTypes t igExample
 
 -- * helper functions
