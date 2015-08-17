@@ -20,10 +20,10 @@ propIgnoreInt = testProperty "removing leafs with int values" p where
   p (TermUnit t) = act t === exped t
 
   act :: Term () -> Tree String
-  act = fmap label . ast . data2AstOpt (const Nothing) (\t -> typeOf t == typeOf (1::Int))
+  act = fmap label . ast . dataToAst (const Nothing) (\t -> typeOf t == typeOf (1::Int))
 
   exped :: Term () -> Tree String
-  exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  data2Ast 
+  exped = removeSubtrees (\t -> isNumber t || isEmpty t) . fmap label . ast .  dataToAstSimpl 
   
   isEmpty :: Tree String -> Bool
   isEmpty = null . rootLabel
@@ -62,8 +62,11 @@ actual b f = fmap label . ast . mkFlat . mkAst  where
   mkFlat = if f then flatten else id
 
   mkAst :: Term () -> Ast 
-  mkAst = if b then data2Ast else data2AstHoIg (const Nothing) () 
+  mkAst = if b then dataToAstSimpl 
+               else dataToAst (const Nothing) (\t -> typeOf t == typeOf ()) 
 
+
+dataToAstSimpl = dataToAst (const Nothing) (const False)
 -- * a toy language
 
 data Term ann
@@ -124,7 +127,7 @@ arbitraryTerm n | n > 0 =
   oneof [ arbitraryNested n, arbitraryBinary n, arbitraryList n]
 
 arbitraryString :: Arbitrary a => Gen (Term a)
-arbitraryString = liftM2 Leaf arbitrary (listOf arbitraryChar) where
+arbitraryString = liftM2 Leaf arbitrary (listOf1 arbitraryChar) where
   
   arbitraryChar :: Gen Char
   arbitraryChar = elements $ ['A'..'Z']++['a'..'z']

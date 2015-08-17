@@ -2,16 +2,13 @@
 out of an arbitrary term.
 -}
 module Language.Astview.DataTree 
-  (data2Ast
-  ,data2AstHo
-  ,annotateWithPaths
+  (annotateWithPaths
   ,data2AstHoIg
   ,flatten
-  ,data2AstOpt
+  ,dataToAst
   ,removeSubtrees
   ) where
 
--- syb
 import Data.Generics (Data
                      ,extQ
                      ,gmapQ
@@ -19,13 +16,13 @@ import Data.Generics (Data
                      ,toConstr)
 import Data.Typeable
 import Data.Tree (Tree(..))
-import Data.Maybe(isNothing)
+import Data.Maybe(isNothing,isJust)
 import Language.Astview.Language
 
-data2AstOpt :: (Data t) => (forall srcloc.Data srcloc => srcloc -> Maybe SrcLocation) 
-                        ->  (forall st . Typeable st => st -> Bool) 
+dataToAst :: (Data t) => (forall srcloc.Data srcloc => srcloc -> Maybe SrcLocation) 
+                       ->  (forall st . Typeable st => st -> Bool) 
                         -> t -> Ast
-data2AstOpt getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . worker where
+dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . worker where
 
   worker :: (Data t,Typeable t) => t -> Tree (Maybe AstNode)
   worker term | pIgnore term = Node Nothing [] 
@@ -42,29 +39,13 @@ data2AstOpt getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . remov
 
         cs = gmapQ worker x
 
+data2AstHoIg :: (Data t,Typeable t,Typeable b,Data b)
+       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
+       -> b        -> t -> Ast
+data2AstHoIg getLoc igExample = dataToAst getLoc ignore where
+  ignore t = equalTypes t igExample
 
-
--- |Trealise Data to Tree (from SYB 2, sec. 3.4 )
-data2treeHO :: (Data t) => (forall a . Data a => a -> Maybe SrcLocation)
-                        -> t -> Tree AstNode
-data2treeHO f = gdefault `extQ` atString where
-
-  atString :: String -> Tree AstNode
-  atString s = Node (AstNode s Nothing [] Identificator) []
-
-  gdefault :: Data t => t -> Tree  AstNode
-  gdefault x = Node (AstNode (showConstr $ toConstr x) (f x) [] Operation )
-                    (gmapQ (data2treeHO f) x)
-
--- |see 'data2AstHo' but no 'SrcLocation's will be annotated
-data2Ast :: Data t => t -> Ast
-data2Ast = data2AstHo (const Nothing)
-
--- |gains a 'SrcLocation'-selection function an a term. Returns the 'Ast'
--- which is completely annotated (i.e. all fields of type 'AstNode' will
--- hold values).
-data2AstHo :: Data t => (forall a . Data a => a -> Maybe SrcLocation) -> t -> Ast
-data2AstHo f = Ast . annotateWithPaths . data2treeHO f
+-- * helper functions
 
 -- |every node will be annotated with its path.
 annotateWithPaths :: Tree AstNode -> Tree AstNode
@@ -73,35 +54,10 @@ annotateWithPaths = f [0] where
   f p (Node (AstNode l s _ t) cs) =
     Node (AstNode l s p t) $ zipWith (\i c -> f (p++[i]) c) [0,1..] cs
 
-
-
--- |same as data2AstHo, but ignoring all values of type b during the creation.
--- Thus it can be used to remove annotations from a tree.
-data2AstHoIg :: (Data t,Typeable t,Typeable b,Data b)
-       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
-       -> b        -> t -> Ast
-data2AstHoIg f marker = Ast . annotateWithPaths . delegateSrcLoc . removeNothings . worker where
-
-  worker :: (Data t,Typeable t)
-         => t -> Tree (Maybe AstNode)
-  worker term
-   | term `equalTypes` marker = Node Nothing []
-   | otherwise                = (gdefault `extQ` atString) term where
-
-      atString :: String -> Tree (Maybe AstNode)
-      atString s = Node (Just $ AstNode s Nothing [] Identificator) []
-
-      gdefault :: (Typeable t,Data t) => t -> Tree (Maybe AstNode)
-      gdefault x = Node (Just n) cs where
-
-        n :: AstNode
-        n = AstNode (showConstr $ toConstr x) (f x) [] Operation
-
-        cs = gmapQ worker x
-
 removeNothings :: Tree (Maybe AstNode) -> Tree AstNode
 removeNothings (Node Nothing _)   = error "cannot remove the root of a one-noded tree"
-removeNothings (Node (Just n) cs) = Node n (map removeNothings $ filter isJustNode cs)
+removeNothings (Node (Just n) cs) = 
+  Node n (map removeNothings $ filter (isJust . rootLabel) cs)
 
 -- |removes all proper subtrees satisfying the predicate. 
 -- The predicate is not being checked at root node, since the resulting tree
@@ -112,10 +68,6 @@ removeSubtrees p (Node n cs) = Node n $ map (removeSubtrees p) $ filter (not . p
 isEmpty :: Tree AstNode -> Bool
 isEmpty (Node (AstNode "" _ _ _) []) = True
 isEmpty _            = False
-
-isJustNode :: Tree (Maybe a) -> Bool
-isJustNode (Node (Just _) _) = True
-isJustNode (Node Nothing _ ) = False
 
 
 -- |returns whether both values are of the same type
