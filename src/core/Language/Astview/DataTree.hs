@@ -6,6 +6,7 @@ module Language.Astview.DataTree
   ,dataToAstIgnoreByExample
   ,flatten
   ,dataToAst
+  ,dataToAstSimpl
   ,removeSubtrees
   ) where
 
@@ -48,6 +49,11 @@ dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable b,Data b)
        -> b        -> t -> Ast
 dataToAstIgnoreByExample getLoc igExample = dataToAst getLoc ignore where
   ignore t = equalTypes t igExample
+
+-- |dataToAstSimpl stores the terms' structure directly in the 'Ast' (without
+-- annotating source locations or discarding subtrees)
+dataToAstSimpl :: Data t => t -> Ast
+dataToAstSimpl = dataToAst (const Nothing) (const False)
 
 -- * helper functions
 
