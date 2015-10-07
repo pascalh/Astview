@@ -1,6 +1,5 @@
 module Language.Astview.Languages.Haskell (haskellexts) where
 
--- local imports
 import Language.Astview.Language hiding (parse)
 import Language.Astview.DataTree (dataToAstIgnoreByExample)
 
@@ -16,8 +15,8 @@ haskellexts = Language "Haskell" "Haskell" [".hs",".lhs"] parsehs
 
 parsehs :: String -> Either Error Ast
 parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
-  ParseOk t  -> Right $ dataToAstIgnoreByExample getSrcLoc 
-                                                 (undefined::HsSrcLoc.SrcSpan) 
+  ParseOk t  -> Right $ dataToAstIgnoreByExample getSrcLoc
+                                                 (undefined::HsSrcLoc.SrcSpan)
                                                  t
   ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> Left $ ErrLocation (position l c) m
 

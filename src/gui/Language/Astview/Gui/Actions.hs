@@ -3,38 +3,26 @@
  -}
 
 module Language.Astview.Gui.Actions where
-
--- gui data types
 import Language.Astview.Gui.Types
+import Language.Astview.Language
+import Language.Astview.SmallestSrcLocContainingCursor
+  (smallestSrcLocContainingCursorPos)
+import Language.Astview.DataTree(flatten)
 
--- base
+
 import Prelude hiding (writeFile)
 import Data.List (find)
 import Control.Monad (when,unless,void,zipWithM_)
 import Control.Applicative ((<$>))
 import Data.Char (toLower)
--- io
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
-
--- filepath
 import System.FilePath (takeExtension,takeFileName)
-
--- bytestring
 import qualified Data.ByteString.Char8 as BS (hGetContents,unpack)
-
--- containers
 import Data.Tree ( Tree(Node) )
 
--- gtk
 import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
-
--- gtksourceview
 import Graphics.UI.Gtk.SourceView
 
-import Language.Astview.Language 
-import Language.Astview.SmallestSrcLocContainingCursor
-  (smallestSrcLocContainingCursorPos)
-import Language.Astview.DataTree(flatten)
 
 -- | a list of pairs of gtk-ids and GUIActions
 menuActions :: [(String,AstAction ())]
@@ -97,11 +85,11 @@ getLanguage ref = do
 actionGetAst :: Language -> AstAction (Either Error Ast)
 actionGetAst l ref = do
   plain <- getText =<< getSourceBuffer ref
-  flattening <- getFlattenLists ref 
+  flattening <- getFlattenLists ref
   let r = case parse l plain of
        Left e -> Left e
        Right t -> Right (if flattening then flatten t else t)
-  return r 
+  return r
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
@@ -257,23 +245,23 @@ actionJumpToTextLoc ref = do
 actionSelectSrcLoc :: SrcLocation -> AstAction ()
 actionSelectSrcLoc (SrcSpan bl br el er) ref = do
   textBuffer <- getSourceBuffer ref
-  let getIter line row = textBufferGetIterAtLineOffset textBuffer (line-1) (0 `max` row-1) 
-  -- we need to subtract 1 since lines and offsets start with 0 
-  begin <- getIter bl br 
-  end <- getIter el er 
+  let getIter line row = textBufferGetIterAtLineOffset textBuffer (line-1) (0 `max` row-1)
+  -- we need to subtract 1 since lines and offsets start with 0
+  begin <- getIter bl br
+  end <- getIter el er
   textBufferSelectRange textBuffer begin end
 
 at :: Tree AstNode -> Path -> Maybe SrcLocation
 at (Node n _ )  []     = srcloc n
-at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where 
+at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where
 
   get :: Int -> [a] -> Maybe a
   get _ [] = Nothing
-  get n (x:xs) 
+  get n (x:xs)
     | n <  0    = Nothing
     | n >  0    = get (n-1) xs
     | otherwise = Just x
-              
+
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
@@ -306,7 +294,7 @@ actionGetAssociatedPath ref = do
       astOrError <- actionGetAst lang ref
       case astOrError of
         Left _    -> return Nothing
-        Right ast -> 
+        Right ast ->
            return $ smallestSrcLocContainingCursorPos sele ast
 
 
@@ -428,4 +416,3 @@ windowSetTitleSuffix win title = windowSetTitle win (title++" - astview")
 -- |safe function to write files
 writeFile :: FilePath -> String -> IO ()
 writeFile f str = withFile f WriteMode (\h -> hPutStr h str >> hClose h)
-

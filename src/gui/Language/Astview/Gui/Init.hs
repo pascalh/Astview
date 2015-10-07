@@ -4,30 +4,18 @@ function
  -}
 module Language.Astview.Gui.Init(setupGUI) where
 
--- guiactions
 import Language.Astview.Gui.Types
 import Language.Astview.Gui.Actions
 
--- base
 import Control.Monad(void)
 import Control.Monad.Trans (liftIO)
 import Data.IORef
--- filepath
 import System.FilePath ((</>))
 
--- gtk
 import Graphics.UI.Gtk hiding (Language)
-
--- glade
 import Graphics.UI.Gtk.Glade
-
--- gtksourceview
 import Graphics.UI.Gtk.SourceView
-
--- astview-utils
 import Language.Astview.Languages(languages)
-
--- generated on-the-fly by cabal
 import Paths_astview (getDataFileName)
 
 -- |builds initial gui state from glade xml file
@@ -36,7 +24,7 @@ gladeToGUI xml = do
   win   <- xmlGetWidget xml castToWindow "mainWindow"
   treeview <- xmlGetWidget xml castToTreeView "treeview"
   tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
-  return $ GUI win treeview tb 
+  return $ GUI win treeview tb
 
 -- |creates initial program state and provides an IORef to that
 buildState :: GladeXML -> IO (IORef AstState)
@@ -86,14 +74,14 @@ registerMenuAction xml ref (gtkId,action) = do
 
 -- *** hooks for widgets which are not part of the 'Gui' type
 
-{- |We distinguish widgets by the property whether they are part of the type 'Gui'. 
-Widgets, which occur in type 'Gui', can be accessed by functions binded to the 
+{- |We distinguish widgets by the property whether they are part of the type 'Gui'.
+Widgets, which occur in type 'Gui', can be accessed by functions binded to the
 menu items (see module 'Language.Astview.Gui.Actions' for details). Other widgets
-(like the check menu item for flattening lists for example) only need to be 
-connected to their respective actions, but do not need to be 
+(like the check menu item for flattening lists for example) only need to be
+connected to their respective actions, but do not need to be
 directly accessed by other widgets actions.
 
-This distinction keeps the type 'Gui' and thus the whole program state 
+This distinction keeps the type 'Gui' and thus the whole program state
 'State' as small as possible.
 -}
 hookNonGuiStateWidgets :: GladeXML -> AstAction ()
@@ -104,9 +92,9 @@ hookNonGuiStateWidgets xml ref = void $ do
 -- |bind the check menu for flattening lists to the boolean value in the state.
 initFlattenCheckMenuItem :: GladeXML -> AstAction (ConnectId CheckMenuItem)
 initFlattenCheckMenuItem xml ref = do
-  
+
   isFlat <- getFlattenLists ref
-  mFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten" 
+  mFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten"
   checkMenuItemSetActive mFlatten isFlat
 
   mFlatten `on` checkMenuItemToggled $ do
