@@ -48,6 +48,24 @@ setupGUI = do
   mapM_ (registerMenuAction xml r) menuActions
   return r
 
+-- |the association between the gui functions from 'Actions'
+-- and the gtk identifier from glade file.
+menuActions :: [(String,AstAction ())]
+menuActions =
+  [("mNew",actionEmptyGUI)
+  ,("mReparse",actionReparse)
+  ,("mSaveAs",actionSaveAs)
+  ,("mOpen",actionDlgOpen)
+  ,("mSave",actionSave)
+  ,("mCut",actionCutSource)
+  ,("mCopy",actionCopySource)
+  ,("mPaste",actionPasteSource)
+  ,("mDelete",actionDeleteSource)
+  ,("mSrcLoc",actionJumpToSrcLoc)
+  ,("mTextLoc",actionJumpToTextLoc)
+  ,("mQuit",actionQuit)
+  ]
+
 -- -------------------------------------------------------------------
 -- ** some helper functions
 -- -------------------------------------------------------------------
@@ -135,7 +153,7 @@ initFlattenCheckMenuItem xml ref = do
 
 -- |setup about dialog
 initAboutDialog :: GladeXML -> AstAction (ConnectId MenuItem)
-initAboutDialog xml ref = do
+initAboutDialog xml ref =
   registerMenuAction xml ref ("mAbout",action) where
     action _ = do
       dialog <- xmlGetWidget xml castToAboutDialog "dlgAbout"

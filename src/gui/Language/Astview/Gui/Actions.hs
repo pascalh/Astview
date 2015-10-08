@@ -1,5 +1,4 @@
-{- contains the GUIActions connected to menuItems
- -
+{- contains the main gui functions
  -}
 
 module Language.Astview.Gui.Actions where
@@ -22,25 +21,6 @@ import Data.Tree ( Tree(Node) )
 
 import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView
-
-
--- | a list of pairs of gtk-ids and GUIActions
-menuActions :: [(String,AstAction ())]
-menuActions =
-  [("mNew",actionEmptyGUI)
-  ,("mReparse",actionReparse)
-  ,("mSaveAs",actionSaveAs)
-  ,("mOpen",actionDlgOpen)
-  ,("mSave",actionSave)
-  ,("mCut",actionCutSource)
-  ,("mCopy",actionCopySource)
-  ,("mPaste",actionPasteSource)
-  ,("mDelete",actionDeleteSource)
-  ,("mSrcLoc",actionJumpToSrcLoc)
-  ,("mTextLoc",actionJumpToTextLoc)
-  ,("mQuit",actionQuit)
-  ]
-
 
 -- -------------------------------------------------------------------
 -- * filemenu menu actions
