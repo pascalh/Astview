@@ -62,8 +62,7 @@ actionEmptyGUI ref = do
   flip textBufferSetText ("" :: String) =<< getSourceBuffer ref
   windowSetTitleSuffix (window g) unsavedDoc
 
--- | updates the sourceview with a given file, chooses a language by
--- extension and parses the file
+-- | updates the sourceview with a given file and parses the file
 actionLoadHeadless :: FilePath -> AstAction ()
 actionLoadHeadless file ref = do
   setCurrentFile file ref
@@ -72,24 +71,28 @@ actionLoadHeadless file ref = do
   buffer <- getSourceBuffer ref
   textBufferSetText buffer =<< withFile file ReadMode (fmap BS.unpack . BS.hGetContents)
   deleteStar ref
-  whenJustM (getLanguage ref) (\l -> void $ actionParse l ref)
+  actionReparse ref
 
 -- |tries to find a language based on the extension of
 -- current file name
-getLanguage :: AstAction (Maybe Language)
-getLanguage ref = do
+getLanguageByExtension :: AstAction (Maybe Language)
+getLanguageByExtension ref = do
   file <- getCurrentFile ref
   languages <- getKnownLanguages ref
   return $ find (elem (takeExtension file) . exts) languages
+
+getLanguage :: AstAction (Maybe Language)
+getLanguage ref = do
+  maybeLang <- getActiveLanguage ref
+  case maybeLang of
+    Nothing   -> getLanguageByExtension ref
+    Just lang -> return $ Just lang
 
 actionGetAst :: Language -> AstAction (Either Error Ast)
 actionGetAst l ref = do
   plain <- getText =<< getSourceBuffer ref
   flattening <- getFlattenLists ref
-  let r = case parse l plain of
-       Left e -> Left e
-       Right t -> Right (if flattening then flatten t else t)
-  return r
+  return $ (if flattening then flatten else id) <$> parse l plain
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)

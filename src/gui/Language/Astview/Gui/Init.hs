@@ -6,8 +6,11 @@ module Language.Astview.Gui.Init(setupGUI) where
 
 import Language.Astview.Gui.Types
 import Language.Astview.Gui.Actions
+import Language.Astview.Languages(languages)
+import Language.Astview.Language
 
-import Control.Monad(void)
+import Data.List(intercalate)
+import Control.Monad(void,forM_,when,guard)
 import Control.Monad.Trans (liftIO)
 import Data.IORef
 import System.FilePath ((</>))
@@ -15,7 +18,6 @@ import System.FilePath ((</>))
 import Graphics.UI.Gtk hiding (Language)
 import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
-import Language.Astview.Languages(languages)
 import Paths_astview (getDataFileName)
 
 -- |builds initial gui state from glade xml file
@@ -86,8 +88,38 @@ This distinction keeps the type 'Gui' and thus the whole program state
 -}
 hookNonGuiStateWidgets :: GladeXML -> AstAction ()
 hookNonGuiStateWidgets xml ref = void $ do
+  initLanguagesMenu xml ref
   initFlattenCheckMenuItem xml ref
   initAboutDialog xml ref
+
+-- |sets up the menu @Languages@ and binds actions to the menu items.
+initLanguagesMenu :: GladeXML -> AstAction ()
+initLanguagesMenu xml ref = do
+  mAuto <- xmlGetWidget xml castToRadioMenuItem "mLangAuto"
+  mAuto `on` checkMenuItemToggled $ do
+    isActive <- checkMenuItemGetActive mAuto
+    when isActive $ do
+      setActiveLanguage Nothing ref
+      actionReparse ref
+
+  languages <- getKnownLanguages ref
+  guard $ not $ null languages
+  menu <- xmlGetWidget xml castToMenu "menuLanguages"
+  forM_ (zip languages [0..]) $ \(language,position) -> do
+    item <- radioMenuItemNewWithLabelFromWidget mAuto (makeLanguageLabel language)
+    menuAttach menu item 0 1 (2+position) (3+position)
+    item `on` checkMenuItemToggled $ do
+      setActiveLanguage (Just language) ref
+      actionReparse ref
+
+-- |produces a string containing the languages' name and
+-- the associated file extensions
+makeLanguageLabel :: Language -> String
+makeLanguageLabel language =
+  name language ++
+  "   [" ++
+  intercalate "," (map (\l -> "*"++l) $ exts language)++
+  "]"
 
 -- |bind the check menu for flattening lists to the boolean value in the state.
 initFlattenCheckMenuItem :: GladeXML -> AstAction (ConnectId CheckMenuItem)

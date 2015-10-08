@@ -22,7 +22,9 @@ data AstState = AstState
   , options :: Options -- ^ global program options
   }
 
--- |data type for global options
+-- |data type for global options, which can be directly changed in the gui
+-- (...or at least should be. Menu for changing font and font size not yet
+-- implemented)
 data Options = Options
   { font :: String -- ^ font name of textbuffer
   , fsize :: Int -- ^ font size of textbuffer
@@ -32,13 +34,14 @@ data Options = Options
 instance Default Options where
   defaultValue = Options "Monospace" 9 True
 
--- |data type for the intern program state
+-- |data type for the internal program state
 data State =  State
   { currentFile :: String -- ^ current file
-  , textchanged :: Bool -- ^ true if file changed
+  , textchanged :: Bool -- ^ true if buffer changed after last save
   , lastSelectionInText :: SrcLocation -- ^ last active cursor position
   , lastSelectionInTree :: Path -- ^ last clicked tree cell
   , knownLanguages :: [Language] -- ^ known languages, which can be parsed
+  , activeLanguage :: Maybe Language -- ^the currently selected language or Nothing if language is selected by file extension
   }
 
 instance Default State where
@@ -48,6 +51,7 @@ instance Default State where
         , lastSelectionInText  = SrcSpan 0 0 0 0
         , lastSelectionInTree = []
         , knownLanguages = []
+        , activeLanguage = Nothing
         }
 
 -- |unsaved document
@@ -100,6 +104,9 @@ getPath = fmap (lastSelectionInTree. state) . readIORef
 getCurrentFile :: AstAction String
 getCurrentFile = fmap (currentFile . state) . readIORef
 
+getActiveLanguage :: AstAction (Maybe Language)
+getActiveLanguage = fmap (activeLanguage . state) . readIORef
+
 getWindow :: AstAction Window
 getWindow = fmap (window . gui) . readIORef
 
@@ -116,20 +123,23 @@ lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
 
 -- |stores the given cursor selection
 setCursor :: SrcLocation -> AstAction ()
-setCursor = lensSetIoRef lState lLastSelectionInText 
+setCursor = lensSetIoRef lState lLastSelectionInText
 
 -- |stores the given tree selection
 setTreePath :: Path -> AstAction ()
-setTreePath = lensSetIoRef lState lLastSelectionInTree 
+setTreePath = lensSetIoRef lState lLastSelectionInTree
 
 -- |stores file path of current opened file
 setCurrentFile :: FilePath -> AstAction ()
-setCurrentFile = lensSetIoRef lState lCurrentFile 
+setCurrentFile = lensSetIoRef lState lCurrentFile
 
 -- |stores whether the current file buffer has been changed
 setChanged :: Bool -> AstAction ()
-setChanged = lensSetIoRef lState lTextchanged 
+setChanged = lensSetIoRef lState lTextchanged
 
 -- |stores whether the lists in trees should be flattened
-setFlattenLists :: Bool -> AstAction () 
-setFlattenLists = lensSetIoRef lOptions lFlattenLists 
+setFlattenLists :: Bool -> AstAction ()
+setFlattenLists = lensSetIoRef lOptions lFlattenLists
+
+setActiveLanguage :: Maybe Language -> AstAction ()
+setActiveLanguage = lensSetIoRef lState lActiveLanguage

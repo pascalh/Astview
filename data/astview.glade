@@ -255,6 +255,33 @@ Pascal Hof &lt;pascal.hof@uni-dortmund.de&gt;</property>
               </widget>
             </child>
             <child>
+              <widget class="GtkMenuItem" id="mLanguages">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Languages</property>
+                <child>
+                  <widget class="GtkMenu" id="menuLanguages">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkRadioMenuItem" id="mLangAuto">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Automatically select languages</property>
+                        <property name="active">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="sepLang">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
               <widget class="GtkMenuItem" id="mHelp">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
