@@ -2,25 +2,25 @@ Name:            astview
 Version:         0.3
 License:         BSD4
 License-File:    LICENSE
-Author:          
-                 Pascal Hof <pascal.hof@udo.edu>, 
+Author:
+                 Pascal Hof <pascal.hof@udo.edu>,
                  Sebastian Menge <sebastian.menge@udo.edu>
 Maintainer:      Pascal Hof <pascal.hof@udo.edu>
-Synopsis:        A GTK-based abstract syntax tree viewer for custom 
+Synopsis:        A GTK-based abstract syntax tree viewer for custom
                  languages and parsers
-Description:     
-                 Astview is a graphical viewer for abstract 
-                 syntax trees. It is implemented on the basis 
-                 of scrap-your-boilerplate (i.e. data2tree) 
-                 and works with all parsers that generate trees 
-                 that are instances of the Data.Data class. 
+Description:
+                 Astview is a graphical viewer for abstract
+                 syntax trees. It is implemented on the basis
+                 of scrap-your-boilerplate (i.e. data2tree)
+                 and works with all parsers that generate trees
+                 that are instances of the Data.Data class.
 
 Homepage:        https://github.com/pascalh/Astview
 Category:        Language
 
 Cabal-Version:   >= 1.8
-Build-Type:      Simple 
-Tested-with:     GHC==7.6.1
+Build-Type:      Simple
+Tested-with:     GHC==7.10.1
 Data-Files:      data/astview.glade
 
 Source-repository head
@@ -28,9 +28,9 @@ Source-repository head
   location:      https://github.com/pascalh/Astview
 
 Library
-  GHC-Options:     -Wall 
-                   -fno-warn-unused-do-bind 
-                   -fno-warn-wrong-do-bind 
+  GHC-Options:     -Wall
+                   -fno-warn-unused-do-bind
+                   -fno-warn-wrong-do-bind
                    -fno-warn-hi-shadowing
                    -fno-warn-name-shadowing
   Hs-Source-Dirs:  src/core
@@ -41,7 +41,7 @@ Library
   Other-Modules:   Language.Astview.Languages.Haskell
                    Language.Astview.Languages.Python
   Build-Depends:     base >= 4.6.0.0
-                   , containers == 0.5.0.0
+                   , containers == 0.5.*
                    , QuickCheck >= 2.6
                    , haskell-src-exts >= 1.13.5
                    , language-python == 0.4.*
@@ -54,23 +54,23 @@ Library
 Executable         astview
   Hs-Source-Dirs:  src/gui
   Main-is:         Main.hs
-  GHC-Options:     -Wall 
-                   -fno-warn-unused-do-bind 
-                   -fno-warn-wrong-do-bind 
+  GHC-Options:     -Wall
+                   -fno-warn-unused-do-bind
+                   -fno-warn-wrong-do-bind
                    -fno-warn-hi-shadowing
                    -fno-warn-name-shadowing
 
   Build-Depends:   base >= 4.6.0.0
                    , astview == 0.3
-                   , filepath == 1.3.0.1
+                   , filepath >= 1.3
                    , bytestring >= 0.10.0.0
                    , Glob >= 0.7.2
                    , QuickCheck >= 2.6
-                   , containers == 0.5.0.0
-                   , glib == 0.12.*
-                   , gtk == 0.12.*
+                   , containers == 0.5.*
+                   , glib >= 0.12
+                   , gtk >= 0.12
                    , glade >= 0.12.1
-                   , gtksourceview2 == 0.12.*
+                   , gtksourceview2 >= 0.12
                    , directory >= 1.2.0.0
                    , mtl >=2.1.2
                    , fclabels >= 2.0.0.5
@@ -83,11 +83,11 @@ Executable         astview
 
 test-suite basic
     type: exitcode-stdio-1.0
-    Hs-Source-Dirs: test 
+    Hs-Source-Dirs: test
     main-is: Main.hs
-    build-depends: base >= 4.6.0.0, 
+    build-depends: base >= 4.6.0.0,
                    astview == 0.3,
-                   containers == 0.5.0.0,
+                   containers == 0.5.*,
                    syb >= 0.3.7,
                    tasty,
                    tasty-hunit,
