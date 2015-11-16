@@ -87,11 +87,14 @@ actionParse l ref = do
   col <- treeViewColumnNew
   renderer <- cellRendererTextNew
   cellLayoutPackStart col renderer True
+  fontsize <- getFontsize ref
   cellLayoutSetAttributes
     col
     renderer
     model
-    (\row -> [ cellText := row ] )
+    (\row -> [ cellText := row
+             , cellTextSize := (fromInteger . toInteger) fontsize
+             ] )
   treeViewAppendColumn view col
   return tree
 

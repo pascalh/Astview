@@ -113,6 +113,9 @@ getWindow = fmap (window . gui) . readIORef
 getFlattenLists :: AstAction Bool
 getFlattenLists = fmap (flattenLists . options) . readIORef
 
+getFontsize :: AstAction Int
+getFontsize = fmap (fsize . options) . readIORef
+
 -- * setter functions
 
 lensSetIoRef :: (AstState :-> a) -> (a :-> b) -> b -> AstAction ()
