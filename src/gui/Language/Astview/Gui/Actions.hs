@@ -285,6 +285,7 @@ activatePath :: Path -> AstAction ()
 activatePath p ref = do
   view <- getTreeView ref
   treeViewExpandToPath view p
+  treeViewExpandRow view p True
   treeViewSetCursor view p Nothing
 
 -- -------------------------------------------------------------------
