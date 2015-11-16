@@ -12,7 +12,6 @@ import Language.Astview.DataTree(flatten)
 import Prelude hiding (writeFile)
 import Data.List (find)
 import Control.Monad (when,unless,void,zipWithM_)
-import Control.Applicative ((<$>))
 import Data.Char (toLower)
 import System.IO (withFile,IOMode(..),hPutStr,hClose)
 import System.FilePath (takeExtension,takeFileName)
@@ -133,7 +132,7 @@ actionSave ref = do
 actionMkDialog :: FileChooserAction -> (FileChooserDialog  -> t -> IO ()) -> t -> IO()
 actionMkDialog fileChooser actionOnOkay ref = do
   dia <- fileChooserDialogNew
-    (Just "astview")
+    (Just ("astview" :: String))
     Nothing
     fileChooser
     []
