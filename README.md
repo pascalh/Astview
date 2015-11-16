@@ -9,6 +9,8 @@ construction courses.
 The program evolved as a case study in datatype-generic programming and
 building graphical user interfaces in Haskell.
 
+![Demo](preview.gif)
+
 Astview is under continuous development. The sources can be found at [Github](https://github.com/pascalh/Astview).
 
 ## 1) User guide
