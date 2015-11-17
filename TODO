@@ -1,11 +1,12 @@
 user-interface bugs:
-  * shortcut Ctrl-P (reparsing) is not visible in Menu 
+  * shortcut Ctrl-P (reparsing) is not visible in Menu
 
 code improvements:
+  * remove dependency on glade since it is deprecated
   * Add module descriptions (haddock)
   * rename type SrcLocation to SrcSpan
   * NodeType could also be a boolean 'isIdentifier'
-  * add tests for languages haskell and python. more general: 
+  * add tests for languages haskell and python. more general:
     how to test your newly defined language?
   * name smallestSrcLocContainingCursorPos suggests something different.
     Better: findAssociatedSubtree (or a path to it)
@@ -16,13 +17,14 @@ feature requests:
   * open/close all subtrees
   * generate pdf/png graphs from trees or terms
   * manual parser selection (adjust documentation of Language)
-  * flag to disable flattening lists of chars to one node? 
+  * flag to disable flattening lists of chars to one node?
     (not sure if this is really useful)
   * propagate source locations to successors: i.e. nodes "Ident" are annotated
     with a src loc, but their successor in the ast (the actual ident value) is not
     annotated with a location. Can this be generalized?
   * implement searching idents and operations (in the ast)
   * display of raw ast could be valuable
+  * when jumping to a path the other trees should be collapsed
 
 misc:
 
