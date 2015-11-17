@@ -16,22 +16,25 @@ import Data.IORef
 import System.FilePath ((</>))
 
 import Graphics.UI.Gtk hiding (Language)
-import Graphics.UI.Gtk.Glade
 import Graphics.UI.Gtk.SourceView
 import Paths_astview (getDataFileName)
 
--- |builds initial gui state from glade xml file
-gladeToGUI :: GladeXML -> IO GUI
-gladeToGUI xml = do
-  win   <- xmlGetWidget xml castToWindow "mainWindow"
-  treeview <- xmlGetWidget xml castToTreeView "treeview"
-  tb <- buildSourceView =<< xmlGetWidget xml castToScrolledWindow "swSource"
+
+builderGetObjectStr :: GObjectClass cls	=> Builder	-> (GObject -> cls)	-> String	 -> IO cls
+builderGetObjectStr = builderGetObject
+
+-- |builds initial gui state from glade builder file
+gladeToGUI :: Builder -> IO GUI
+gladeToGUI builder = do
+  win   <- builderGetObjectStr builder castToWindow "mainWindow"
+  treeview <- builderGetObjectStr builder castToTreeView "treeview"
+  tb <- buildSourceView =<< builderGetObjectStr builder castToScrolledWindow "swSource"
   return $ GUI win treeview tb
 
 -- |creates initial program state and provides an IORef to that
-buildState :: GladeXML -> IO (IORef AstState)
-buildState xml = do
-  g <- gladeToGUI xml
+buildState :: Builder -> IO (IORef AstState)
+buildState builder = do
+  g <- gladeToGUI builder
   let astSt = AstState st g defaultValue
       st = defaultValue { knownLanguages = languages}
   newIORef astSt
@@ -40,12 +43,13 @@ buildState xml = do
 setupGUI :: IO (IORef AstState)
 setupGUI = do
   initGUI
-  Just xml <- xmlNew =<< getDataFileName ("data" </> "astview.glade")
-  r <- buildState xml
+  builder <- builderNew
+  builderAddFromFile builder =<< getDataFileName ("data" </> "astview.xml")
+  r <- buildState builder
 
-  hookNonGuiStateWidgets xml r
+  hookNonGuiStateWidgets builder r
   hooks r
-  mapM_ (registerMenuAction xml r) menuActions
+  mapM_ (registerMenuAction builder r) menuActions
   return r
 
 -- |the association between the gui functions from 'Actions'
@@ -86,10 +90,10 @@ buildSourceView sw = do
 
 -- | registers one GUIAction with a MenuItem
 registerMenuAction
-  :: GladeXML -> IORef AstState
+  :: Builder -> IORef AstState
   -> (String,AstAction ()) -> IO (ConnectId MenuItem)
-registerMenuAction xml ref (gtkId,action) = do
-  item <- xmlGetWidget xml castToMenuItem gtkId
+registerMenuAction builder ref (gtkId,action) = do
+  item <- builderGetObjectStr builder castToMenuItem gtkId
   onActivateLeaf item $ action ref
 
 -- *** hooks for widgets which are not part of the 'Gui' type
@@ -104,16 +108,16 @@ directly accessed by other widgets actions.
 This distinction keeps the type 'Gui' and thus the whole program state
 'State' as small as possible.
 -}
-hookNonGuiStateWidgets :: GladeXML -> AstAction ()
-hookNonGuiStateWidgets xml ref = void $ do
-  initLanguagesMenu xml ref
-  initFlattenCheckMenuItem xml ref
-  initAboutDialog xml ref
+hookNonGuiStateWidgets :: Builder -> AstAction ()
+hookNonGuiStateWidgets builder ref = void $ do
+  initLanguagesMenu builder ref
+  initFlattenCheckMenuItem builder ref
+  initAboutDialog builder ref
 
 -- |sets up the menu @Languages@ and binds actions to the menu items.
-initLanguagesMenu :: GladeXML -> AstAction ()
-initLanguagesMenu xml ref = do
-  mAuto <- xmlGetWidget xml castToRadioMenuItem "mLangAuto"
+initLanguagesMenu :: Builder -> AstAction ()
+initLanguagesMenu builder ref = do
+  mAuto <- builderGetObjectStr builder castToRadioMenuItem "mLangAuto"
   mAuto `on` checkMenuItemToggled $ do
     isActive <- checkMenuItemGetActive mAuto
     when isActive $ do
@@ -122,7 +126,7 @@ initLanguagesMenu xml ref = do
 
   languages <- getKnownLanguages ref
   guard $ not $ null languages
-  menu <- xmlGetWidget xml castToMenu "menuLanguages"
+  menu <- builderGetObjectStr builder castToMenu "menuLanguages"
   forM_ (zip languages [0..]) $ \(language,position) -> do
     item <- radioMenuItemNewWithLabelFromWidget mAuto (makeLanguageLabel language)
     menuAttach menu item 0 1 (2+position) (3+position)
@@ -140,11 +144,11 @@ makeLanguageLabel language =
   "]"
 
 -- |bind the check menu for flattening lists to the boolean value in the state.
-initFlattenCheckMenuItem :: GladeXML -> AstAction (ConnectId CheckMenuItem)
-initFlattenCheckMenuItem xml ref = do
+initFlattenCheckMenuItem :: Builder -> AstAction (ConnectId CheckMenuItem)
+initFlattenCheckMenuItem builder ref = do
 
   isFlat <- getFlattenLists ref
-  mFlatten <- xmlGetWidget xml castToCheckMenuItem "mFlatten"
+  mFlatten <- builderGetObjectStr builder castToCheckMenuItem "mFlatten"
   checkMenuItemSetActive mFlatten isFlat
 
   mFlatten `on` checkMenuItemToggled $ do
@@ -152,11 +156,11 @@ initFlattenCheckMenuItem xml ref = do
     setFlattenLists isActive ref
 
 -- |setup about dialog
-initAboutDialog :: GladeXML -> AstAction (ConnectId MenuItem)
-initAboutDialog xml ref =
-  registerMenuAction xml ref ("mAbout",action) where
+initAboutDialog :: Builder -> AstAction (ConnectId MenuItem)
+initAboutDialog builder ref =
+  registerMenuAction builder ref ("mAbout",action) where
     action _ = do
-      dialog <- xmlGetWidget xml castToAboutDialog "dlgAbout"
+      dialog <- builderGetObjectStr builder castToAboutDialog "dlgAbout"
       aboutDialogSetUrlHook (\(_ :: String) -> return ())
       widgetShow dialog
       dialog `onResponse` const (widgetHide dialog)
