@@ -20,7 +20,7 @@ import Graphics.UI.Gtk.SourceView
 import Paths_astview (getDataFileName)
 
 
-builderGetObjectStr :: GObjectClass cls	=> Builder	-> (GObject -> cls)	-> String	 -> IO cls
+builderGetObjectStr :: GObjectClass cls => Builder -> (GObject -> cls) -> String -> IO cls
 builderGetObjectStr = builderGetObject
 
 -- |builds initial gui state from glade builder file
@@ -47,9 +47,9 @@ setupGUI = do
   builderAddFromFile builder =<< getDataFileName ("data" </> "astview.xml")
   r <- buildState builder
 
-  hookNonGuiStateWidgets builder r
+  -- hookNonGuiStateWidgets builder r
   hooks r
-  mapM_ (registerMenuAction builder r) menuActions
+  --mapM_ (registerMenuAction builder r) menuActions
   return r
 
 -- |the association between the gui functions from 'Actions'
@@ -94,7 +94,7 @@ registerMenuAction
   -> (String,AstAction ()) -> IO (ConnectId MenuItem)
 registerMenuAction builder ref (gtkId,action) = do
   item <- builderGetObjectStr builder castToMenuItem gtkId
-  onActivateLeaf item $ action ref
+  item `on` menuItemActivated $ action ref
 
 -- *** hooks for widgets which are not part of the 'Gui' type
 
@@ -161,9 +161,9 @@ initAboutDialog builder ref =
   registerMenuAction builder ref ("mAbout",action) where
     action _ = do
       dialog <- builderGetObjectStr builder castToAboutDialog "dlgAbout"
-      aboutDialogSetUrlHook (\(_ :: String) -> return ())
+      -- aboutDialogSetUrlHook (\(_ :: String) -> return ())
       widgetShow dialog
-      dialog `onResponse` const (widgetHide dialog)
+      -- dialog `on` const (widgetHide dialog)
       return ()
 
 -- *** hooks for widgets which are part the 'Gui' type
@@ -186,7 +186,7 @@ type Hook a = a -> AstAction (ConnectId a)
 
 -- |stores the last active cursor position in text to the program state
 storeLastActiveTextPosition :: Hook SourceBuffer
-storeLastActiveTextPosition buffer ref = onBufferChanged buffer $ do
+storeLastActiveTextPosition buffer ref = buffer `on` bufferChanged $ do
     actionBufferChanged ref
     cp <- getCursorPosition ref
     setCursor cp ref
@@ -194,7 +194,7 @@ storeLastActiveTextPosition buffer ref = onBufferChanged buffer $ do
 -- |stores the path to the last selected tree cell to the program state
 storeLastActiveTreePosition :: Hook TreeView
 storeLastActiveTreePosition tree ref =
-  onCursorChanged tree  $ do
+  tree `on` cursorChanged   $ do
     (p,_) <- treeViewGetCursor tree
     setTreePath p ref
 
@@ -213,4 +213,4 @@ closeAstviewOnWindowClosed w ref =
 
 -- |terminate application on main window closed
 close :: Hook Window
-close w _ = onDestroy w mainQuit
+close w _ =  w `on` objectDestroy $ mainQuit

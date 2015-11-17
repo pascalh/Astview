@@ -67,10 +67,9 @@ Executable         astview
                    , Glob >= 0.7.2
                    , QuickCheck >= 2.6
                    , containers == 0.5.*
-                   , glib >= 0.12
-                   , gtk >= 0.12
-                   , glade >= 0.12.1
-                   , gtksourceview2 >= 0.12
+                   , glib >= 0.13
+                   , gtk3 >= 0.13
+                   , gtksourceview3 >= 0.13
                    , directory >= 1.2.0.0
                    , mtl >=2.1.2
                    , fclabels >= 2.0.0.5

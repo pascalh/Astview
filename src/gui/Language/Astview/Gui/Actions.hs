@@ -18,7 +18,7 @@ import System.FilePath (takeExtension,takeFileName)
 import qualified Data.ByteString.Char8 as BS (hGetContents,unpack)
 import Data.Tree ( Tree(Node) )
 
-import Graphics.UI.Gtk hiding (Language,get,response,bufferChanged)
+import Graphics.UI.Gtk hiding (Language,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView
 
 -- -------------------------------------------------------------------
@@ -166,9 +166,9 @@ actionSaveAs = actionMkDialog FileChooserActionSave onOkay where
 deleteStar :: AstAction ()
 deleteStar ref = do
   w <- getWindow ref
-  (t :: String) <- windowGetTitle w
+  (t :: String) <- get w windowTitle
   bufferChanged <- getChanged ref
-  when bufferChanged (windowSetTitle w (tail t))
+  when bufferChanged $ set w [windowTitle := tail t]
   setChanged False ref
 
 -- -------------------------------------------------------------------
@@ -299,9 +299,9 @@ activatePath p ref = do
 actionBufferChanged :: AstAction ()
 actionBufferChanged ref = do
   w <- fmap window (getGui ref)
-  t <- windowGetTitle w
+  t <- get w windowTitle
   c <- getChanged ref
-  unless c (windowSetTitle w ('*':t))
+  unless c $ set w [windowTitle := '*':t]
   setChanged True ref
 
 -- | destroys window widget
@@ -309,32 +309,25 @@ actionQuit :: AstAction ()
 actionQuit ref = do
   isChanged <- getChanged ref
   when isChanged $ actionQuitWorker ref
-  widgetDestroy =<< fmap window (getGui ref)
+  actionQuitForce ref
 
+-- |ends program with force
+actionQuitForce :: AstAction ()
+actionQuitForce ref = do
+  widgetDestroy =<< fmap window (getGui ref)
 
 actionQuitWorker :: AstAction ()
 actionQuitWorker ref = do
-  dia <- dialogNew
-  dialogAddButton dia stockYes ResponseYes
-  dialogAddButton dia stockNo ResponseNo
-  dialogAddButton dia stockCancel ResponseCancel
-  contain <- dialogGetUpper dia
-
-  windowSetTitleSuffix dia "Quit"
-  containerSetBorderWidth dia 2
   file <- getCurrentFile ref
-  lbl <- labelNew
-    (Just $ "Save changes to document \""++
-            takeFileName file ++
-            "\" before closing?")
-  boxPackStartDefaults contain lbl
-
-  widgetShowAll dia
-  response <- dialogRun dia
+  dialog <- messageDialogNew Nothing [] MessageQuestion ButtonsYesNo
+    ("Save changes to document \""++takeFileName file ++ "\" before closing?")
+  containerSetBorderWidth dialog 2
+  widgetShowAll dialog
+  response <- dialogRun dialog
   case response of
     ResponseYes   -> actionSave ref
-    _             -> return ()
-  widgetHide dia
+    _             -> actionQuitForce ref
+  widgetHide dialog
 
 
 -- | launches open dialog
@@ -355,9 +348,7 @@ actionDlgSave = actionMkDialog FileChooserActionSave onOkay where
           setChanged False ref
           setCurrentFile file ref
           writeFile file =<< getText =<< getSourceBuffer ref
-          windowSetTitle
-            (window g)
-            (takeFileName file)
+          set (window g) [windowTitle := takeFileName file]
 
 -- |applies current parser to sourcebuffer
 actionReparse :: AstAction ()
@@ -397,7 +388,7 @@ getText tb = do
 -- suffix "-astview". Window titles should only be set by this
 -- function, hence it replaces the corresponding gtk function.
 windowSetTitleSuffix :: WindowClass w => w -> String -> IO ()
-windowSetTitleSuffix win title = windowSetTitle win (title++" - astview")
+windowSetTitleSuffix win title = set win [windowTitle := title++" - astview" ]
 
 -- |safe function to write files
 writeFile :: FilePath -> String -> IO ()
