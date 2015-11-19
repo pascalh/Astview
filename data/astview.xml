@@ -9,7 +9,7 @@
     <property name="icon_name">dialog-information</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">astview</property>
-    <property name="version">0.3</property>
+    <property name="version">0.4</property>
     <property name="copyright" translatable="yes">Copyright © 2009-2013 Sebastian Menge and Pascal Hof</property>
     <property name="comments" translatable="yes">a graphical syntax tree viewer</property>
     <property name="website">http://github.com/pascalh/Astview</property>
