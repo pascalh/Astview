@@ -178,17 +178,39 @@ makeLanguageLabel language =
 -- * the language Help
 
 initMenuHelp :: ActionGroup -> Builder -> AstAction ()
-initMenuHelp actionGroup builder _ = do
+initMenuHelp actionGroup _ _ = do
   actionHelp <- actionNewStr "actionMenuHelp" "Help" Nothing Nothing
   actionAbout <- actionNewStr "actionAbout" "About"  Nothing (Just stockAbout)
   actionGroupAddAction actionGroup actionHelp
   addAction actionGroup actionAbout Nothing
+  license <- getLicense
   actionAbout `on` actionActivated $ do
-    dialog <- builderGetObjectStr builder castToAboutDialog "dlgAbout"
+    dialog <- aboutDialogNew
+    set dialog [ aboutDialogWebsite := ("https://github.com/pascalh/Astview"::String)
+               , aboutDialogProgramName := ("Astview"::String)
+               , aboutDialogComments := aboutComment
+               , aboutDialogWrapLicense := True
+               , aboutDialogLicense := Just license
+               , aboutDialogAuthors := authors
+               ]
     widgetShow dialog
-    dialog `on` response  $ \ _ -> widgetHide dialog
+    dialog `on` response $ \_ -> widgetHide dialog
     return ()
   return ()
+
+aboutComment :: String
+aboutComment =
+  "astview: View abstract syntax trees for your custom languages and "++
+  "parsers in a graphical (GTK+) application."
+
+getLicense :: IO String
+getLicense = readFile =<< getDataFileName "LICENSE"
+
+authors :: [String]
+authors =
+  [ "Pascal Hof &lt;pascal.hof@tu-dortmund.de&gt; (2009-)"
+  , "Sebastian Menge &lt;sebastian.menge@tu-dortmund.de&gt; (2009-2011)"
+  ]
 
 -- ** helper functions
 
