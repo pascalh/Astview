@@ -21,7 +21,8 @@ Category:        Language
 Cabal-Version:   >= 1.8
 Build-Type:      Simple
 Tested-with:     GHC==7.10.1
-Data-Files:      data/astview.xml
+Data-Files:      data/astview.xml,
+                 data/menu.xml
 
 Source-repository head
   type:          git
