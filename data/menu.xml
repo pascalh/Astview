@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui>
+  <menubar>
+    <menu action="actionMenuFile">
+      <menuitem action="actionNew" />
+      <menuitem action="actionOpen" />
+      <menuitem action="actionSave" />
+      <menuitem action="actionSaveAs" />
+      <menuitem action="actionQuit" />
+    </menu>
+    <menu action="actionMenuEdit">
+      <menuitem action="actionCut" />
+      <menuitem action="actionCopy" />
+      <menuitem action="actionPaste" />
+      <menuitem action="actionDelete" />
+      <separator/>
+      <menuitem action="actionReparse" />
+      <menuitem action="actionFlatten" />
+    </menu>
+    <menu action="actionMenuNavigate">
+      <menuitem action="actionTreeLoc" />
+      <menuitem action="actionTextLoc" />
+    </menu>
+    <menu action="actionMenuLanguages">
+      <menuitem action="actionLanguageAuto" />
+      <separator/>
+      <menuitem action="actionLanguageHaskell" />
+      <menuitem action="actionLanguagePython" />
+    </menu>
+    <menu action="actionMenuHelp">
+      <menuitem action="actionAbout" />
+    </menu>
+  </menubar>
+</ui>

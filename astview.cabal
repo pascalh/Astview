@@ -1,5 +1,5 @@
 Name:            astview
-Version:         0.3
+Version:         0.4
 License:         BSD4
 License-File:    LICENSE
 Author:
@@ -21,7 +21,8 @@ Category:        Language
 Cabal-Version:   >= 1.8
 Build-Type:      Simple
 Tested-with:     GHC==7.10.1
-Data-Files:      data/astview.glade
+Data-Files:      data/astview.xml,
+                 data/menu.xml
 
 Source-repository head
   type:          git
@@ -61,16 +62,15 @@ Executable         astview
                    -fno-warn-name-shadowing
 
   Build-Depends:   base >= 4.6.0.0
-                   , astview == 0.3
+                   , astview == 0.4
                    , filepath >= 1.3
                    , bytestring >= 0.10.0.0
                    , Glob >= 0.7.2
                    , QuickCheck >= 2.6
                    , containers == 0.5.*
-                   , glib >= 0.12
-                   , gtk >= 0.12
-                   , glade >= 0.12.1
-                   , gtksourceview2 >= 0.12
+                   , glib >= 0.13
+                   , gtk3 >= 0.13
+                   , gtksourceview3 >= 0.13
                    , directory >= 1.2.0.0
                    , mtl >=2.1.2
                    , fclabels >= 2.0.0.5
@@ -86,7 +86,7 @@ test-suite basic
     Hs-Source-Dirs: test
     main-is: Main.hs
     build-depends: base >= 4.6.0.0,
-                   astview == 0.3,
+                   astview == 0.4,
                    containers == 0.5.*,
                    syb >= 0.3.7,
                    tasty,
