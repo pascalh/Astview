@@ -7,7 +7,7 @@ import Data.IORef
 
 import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer)
-import Language.Astview.Language(Language,SrcLocation(..),Path)
+import Language.Astview.Language(Language,SrcSpan(..),Path)
 
 -- |a type class for default values, compareable to mempty in class 'Monoid'
 class Default a where
@@ -38,7 +38,7 @@ instance Default Options where
 data State =  State
   { currentFile :: String -- ^ current file
   , textchanged :: Bool -- ^ true if buffer changed after last save
-  , lastSelectionInText :: SrcLocation -- ^ last active cursor position
+  , lastSelectionInText :: SrcSpan -- ^ last active cursor position
   , lastSelectionInTree :: Path -- ^ last clicked tree cell
   , knownLanguages :: [Language] -- ^ known languages, which can be parsed
   , activeLanguage :: Maybe Language -- ^the currently selected language or Nothing if language is selected by file extension
@@ -95,7 +95,7 @@ getKnownLanguages = fmap (knownLanguages . state) . readIORef
 getChanged :: AstAction Bool
 getChanged = fmap (textchanged . state) . readIORef
 
-getCursor :: AstAction SrcLocation
+getCursor :: AstAction SrcSpan
 getCursor = fmap (lastSelectionInText . state) . readIORef
 
 getPath :: AstAction TreePath
@@ -125,7 +125,7 @@ lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
   m = modify outerLens (set innerLens value)
 
 -- |stores the given cursor selection
-setCursor :: SrcLocation -> AstAction ()
+setCursor :: SrcSpan -> AstAction ()
 setCursor = lensSetIoRef lState lLastSelectionInText
 
 -- |stores the given tree selection

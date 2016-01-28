@@ -14,18 +14,18 @@ python = Language "Python" "Python" [".py"] parsePy
 
 parsePy :: String -> Either Error Ast
 parsePy s = case parseModule s [] of
-  Right (m,_) -> Right $ dataToAstIgnoreByExample getSrcLoc 
-                                                  (undefined::Py.SrcSpan) 
+  Right (m,_) -> Right $ dataToAstIgnoreByExample getSrcLoc
+                                                  (undefined::Py.SrcSpan)
                                                   m
   Left e      -> Left $ ErrMessage (show e)
 
-getSrcLoc :: Data t => t -> Maybe SrcLocation
+getSrcLoc :: Data t => t -> Maybe SrcSpan
 getSrcLoc t = down (toZipper t) >>= query (def `extQ` atSpan) where
 
-  def :: a -> Maybe SrcLocation
+  def :: a -> Maybe SrcSpan
   def _ = Nothing
 
-  atSpan :: Py.SrcSpan -> Maybe SrcLocation
+  atSpan :: Py.SrcSpan -> Maybe SrcSpan
   atSpan (Py.SpanPoint _ r c)             = Just $ SrcSpan r c r c
   atSpan (Py.SpanCoLinear _ r sc ec)      = Just $ SrcSpan r sc r ec
   atSpan (Py.SpanMultiLine _ sr sc er ec) = Just $ SrcSpan sr sc er ec

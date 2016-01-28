@@ -73,7 +73,7 @@ Since parsers return different amount of error information, we distinguish betwe
 data Error
   = Err -- ^ no specific error information
   | ErrMessage String -- ^ plain error message
-  | ErrLocation SrcLocation String -- ^ error message with position information
+  | ErrLocation SrcSpan String -- ^ error message with position information
 ```
 
 In order to extend astview with your own language you need to know the structure of the data type `Language`, which we use to represent languages and their parsers.
@@ -136,7 +136,7 @@ The function `dataToAstSimpl` doesn't know which values in the tree are source l
 
 Our type for source locations is defined in module `Language.Astview.Language`:
 ```Haskell
-data SrcLocation  =  SrcSpan Int Int Int Int
+data SrcSpan =  SrcSpan Int Int Int Int
 ```
 
 One can use the constructor functions `position` and `linear` to create special cases of source locations.
@@ -144,7 +144,7 @@ One can use the constructor functions `position` and `linear` to create special 
 Instead of the function `dataToAstSimpl` which does not support creation of source locations, we use
 
 ```Haskell
-dataToAst :: (Data t) => (forall srcloc.Data srcloc => srcloc -> Maybe SrcLocation)
+dataToAst :: (Data t) => (forall span.Data span => span -> Maybe SrcSpan)
                       -> (forall st . Typeable st => st -> Bool)
                       -> t -> Ast
 ```
@@ -157,7 +157,7 @@ In most of the cases one wants values of exactly one type to be removed from the
 
 ```Haskell
  dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable b,Data b)
-         => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
+         => (forall a . (Data a,Typeable a)  => a -> Maybe SrcSpan)
          -> b -> t -> Ast
 ```
 works like `dataToAst`, but instead of a predicate one can define a value of an arbitrary type `b` and all values of type `b` will be removed from the displayed tree.
@@ -174,13 +174,13 @@ Thank to the structure of the abstract syntax in `hasskell-src-exts` this can be
 The source location is always of type `SrcSpan` and can be found as the left-most subtree of a tree if existing.
 We use a zipper from package `syz` to go the left-most subtree and extract the source location information:
 ```Haskell
-getSrcLoc :: Data t => t -> Maybe SrcLocation
+getSrcLoc :: Data t => t -> Maybe SrcSpan 
 getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
 
-  def :: a -> Maybe SrcLocation
+  def :: a -> Maybe SrcSpan 
   def _ = Nothing
 
-  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcLocation
+  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan 
   atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4
 ```
 

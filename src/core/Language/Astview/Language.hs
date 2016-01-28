@@ -1,10 +1,10 @@
 {-|
-This module offers the main data type 'Language'. A value of 'Language' 
+This module offers the main data type 'Language'. A value of 'Language'
 states how their files shall be processed by astview.
 -}
 module Language.Astview.Language
   ( Language(..)
-  , SrcLocation(SrcSpan)
+  , SrcSpan(SrcSpan)
   , position
   , linear
   , NodeType(..)
@@ -20,28 +20,28 @@ import Test.QuickCheck
 
 -- |'NodeType' distinguishes two kinds of nodes in arbitrary haskell terms:
 --
---    * (leaf) nodes representing an identificator (and thus a 'String'). 
---      Note: usually strings are lists of characters and therefore subtrees 
+--    * (leaf) nodes representing an identificator (and thus a 'String').
+--      Note: usually strings are lists of characters and therefore subtrees
 --      of an abstract syntax tree, but we flatten these subtrees to one
 --      node, which will then be annotated with 'Identificator'.
 --
 --    * all constructors in a term not representing an identificator are just
 --      an 'Operation'
 --
-data NodeType = Operation  
-              | Identificator 
+data NodeType = Operation
+              | Identificator
               deriving Eq
 
 -- |A position in a tree is uniquely determined by a list of natural numbers.
 -- (beginning with @0@).
-type Path = [Int] 
+type Path = [Int]
 
 -- |'AstNode' represents a node in an untyped abstract syntax tree
 -- annotated with additional information.
 data AstNode = AstNode
-  { label :: String -- ^ constructor name or the representing string 
-  , srcloc :: Maybe SrcLocation -- ^the source location this node represents in the parsed text (if existing)
-  , path :: Path -- ^ the path from the root of the tree to this node 
+  { label :: String -- ^ constructor name or the representing string
+  , srcspan :: Maybe SrcSpan -- ^the source span this node represents in the parsed text (if existing)
+  , path :: Path -- ^ the path from the root of the tree to this node
   , nodeType :: NodeType -- ^the node type
   }
   deriving Eq
@@ -61,8 +61,8 @@ newtype Ast = Ast { ast :: Tree AstNode }
 -- A future release of astview should support manual language selection and thus
 -- making the restriction obsolete.
 data Language = Language
-  { name :: String -- ^ language name 
-  , syntax :: String 
+  { name :: String -- ^ language name
+  , syntax :: String
   -- ^ (kate) syntax highlighter name. Use @[]@ if no highlighting is desired.
   , exts :: [String]
    -- ^ file extentions which should be associated with this language
@@ -75,37 +75,37 @@ data Language = Language
 data Error
   = Err -- ^ no specific error information
   | ErrMessage String -- ^ plain error message
-  | ErrLocation SrcLocation String -- ^ error message with position information
+  | ErrLocation SrcSpan String -- ^ error message with position information
 
--- * source locations
+-- * source locations and spans
 
 -- |specifies a source span in a text area consisting of a begin row, begin
 -- column, end row and end column.
---Use 'linear' and 'position' to create special source locations. 
+--Use 'linear' and 'position' to create special source spans.
 -- Both functions do not check validity of source spans, since we
 -- assume that parsers return valid data.
-data SrcLocation =  SrcSpan Int Int Int Int deriving (Eq,Typeable)
+data SrcSpan =  SrcSpan Int Int Int Int deriving (Eq,Typeable)
 
-instance Show SrcLocation where
+instance Show SrcSpan where
   show (SrcSpan bl br el er) = show bl ++ " : " ++ show br ++ " , "++
                                show el ++ " : " ++ show er
 
-instance Ord SrcLocation where
+instance Ord SrcSpan where
   s1 >= s2 = s2 <= s1
   s1 > s2 = s2 < s1
   (SrcSpan bl br el er) <= s2 =
     s2 `contains` (bl,br) && s2 `contains` (el,er)
 
--- |returns whether the given source location contains the position pair
+-- |returns whether the given source span contains the position pair
 -- defined by line and row.
-contains :: SrcLocation -> (Int,Int)-> Bool
+contains :: SrcSpan -> (Int,Int)-> Bool
 contains (SrcSpan br bc er ec) (r , c) =
   (br == er && r == er && bc <= c && c <= ec) ||
   (br < r && r < er) ||
   (br == r && bc <= c && br < er) ||
   (er == r && br < er && c <= ec)
 
-instance Arbitrary SrcLocation where
+instance Arbitrary SrcSpan where
   arbitrary =  do
     (NonNegative i1) <- arbitrary
     (NonNegative i2) <- arbitrary
@@ -113,17 +113,17 @@ instance Arbitrary SrcLocation where
     (NonNegative i4) <- arbitrary
     return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
 
--- |a constructor for 'SrcLocation' to define an exact position.
+-- |a constructor for 'SrcSpan' to define an exact position.
 position :: Int -- ^line
          -> Int -- ^row
-         -> SrcLocation
+         -> SrcSpan
 position line row = SrcSpan line row line row
 
--- |a constructor for 'SrcLocation' to define a span which ranges
--- over one specific line and more than one row. 
+-- |a constructor for 'SrcSpan' to define a span which ranges
+-- over one specific line and more than one row.
 linear :: Int -- ^ line
      -> Int  -- ^ begin row
      -> Int  -- ^ end row
-     -> SrcLocation
+     -> SrcSpan
 linear line beginRow = SrcSpan line beginRow line
 

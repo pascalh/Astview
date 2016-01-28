@@ -1,7 +1,7 @@
 {-| This module contains datatype-generic functions to gain a 'Ast'
 out of an arbitrary term.
 -}
-module Language.Astview.DataTree 
+module Language.Astview.DataTree
   (annotateWithPaths
   ,dataToAstIgnoreByExample
   ,flatten
@@ -20,13 +20,13 @@ import Data.Tree (Tree(..))
 import Data.Maybe(isNothing,isJust)
 import Language.Astview.Language
 
-dataToAst :: (Data t) => (forall srcloc.Data srcloc => srcloc -> Maybe SrcLocation) 
-                       ->  (forall st . Typeable st => st -> Bool) 
+dataToAst :: (Data t) => (forall span.Data span => span -> Maybe SrcSpan)
+                       ->  (forall st . Typeable st => st -> Bool)
                         -> t -> Ast
 dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . worker where
 
   worker :: (Data t,Typeable t) => t -> Tree (Maybe AstNode)
-  worker term | pIgnore term = Node Nothing [] 
+  worker term | pIgnore term = Node Nothing []
               | otherwise    = (gdefault `extQ` atString) term where
 
       atString :: String -> Tree (Maybe AstNode)
@@ -40,12 +40,12 @@ dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeS
 
         cs = gmapQ worker x
 
--- |usually we want to discard all values of one type (the type of term 
+-- |usually we want to discard all values of one type (the type of term
 -- annotations) from the ast. Just give one example value of the annotation
--- type to this function and all values of this type are being discarded from 
+-- type to this function and all values of this type are being discarded from
 -- the ast.
 dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable b,Data b)
-       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcLocation)
+       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcSpan)
        -> b        -> t -> Ast
 dataToAstIgnoreByExample getLoc igExample = dataToAst getLoc ignore where
   ignore t = equalTypes t igExample
@@ -66,12 +66,12 @@ annotateWithPaths = f [0] where
 
 removeNothings :: Tree (Maybe AstNode) -> Tree AstNode
 removeNothings (Node Nothing _)   = error "cannot remove the root of a one-noded tree"
-removeNothings (Node (Just n) cs) = 
+removeNothings (Node (Just n) cs) =
   Node n (map removeNothings $ filter (isJust . rootLabel) cs)
 
--- |removes all proper subtrees satisfying the predicate. 
+-- |removes all proper subtrees satisfying the predicate.
 -- The predicate is not being checked at root node, since the resulting tree
--- has to be non-empty. 
+-- has to be non-empty.
 removeSubtrees :: (Tree a -> Bool) -> Tree a -> Tree a
 removeSubtrees p (Node n cs) = Node n $ map (removeSubtrees p) $ filter (not . p) cs
 
@@ -84,39 +84,39 @@ isEmpty _            = False
 equalTypes :: (Typeable b1,Typeable b2)  => b1 -> b2  -> Bool
 equalTypes t1 t2 = typeOf t1 == typeOf t2
 
--- |transform nested usage of cons operator to one flat operation 
+-- |transform nested usage of cons operator to one flat operation
 -- (this drastically reduces the asts depth)
 flatten :: Ast -> Ast
 flatten (Ast t) = Ast (annotateWithPaths $ flat t) where
 
-  flat :: Tree AstNode -> Tree AstNode 
-  flat t@(Node _ []) = t 
-  flat t@(Node (AstNode "(:)" s p Operation) _) = 
+  flat :: Tree AstNode -> Tree AstNode
+  flat t@(Node _ []) = t
+  flat t@(Node (AstNode "(:)" s p Operation) _) =
     let lbl = '[': replicate (length (collect t) - 1) ',' ++ "]" in
     Node (AstNode lbl s p Operation)  (collect t)
   flat (Node n cs) = Node n $ map flat cs
 
   collect :: Tree AstNode -> [Tree AstNode]
-  collect (Node (AstNode "(:)" _ _ Operation) cs) = case cs of 
-    [t1,t2] -> flat t1 : collect t2 
+  collect (Node (AstNode "(:)" _ _ Operation) cs) = case cs of
+    [t1,t2] -> flat t1 : collect t2
     _          -> err
-  collect (Node (AstNode "[]" _ _ Operation) [])       = [] 
+  collect (Node (AstNode "[]" _ _ Operation) [])       = []
   collect _                                            = err
-     
+
   err = error "Malformed term. Disabling flattening solves the problem."
 
--- |delegates source location annotation to unique subtrees. This should 
+-- |delegates source location annotation to unique subtrees. This should
 -- not lead to malformed syntax trees, since every unique subtree which is not
--- annotated with a source location represents the same source location as its 
--- direct predecessor. If a subtree represents a smaller source location than 
--- its predecessor, the subtree has to be explicitly tagged with 
+-- annotated with a source location represents the same source location as its
+-- direct predecessor. If a subtree represents a smaller source location than
+-- its predecessor, the subtree has to be explicitly tagged with
 -- a smaller source location (in this case no delegation takes place).
 delegateSrcLoc :: Tree AstNode -> Tree AstNode
-delegateSrcLoc t@(Node (AstNode _ (Just srcLoc) _ _) [Node n cs]) = 
+delegateSrcLoc t@(Node (AstNode _ (Just srcLoc) _ _) [Node n cs]) =
   t { subForest = [Node n'(map delegateSrcLoc cs)] } where
 
     n' :: AstNode
-    n' | isNothing (srcloc n) = n  { srcloc = Just srcLoc }
+    n' | isNothing (srcspan n) = n  { srcspan = Just srcLoc }
        | otherwise            = n
 
 delegateSrcLoc (Node n cs) = Node n (map delegateSrcLoc cs)

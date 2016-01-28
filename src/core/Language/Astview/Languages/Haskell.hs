@@ -20,11 +20,11 @@ parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
                                                  t
   ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> Left $ ErrLocation (position l c) m
 
-getSrcLoc :: Data t => t -> Maybe SrcLocation
+getSrcLoc :: Data t => t -> Maybe SrcSpan
 getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
 
-  def :: a -> Maybe SrcLocation
+  def :: a -> Maybe SrcSpan
   def _ = Nothing
 
-  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcLocation
+  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan
   atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4

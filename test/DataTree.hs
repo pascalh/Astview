@@ -86,7 +86,7 @@ instance Show TermUnit where
 instance Arbitrary TermUnit where
   arbitrary = liftM TermUnit arbitrary
 
-newtype TermSrcloc = TermSrcloc { termSrcLoc :: Term SrcLocation}
+newtype TermSrcloc = TermSrcloc { termSrcLoc :: Term SrcSpan}
 
 instance Show TermSrcloc where
   show = show . termSrcLoc
@@ -186,7 +186,7 @@ splits m n = do
 -- |given a term and a source span arbitrarySrcLocs annotates the term
 -- with source spans, such that the span at the root of every subterm t
 -- surrounds the spans of every successor of t.
-arbitrarySrcLocs :: SrcLocation -> Term () -> Gen (Term SrcLocation)
+arbitrarySrcLocs :: SrcSpan -> Term () -> Gen (Term SrcSpan)
 arbitrarySrcLocs _ EmptyLeaf = return EmptyLeaf
 arbitrarySrcLocs l (Leaf _ str) = return $ Leaf l str
 arbitrarySrcLocs l (Number _ n) = return $ Number l n
@@ -197,15 +197,15 @@ arbitrarySrcLocs l (Nested _ t) = do
 
 -- |sublocation loc returns a arbitrary source span loc' which is
 -- surrounded by loc
-sublocation :: SrcLocation -> Gen SrcLocation
+sublocation :: SrcSpan -> Gen SrcSpan
 sublocation loc = do
   return loc
 
 -- |returns n source positions which are in the given source span
-positionsInSpan :: Int -> SrcLocation -> [SrcLocation]
+positionsInSpan :: Int -> SrcSpan -> [SrcSpan]
 positionsInSpan n = sort . take n . diagonal . locsPerLine where
 
-  locsPerLine :: SrcLocation -> [[SrcLocation]]
+  locsPerLine :: SrcSpan -> [[SrcSpan]]
   locsPerLine (SrcSpan bl bc el ec)
     | bl == el = [[position bl c | c <- [bc..ec]]]
     | bl > el = []

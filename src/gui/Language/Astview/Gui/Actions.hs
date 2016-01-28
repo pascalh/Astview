@@ -227,7 +227,7 @@ actionJumpToTextLoc ref = do
               Just l  -> actionSelectSrcLoc l ref
 
 -- |selects the given source location in gui textview
-actionSelectSrcLoc :: SrcLocation -> AstAction ()
+actionSelectSrcLoc :: SrcSpan -> AstAction ()
 actionSelectSrcLoc (SrcSpan bl br el er) ref = do
   textBuffer <- getSourceBuffer ref
   let getIter line row = textBufferGetIterAtLineOffset textBuffer (line-1) (0 `max` row-1)
@@ -236,8 +236,8 @@ actionSelectSrcLoc (SrcSpan bl br el er) ref = do
   end <- getIter el er
   textBufferSelectRange textBuffer begin end
 
-at :: Tree AstNode -> Path -> Maybe SrcLocation
-at (Node n _ )  []     = srcloc n
+at :: Tree AstNode -> Path -> Maybe SrcSpan
+at (Node n _ )  []     = srcspan n
 at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where
 
   get :: Int -> [a] -> Maybe a
@@ -250,7 +250,7 @@ at (Node _ cs) (i:is)  = get i cs >>= \tree -> tree `at` is where
 
 -- |returns the current cursor position in a source view.
 -- return type: (line,row)
-getCursorPosition :: AstAction SrcLocation
+getCursorPosition :: AstAction SrcSpan
 getCursorPosition ref = do
   (startIter,endIter) <- textBufferGetSelectionBounds =<< getSourceBuffer ref
   lineStart <- textIterGetLine startIter

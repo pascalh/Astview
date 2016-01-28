@@ -14,44 +14,44 @@ import Data.List (minimumBy)
 import Language.Astview.Language
 
 {- |selects the shortest path to the subtree of @t@
- which is annotated by the smallest source location containing 
+ which is annotated by the smallest source span containing
  @s@ (if existing).
-If multiple subtrees represent such source location the greatest subtree
-is chosen. 
+If multiple subtrees represent such source span the greatest subtree
+is chosen.
  -}
 smallestSrcLocContainingCursorPos
-  :: SrcLocation  -- ^ source span @s@
+  :: SrcSpan  -- ^ source span @s@
   -> Ast  -- ^ tree @t@
   -> Maybe Path
 smallestSrcLocContainingCursorPos sele =
- selectShortestPath . locsContainingSelection sele . findAllSrcLocations
+ selectShortestPath . locsContainingSelection sele . findAllSrcSpans
 
 -- |computes the shortest path in given association list. In case of an empty
 -- list  'Nothing' is being returned.
-selectShortestPath :: [(SrcLocation,Path)] -> Maybe Path
+selectShortestPath :: [(SrcSpan,Path)] -> Maybe Path
 selectShortestPath []       = Nothing
 selectShortestPath ps@(_:_) =
   Just $ minimumBy (compare `on` length) $ pathsToSmallestSrcLoc ps
 
--- |returns all paths with are associated with the smallest source location.
+-- |returns all paths with are associated with the smallest source spans.
 -- Precondition: input list is nonempty.
-pathsToSmallestSrcLoc :: [(SrcLocation,Path)] -> [Path]
+pathsToSmallestSrcLoc :: [(SrcSpan,Path)] -> [Path]
 pathsToSmallestSrcLoc ps =
   let smallestSrcLoc = minimum $ map fst ps
   in map snd $ filter (\(s,_) -> s==smallestSrcLoc) ps
 
--- |extracts all source locations from abstract syntax tree
-findAllSrcLocations :: Ast -> [(SrcLocation,Path)]
-findAllSrcLocations (Ast ast) = (catMaybes . flatten . fmap getSrcLocPathPairs) ast
+-- |extracts all source spans from abstract syntax tree
+findAllSrcSpans :: Ast -> [(SrcSpan,Path)]
+findAllSrcSpans (Ast ast) = (catMaybes . flatten . fmap getSrcLocPathPairs) ast
 
--- |returns the source locations associated to given node if existing
-getSrcLocPathPairs :: AstNode -> Maybe (SrcLocation,Path)
+-- |returns the source spans associated to given node if existing
+getSrcLocPathPairs :: AstNode -> Maybe (SrcSpan,Path)
 getSrcLocPathPairs (AstNode _ Nothing  _ _) = Nothing
 getSrcLocPathPairs (AstNode _ (Just s) p _) = Just (s,p)
 
--- |removes all source locations from list,
+-- |removes all source spans from list,
 -- which are not surrounded by given cursor selection
-locsContainingSelection :: SrcLocation -> [(SrcLocation,Path)] -> [(SrcLocation,Path)]
+locsContainingSelection :: SrcSpan -> [(SrcSpan,Path)] -> [(SrcSpan,Path)]
 locsContainingSelection sele = filter (\(s,_) -> s >= sele)
 
 
