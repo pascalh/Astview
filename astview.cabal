@@ -90,8 +90,10 @@ test-suite basic
                    astview == 0.4,
                    containers == 0.5.*,
                    syb >= 0.3.7,
+                   control-monad-omega >= 0.3,
                    tasty,
                    tasty-hunit,
                    tasty-quickcheck
 
-  extensions:      DeriveDataTypeable
+  extensions:      DeriveDataTypeable,
+                   DeriveFunctor
