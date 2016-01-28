@@ -49,9 +49,9 @@ in the menu ```Language```.
 
 #### Source location specific functionality
 
-If the current language supports source locations, one can jump from a selected text position in the source editor to the associated position in the abstract syntax tree by clicking on `Edit/>>>`.
+If the current language supports source locations, one can jump from a selected text position in the source editor to the associated position in the abstract syntax tree by clicking on `Navigate/>>>`.
 
-The menu entry `Edit/<<<` highlights the corresponding interval in the source editor for the recently selected subtree.
+The menu entry `Navigate/<<<` highlights the corresponding interval in the source editor for the recently selected subtree.
 
 #### Flattening lists
 
@@ -136,10 +136,11 @@ The function `dataToAstSimpl` doesn't know which values in the tree are source l
 
 Our type for source locations is defined in module `Language.Astview.Language`:
 ```Haskell
-data SrcSpan =  SrcSpan Int Int Int Int
+data SrcPos = SrcPos { line :: Int , column :: Int }
+data SrcSpan =  SrcSpan { begin :: SrcPos , end :: SrcPos }
 ```
 
-One can use the constructor functions `position` and `linear` to create special cases of source locations.
+One can use the constructor functions `span`,`position` and `linear` to create special cases of source locations.
 
 Instead of the function `dataToAstSimpl` which does not support creation of source locations, we use
 
@@ -174,14 +175,14 @@ Thank to the structure of the abstract syntax in `hasskell-src-exts` this can be
 The source location is always of type `SrcSpan` and can be found as the left-most subtree of a tree if existing.
 We use a zipper from package `syz` to go the left-most subtree and extract the source location information:
 ```Haskell
-getSrcLoc :: Data t => t -> Maybe SrcSpan 
+getSrcLoc :: Data t => t -> Maybe SrcSpan
 getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
 
-  def :: a -> Maybe SrcSpan 
+  def :: a -> Maybe SrcSpan
   def _ = Nothing
 
-  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan 
-  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4
+  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan
+  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ span c1 c2 c3 c4
 ```
 
 To add the source location support, we now need to give `getSrcLoc` as an argument to the function `dataToAst` as a selector for source locations:
@@ -189,7 +190,7 @@ To add the source location support, we now need to give `getSrcLoc` as an argume
 parsehs :: String -> Either Error Ast
 parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
   ParseOk t                             -> Right $ dataToAst getSrcLoc (const False) t
-  ParseFailed (HsSrcLoc.SrcLoc _ l c) m ->  Left $ ErrLocation (position l c) m
+  ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> Left $ ErrLocation (position l c) m
 ```
 Using this version of `parsehs` as a parse function causes astview to support jumping between associated positions in source text and abstract syntax tree.
 

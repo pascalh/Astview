@@ -7,7 +7,7 @@ import Data.IORef
 
 import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer)
-import Language.Astview.Language(Language,SrcSpan(..),Path)
+import Language.Astview.Language(Language,SrcSpan,Path,position)
 
 -- |a type class for default values, compareable to mempty in class 'Monoid'
 class Default a where
@@ -48,7 +48,7 @@ instance Default State where
   defaultValue = State
         { currentFile = unsavedDoc
         , textchanged = False
-        , lastSelectionInText  = SrcSpan 0 0 0 0
+        , lastSelectionInText = position 0 0
         , lastSelectionInTree = []
         , knownLanguages = []
         , activeLanguage = Nothing

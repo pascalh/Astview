@@ -1,7 +1,7 @@
 {-| This module contains test cases for the functions creating abstract
 syntax trees defined in module 'Language.Astview.DataTree'. -}
 module DataTree(testDataTree) where
-
+import Prelude hiding (span)
 import Test.Tasty
 import Test.Tasty.QuickCheck hiding (label)
 
@@ -202,14 +202,14 @@ sublocation loc = do
   return loc
 
 -- |returns n source positions which are in the given source span
-positionsInSpan :: Int -> SrcSpan -> [SrcSpan]
+positionsInSpan :: Int -> SrcSpan -> [SrcPos]
 positionsInSpan n = sort . take n . diagonal . locsPerLine where
 
-  locsPerLine :: SrcSpan -> [[SrcSpan]]
-  locsPerLine (SrcSpan bl bc el ec)
-    | bl == el = [[position bl c | c <- [bc..ec]]]
+  locsPerLine :: SrcSpan -> [[SrcPos]]
+  locsPerLine (SrcSpan (SrcPos bl bc) (SrcPos el ec))
+    | bl == el = [[SrcPos bl c | c <- [bc..ec]]]
     | bl > el = []
-    | bl < el = [position bl c | c <- [bc..]] :
-                locsPerLine (SrcSpan (bl+1) 1 el ec)
+    | bl < el = [SrcPos bl c | c <- [bc..]] :
+                locsPerLine (span (bl+1) 1 el ec)
 
 

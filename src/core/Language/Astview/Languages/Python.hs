@@ -1,5 +1,5 @@
 module Language.Astview.Languages.Python (python) where
-
+import Prelude hiding (span)
 import Language.Astview.Language
 import Language.Astview.DataTree (dataToAstIgnoreByExample)
 
@@ -26,7 +26,7 @@ getSrcLoc t = down (toZipper t) >>= query (def `extQ` atSpan) where
   def _ = Nothing
 
   atSpan :: Py.SrcSpan -> Maybe SrcSpan
-  atSpan (Py.SpanPoint _ r c)             = Just $ SrcSpan r c r c
-  atSpan (Py.SpanCoLinear _ r sc ec)      = Just $ SrcSpan r sc r ec
-  atSpan (Py.SpanMultiLine _ sr sc er ec) = Just $ SrcSpan sr sc er ec
+  atSpan (Py.SpanPoint _ r c)             = Just $ position r c
+  atSpan (Py.SpanCoLinear _ r sc ec)      = Just $ linear r sc ec
+  atSpan (Py.SpanMultiLine _ sr sc er ec) = Just $ span sr sc er ec
   atSpan (Py.SpanEmpty)                   = Nothing

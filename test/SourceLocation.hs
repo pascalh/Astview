@@ -3,8 +3,8 @@ module SourceLocation(testSourceLocations) where
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.HUnit
-
-import Language.Astview.Language(SrcSpan(SrcSpan))
+import Prelude hiding (span)
+import Language.Astview.Language
 
 testSourceLocations :: TestTree
 testSourceLocations =
@@ -53,40 +53,40 @@ propDuality = testProperty "Duality of < and >" prop where
 groupInOneline :: TestTree
 groupInOneline = testGroup "Everything in one line" $ map (testCase [])
 
-  [ SrcSpan 3 1 3 2 > SrcSpan 3 1 3 2 @?= False
-  , SrcSpan 4 1 4 9 > SrcSpan 4 3 4 6 @?= True
-  , SrcSpan 4 0 4 6 < SrcSpan 4 1 4 9 @?= False
-  , SrcSpan 4 2 4 16 < SrcSpan 4 1 4 9 @?= False
-  , SrcSpan 4 1 4 9 > SrcSpan 4 1 4 9 @?= False
+  [ span 3 1 3 2 > span 3 1 3 2 @?= False
+  , span 4 1 4 9 > span 4 3 4 6 @?= True
+  , span 4 0 4 6 < span 4 1 4 9 @?= False
+  , span 4 2 4 16 < span 4 1 4 9 @?= False
+  , span 4 1 4 9 > span 4 1 4 9 @?= False
   ]
 
 
 groupSorrounded :: TestTree
 groupSorrounded = testGroup "Point sorrounded by span" $ map (testCase [])
 
-  [ SrcSpan 4 9 7 9 > SrcSpan 5 18 6 100 @?= True
-  , SrcSpan 4 9 7 9 > SrcSpan 5 1 6 1 @?= True
+  [ span 4 9 7 9 > span 5 18 6 100 @?= True
+  , span 4 9 7 9 > span 5 1 6 1 @?= True
   ]
 
 
 groupSameBegin :: TestTree
 groupSameBegin = testGroup "Same begin line" $ map (testCase [])
 
-  [ SrcSpan 4 9 7 9 > SrcSpan 4 18 6 100 @?= True
-  , SrcSpan 4 9 6 9 > SrcSpan 4 18 7 100 @?= False
+  [ span 4 9 7 9 > span 4 18 6 100 @?= True
+  , span 4 9 6 9 > span 4 18 7 100 @?= False
   ]
 
 groupSameEnd :: TestTree
 groupSameEnd = testGroup "Same end line"  $ map (testCase [])
 
-  [ SrcSpan 4 9 7 9 > SrcSpan 5 18 7 5 @?= True
-  , SrcSpan 1 9 7 9 > SrcSpan 4 18 7 10 @?= False
+  [ span 4 9 7 9 > span 5 18 7 5 @?= True
+  , span 1 9 7 9 > span 4 18 7 10 @?= False
   ]
 
 groupEx :: TestTree
 groupEx = testGroup "Extreme cases"
 
-  [ testCase "equal position" $ SrcSpan 1 9 7 9 > SrcSpan 1 9 7 9 @?= False
-  , testCase "same end"       $ SrcSpan 1 1 7 9 > SrcSpan 1 2 7 9 @?= True
-  , testCase "same begin"     $ SrcSpan 1 9 7 9 > SrcSpan 1 9 7 3 @?= True
+  [ testCase "equal position" $ span 1 9 7 9 > span 1 9 7 9 @?= False
+  , testCase "same end"       $ span 1 1 7 9 > span 1 2 7 9 @?= True
+  , testCase "same begin"     $ span 1 9 7 9 > span 1 9 7 3 @?= True
   ]

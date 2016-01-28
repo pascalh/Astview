@@ -5,8 +5,10 @@ states how their files shall be processed by astview.
 module Language.Astview.Language
   ( Language(..)
   , SrcSpan(SrcSpan)
+  , SrcPos(SrcPos)
   , position
   , linear
+  , span
   , NodeType(..)
   , Path
   , AstNode(..)
@@ -14,6 +16,7 @@ module Language.Astview.Language
   , Error (..)
   )
 where
+import Prelude hiding (span)
 import Data.Tree(Tree(..))
 import Data.Generics (Typeable)
 import Test.QuickCheck
@@ -79,27 +82,37 @@ data Error
 
 -- * source locations and spans
 
--- |specifies a source span in a text area consisting of a begin row, begin
--- column, end row and end column.
+-- |represents a source position.
+data SrcPos = SrcPos { line :: Int , column :: Int } deriving (Eq,Ord,Typeable)
+
+instance Show SrcPos where
+  show (SrcPos l c) = show l ++ " : "++show c
+
+instance Arbitrary SrcPos where
+  arbitrary = do
+    NonNegative l <- arbitrary
+    NonNegative c <- arbitrary
+    return $ SrcPos l c
+
+-- |specifies a source span in a text area consisting of a begin position
+-- and a end position.
 --Use 'linear' and 'position' to create special source spans.
 -- Both functions do not check validity of source spans, since we
 -- assume that parsers return valid data.
-data SrcSpan =  SrcSpan Int Int Int Int deriving (Eq,Typeable)
+data SrcSpan =  SrcSpan { begin :: SrcPos , end :: SrcPos }
+  deriving (Eq,Typeable)
 
 instance Show SrcSpan where
-  show (SrcSpan bl br el er) = show bl ++ " : " ++ show br ++ " , "++
-                               show el ++ " : " ++ show er
+  show (SrcSpan b e) = show b  ++ " , " ++ show e
 
 instance Ord SrcSpan where
   s1 >= s2 = s2 <= s1
   s1 > s2 = s2 < s1
-  (SrcSpan bl br el er) <= s2 =
-    s2 `contains` (bl,br) && s2 `contains` (el,er)
+  (SrcSpan b e) <= s2 = s2 `contains` b && s2 `contains` e
 
--- |returns whether the given source span contains the position pair
--- defined by line and row.
-contains :: SrcSpan -> (Int,Int)-> Bool
-contains (SrcSpan br bc er ec) (r , c) =
+-- |returns whether the given source span contains the position
+contains :: SrcSpan -> SrcPos -> Bool
+contains (SrcSpan (SrcPos br bc) (SrcPos er ec)) (SrcPos r c) =
   (br == er && r == er && bc <= c && c <= ec) ||
   (br < r && r < er) ||
   (br == r && bc <= c && br < er) ||
@@ -107,17 +120,20 @@ contains (SrcSpan br bc er ec) (r , c) =
 
 instance Arbitrary SrcSpan where
   arbitrary =  do
-    (NonNegative i1) <- arbitrary
-    (NonNegative i2) <- arbitrary
-    (NonNegative i3) <- arbitrary
-    (NonNegative i4) <- arbitrary
-    return $ SrcSpan i1 i2 (i1+i3) (i2+i4)
+    pos@(SrcPos l c ) <- arbitrary
+    (NonNegative l') <- arbitrary
+    (NonNegative c') <- arbitrary
+    return $ SrcSpan pos $ SrcPos (l+l') (c+c')
+
+-- |a constructor for 'SrcSpan' with less structure than 'SrcSpan'.
+span :: Int -> Int -> Int -> Int -> SrcSpan
+span bl bc el ec = SrcSpan (SrcPos bl bc) (SrcPos el ec)
 
 -- |a constructor for 'SrcSpan' to define an exact position.
 position :: Int -- ^line
          -> Int -- ^row
          -> SrcSpan
-position line row = SrcSpan line row line row
+position line row = let p = SrcPos line row in SrcSpan p p
 
 -- |a constructor for 'SrcSpan' to define a span which ranges
 -- over one specific line and more than one row.
@@ -125,5 +141,5 @@ linear :: Int -- ^ line
      -> Int  -- ^ begin row
      -> Int  -- ^ end row
      -> SrcSpan
-linear line beginRow = SrcSpan line beginRow line
+linear line beginRow endRow = span line beginRow line endRow
 

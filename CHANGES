@@ -1,5 +1,8 @@
 // release history with features and fixed and open bugs
 
+0.4.1
+* distinguish between source positions and spans 
+
 0.4
 * allowed jumping from text location to corresponding tree (and back)
 * removed dependency on glade, now using gtk3

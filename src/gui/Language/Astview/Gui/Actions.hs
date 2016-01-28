@@ -9,7 +9,7 @@ import Language.Astview.SmallestSrcLocContainingCursor
 import Language.Astview.DataTree(flatten)
 
 
-import Prelude hiding (writeFile)
+import Prelude hiding (span,writeFile)
 import Data.List (find)
 import Control.Monad (when,unless,void,zipWithM_)
 import Data.Char (toLower)
@@ -228,7 +228,7 @@ actionJumpToTextLoc ref = do
 
 -- |selects the given source location in gui textview
 actionSelectSrcLoc :: SrcSpan -> AstAction ()
-actionSelectSrcLoc (SrcSpan bl br el er) ref = do
+actionSelectSrcLoc (SrcSpan (SrcPos bl br)  (SrcPos el er)) ref = do
   textBuffer <- getSourceBuffer ref
   let getIter line row = textBufferGetIterAtLineOffset textBuffer (line-1) (0 `max` row-1)
   -- we need to subtract 1 since lines and offsets start with 0
@@ -257,7 +257,7 @@ getCursorPosition ref = do
   rowStart <- textIterGetLineOffset startIter
   lineEnd <- textIterGetLine endIter
   rowEnd <- textIterGetLineOffset endIter
-  return $ SrcSpan (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
+  return $ span (lineStart+1) (rowStart+1) (lineEnd+1) (rowEnd+1)
 
 -- |opens tree position associated with current cursor position.
 actionJumpToSrcLoc :: AstAction ()

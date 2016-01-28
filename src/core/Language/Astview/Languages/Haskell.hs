@@ -1,5 +1,5 @@
 module Language.Astview.Languages.Haskell (haskellexts) where
-
+import Prelude hiding (span)
 import Language.Astview.Language hiding (parse)
 import Language.Astview.DataTree (dataToAstIgnoreByExample)
 
@@ -27,4 +27,4 @@ getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
   def _ = Nothing
 
   atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan
-  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ SrcSpan c1 c2 c3 c4
+  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ span c1 c2 c3 c4
