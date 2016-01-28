@@ -193,13 +193,43 @@ arbitrarySrcLocs l (Number _ n) = return $ Number l n
 arbitrarySrcLocs l (Nested _ t) = do
   l' <- sublocation l
   t' <- arbitrarySrcLocs l' t
-  return $ Nested l' t'
+  return $ Nested l t'
+arbitrarySrcLocs l (BinaryBranch _ t1 t2) = do
+  (s1,s2) <- sublocation2 l
+  t1' <- arbitrarySrcLocs s1 t1
+  t2' <- arbitrarySrcLocs s2 t2
+  return $ BinaryBranch l t1' t2'
+arbitrarySrcLocs l (List _ []) = return $ List l []
+arbitrarySrcLocs l (List _ (t:ts)) = do
+  (s1,s2) <- sublocation2 l
+  t' <- arbitrarySrcLocs s1 t
+  ts' <- arbitrarySrcLocs s2 (List () ts)
+  return $ List l (t':ts':[])
+
+
+
+
 
 -- |sublocation loc returns a arbitrary source span loc' which is
 -- surrounded by loc
 sublocation :: SrcSpan -> Gen SrcSpan
-sublocation loc = do
-  return loc
+sublocation s = do
+  NonNegative n <- arbitrary
+  let g = elements $ positionsInSpan n s
+  p1 <- g
+  p2 <- g
+  return $ if p1 < p2 then SrcSpan p1 p2 else SrcSpan p2 p1
+
+sublocation2 :: SrcSpan -> Gen (SrcSpan,SrcSpan)
+sublocation2 s = do
+  NonNegative n <- arbitrary
+  let g = elements $ positionsInSpan n s
+  p1 <- g
+  p2 <- g
+  p3 <- g
+  p4 <- g
+  let [p1,p2,p3,p4]  = sort [p1,p2,p3,p4]
+  return (SrcSpan p1 p2,SrcSpan p3 p4)
 
 -- |returns n source positions which are in the given source span
 positionsInSpan :: Int -> SrcSpan -> [SrcPos]
