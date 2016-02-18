@@ -18,7 +18,7 @@ module Language.Astview.Language
 where
 import Prelude hiding (span)
 import Data.Tree(Tree(..))
-import Data.Generics (Typeable)
+import Data.Generics (Typeable,Data)
 import Test.QuickCheck
 
 -- |'NodeType' distinguishes two kinds of nodes in arbitrary haskell terms:
@@ -83,7 +83,7 @@ data Error
 -- * source locations and spans
 
 -- |represents a source position.
-data SrcPos = SrcPos { line :: Int , column :: Int } deriving (Eq,Ord,Typeable)
+data SrcPos = SrcPos { line :: Int , column :: Int } deriving (Eq,Ord,Typeable,Data)
 
 instance Show SrcPos where
   show (SrcPos l c) = show l ++ " : "++show c
@@ -100,7 +100,7 @@ instance Arbitrary SrcPos where
 -- Both functions do not check validity of source spans, since we
 -- assume that parsers return valid data.
 data SrcSpan =  SrcSpan { begin :: SrcPos , end :: SrcPos }
-  deriving (Eq,Typeable)
+  deriving (Eq,Typeable,Data)
 
 instance Show SrcSpan where
   show (SrcSpan b e) = show b  ++ " , " ++ show e
@@ -142,4 +142,3 @@ linear :: Int -- ^ line
      -> Int  -- ^ end row
      -> SrcSpan
 linear line beginRow endRow = span line beginRow line endRow
-

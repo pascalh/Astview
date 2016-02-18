@@ -41,6 +41,7 @@ Library
                    Language.Astview.DataTree
                    Language.Astview.Languages
   Other-Modules:   Language.Astview.Languages.Haskell
+                   Language.Astview.Languages.HaskellCore
                    Language.Astview.Languages.Python
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.*
@@ -49,6 +50,8 @@ Library
                    , language-python == 0.4.*
                    , syb >= 0.3.7
                    , syz >= 0.2.0.0
+                   , ghc
+                   , ghc-paths
   extensions:      FlexibleInstances,
                    DeriveDataTypeable,
                    RankNTypes
