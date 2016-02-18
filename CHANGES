@@ -3,7 +3,7 @@
 new features implemented in master branch but not part of the latest release
 - - -
 
-0.4.2
+0.5
 * new language: Haskell core (edit high level Haskell and see the core ast) 
 
 0.4.1
