@@ -4,8 +4,8 @@ states how their files shall be processed by astview.
 -}
 module Language.Astview.Language
   ( Language(..)
-  , SrcSpan(SrcSpan)
-  , SrcPos(SrcPos)
+  , SrcSpan(..)
+  , SrcPos(..)
   , position
   , linear
   , span

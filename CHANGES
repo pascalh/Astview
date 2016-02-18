@@ -1,10 +1,13 @@
 // release history with features and fixed and open bugs
 
 new features implemented in master branch but not part of the latest release
-* new language: haskell core (write high level haskell and see the core ast) 
+- - -
+
+0.4.2
+* new language: Haskell core (edit high level Haskell and see the core ast) 
 
 0.4.1
-* distinguish between source positions and spans 
+* distinguish between source positions and spans
 
 0.4
 * allowed jumping from text location to corresponding tree (and back)
