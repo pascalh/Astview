@@ -59,10 +59,9 @@ newtype Ast = Ast { ast :: Tree AstNode }
 
 -- |A value of 'Language' states how files (associated with this language by
 -- their file extentions 'exts') are being parsed.
--- The file extentions of all languages known to astview may not overlap, since
--- a language is selected by the extention of the currently opened file.
--- A future release of astview should support manual language selection and thus
--- making the restriction obsolete.
+-- The file extentions of all languages known to astview may overlap, since
+-- a language can be manually selected in the menu. For perfect automatic
+-- language detection the extentions need to be disjoint.
 data Language = Language
   { name :: String -- ^ language name
   , syntax :: String
