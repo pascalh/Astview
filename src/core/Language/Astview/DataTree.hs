@@ -8,6 +8,7 @@ module Language.Astview.DataTree
   ,dataToAst
   ,dataToAstSimpl
   ,removeSubtrees
+  ,manual
   ) where
 
 import Data.Generics (Data
@@ -20,10 +21,30 @@ import Data.Tree (Tree(..))
 import Data.Maybe(isNothing,isJust)
 import Language.Astview.Language
 
-dataToAst :: (Data t) => (forall span.Data span => span -> Maybe SrcSpan)
-                       ->  (forall st . Typeable st => st -> Bool)
-                        -> t -> Ast
-dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . worker where
+-- |uses the tree builder to get a tree and then runs the usual update and
+-- path annotation functions.
+--
+-- 'manual' is a more flexible version of 'dataToAst', but in most cases
+-- 'dataToAst' is the function of choice.
+-- Use 'manual' only if the tree builder function has to differ from the default
+-- defined in 'dataToAst' (see 'Language.Astview.Languages.HaskellCore' for an
+-- example).
+manual :: (t -> Tree (Maybe AstNode)) -- ^tree builder
+       -> t
+       -> Ast
+manual f =
+  Ast . annotateWithPaths . delegateSrcLoc . removeSubtrees isEmpty . removeNothings . f
+
+-- |creates an 'Ast' from the input term by using the constructor names
+-- of node labels and keeping the structure. We try to associate source
+-- locations to nodes by applying the source location selector at every subtree.
+-- We ignore a whole subtree if the filter predicate holds (useful if meta Data
+-- like source locations should not be visible in the 'Ast').
+dataToAst :: (Data t)
+  => (forall span.Data span => span -> Maybe SrcSpan) -- ^ source location selector
+  -> (forall st. Typeable st => st -> Bool) -- ^ filter predicate
+  -> t -> Ast
+dataToAst getSrcLoc pIgnore t = manual worker t where
 
   worker :: (Data t,Typeable t) => t -> Tree (Maybe AstNode)
   worker term | pIgnore term = Node Nothing []
@@ -44,9 +65,10 @@ dataToAst getSrcLoc pIgnore = Ast . annotateWithPaths . delegateSrcLoc . removeS
 -- annotations) from the ast. Just give one example value of the annotation
 -- type to this function and all values of this type are being discarded from
 -- the ast.
-dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable b,Data b)
-       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcSpan)
-       -> b        -> t -> Ast
+dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable ig,Data ig)
+       => (forall a . (Data a,Typeable a)  => a -> Maybe SrcSpan) -- ^ source location selector
+       -> ig -- ^all values of this type will be missing in 'Ast'
+       -> t -> Ast
 dataToAstIgnoreByExample getLoc igExample = dataToAst getLoc ignore where
   ignore t = equalTypes t igExample
 
@@ -57,7 +79,9 @@ dataToAstSimpl = dataToAst (const Nothing) (const False)
 
 -- * helper functions
 
--- |every node will be annotated with its path.
+-- |Every node will be annotated with its path, beginning with @[0]@ for root
+-- node. Don't manually annotate paths during creation of 'Ast's, instead
+-- use a default (e.g. @[]@) and add paths by 'annotateWithPaths' afterwards.
 annotateWithPaths :: Tree AstNode -> Tree AstNode
 annotateWithPaths = f [0] where
   f :: [Int] -> Tree AstNode -> Tree AstNode
