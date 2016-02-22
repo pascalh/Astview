@@ -1,7 +1,7 @@
 
 
 
-# Astview - Documentation
+# Astview - Documentation [![Build Status](https://travis-ci.org/pascalh/Astview.png?branch=master)](https://travis-ci.org/pascalh/Astview)
 
 Astview (short for "abstract syntax tree view") is a little desktop program to be used by people that want
 to investigate syntax trees, e.g. students and lecturers in compiler
