@@ -1,0 +1,33 @@
+language: haskell
+
+matrix:
+  include:
+    - env: CABALVER=1.18 GHCVER=7.8.1
+      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.1,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.18 GHCVER=7.8.2
+      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.2,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.18 GHCVER=7.8.3
+      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.3,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.18 GHCVER=7.8.4
+      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.22 GHCVER=7.10.1
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.22 GHCVER=7.10.2
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+    - env: CABALVER=1.22 GHCVER=7.10.3
+      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5,alex-3.1.4,libgtk2.0-dev,libgtk-3-dev], sources: [hvr-ghc]}}
+
+before_install:
+  - sudo apt-get --no-install-recommends install libgtksourceview2.0-dev libgtksourceview-3.0-dev
+  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/alex/3.1.4/bin:/opt/happy/1.19.5/bin:$PATH
+
+install:
+  - cabal --version
+  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+  - cabal update
+  - cabal install Cabal
+  - cabal install gtk2hs-buildtools
+  - cabal install --dependencies-only --enable-tests
+
+script:
+  - cabal configure --enable-tests && cabal build && cabal test

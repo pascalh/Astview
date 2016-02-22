@@ -31,7 +31,7 @@ parsehs :: String -> Either Error Ast
 parsehs s =
   case runParser s parseModule of
     POk _ parsed -> Right (coreToAst parsed)
-    PFailed ss msg -> Left $ makeError ss (showSDocUnsafe msg)
+    PFailed ss msg -> Left $ makeError ss (showSDoc (unsafePerformIO getDynFlags) msg)
 
 makeError :: GHC.SrcSpan -> String -> Error
 makeError ss s =

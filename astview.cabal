@@ -46,12 +46,12 @@ Library
   Build-Depends:     base >= 4.6.0.0
                    , containers == 0.5.*
                    , QuickCheck >= 2.6
-                   , haskell-src-exts >= 1.13.5
+                   , haskell-src-exts >= 1.13.5 && < 1.17
                    , language-python == 0.4.*
                    , syb >= 0.3.7
                    , syz >= 0.2.0.0
                    , ghc
-                   , ghc-paths
+                   , ghc-paths == 0.1.*
   extensions:      FlexibleInstances,
                    DeriveDataTypeable,
                    RankNTypes
@@ -84,6 +84,7 @@ Executable         astview
                    , ScopedTypeVariables
                    , OverloadedStrings
                    , DoAndIfThenElse
+                   , CPP
 
 test-suite basic
     type: exitcode-stdio-1.0

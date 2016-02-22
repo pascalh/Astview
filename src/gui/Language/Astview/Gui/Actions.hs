@@ -17,6 +17,9 @@ import System.IO (withFile,IOMode(..),hPutStr,hClose)
 import System.FilePath (takeExtension,takeFileName)
 import qualified Data.ByteString.Char8 as BS (hGetContents,unpack)
 import Data.Tree ( Tree(Node) )
+#if __GLASGOW_HASKELL__ < 710
+import Control.Applicative((<$>))
+#endif
 
 import Graphics.UI.Gtk hiding (Language,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView
