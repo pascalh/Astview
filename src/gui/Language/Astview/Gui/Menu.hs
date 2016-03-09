@@ -13,21 +13,23 @@ import Paths_astview (getDataFileName)
 import System.FilePath ((</>))
 import Data.List(intercalate)
 import Data.Monoid ((<>))
+import Control.Monad(forM_)
 import System.Glib.UTFString (stringToGlib)
 
 -- |sets up the menu and binds menu items to logic
 initMenu :: Builder -> AstAction ()
 initMenu builder ref = do
+  uiManager <- uiManagerNew
+  menuDeclFile <- getDataFileName ("data" </> "menu.xml")
+  uiManagerAddUiFromFile uiManager menuDeclFile
+  uiManagerBuildLanguagesMenu uiManager ref
+
   actionGroup <- actionGroupNew ("ActionGroup" :: String)
   initMenuFile actionGroup ref
   initMenuEdit actionGroup ref
   initMenuNavigate actionGroup ref
   initMenuLanguages actionGroup ref
   initMenuHelp actionGroup builder ref
-
-  uiManager <- uiManagerNew
-  menuDeclFile <- getDataFileName ("data" </> "menu.xml")
-  uiManagerAddUiFromFile uiManager menuDeclFile
 
   uiManagerInsertActionGroup uiManager actionGroup 0
   maybeMenubar <- uiManagerGetWidget uiManager ("/ui/menubar" :: String)
@@ -37,6 +39,24 @@ initMenu builder ref = do
                  Just m  -> m
   vboxMain <- builderGetObjectStr builder castToVBox "vboxMain"
   boxPackStart vboxMain menubar PackNatural 0
+
+-- |creates a menu item for every element of 'knownLanguages' in menu "Languages".
+--
+-- We do this dynamically, because the menu.xml should not contain any static
+-- information about specific languages. This offers simple addition of
+-- new languages by just adding it to the list of languages without even
+-- touching any gui component.
+uiManagerBuildLanguagesMenu :: UIManager -> AstAction ()
+uiManagerBuildLanguagesMenu uiManager ref = do
+  langs <- getKnownLanguages ref
+  forM_ langs $ \lang -> do
+    mergeId <- uiManagerNewMergeId uiManager
+    let ident = "actionLanguage"++name lang
+    uiManagerAddUi uiManager mergeId "/ui/menubar/Languages/LangsSep"
+               (ident :: String)
+               (Just ident)
+               [UiManagerMenuitem]
+               False
 
 -- |the association between the gui functions from 'Actions'
 -- and the gtk identifier from xml file.

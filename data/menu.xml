@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui>
   <menubar>
-    <menu action="actionMenuFile">
+    <menu name="File" action="actionMenuFile">
       <menuitem action="actionNew" />
       <menuitem action="actionOpen" />
       <menuitem action="actionSave" />
       <menuitem action="actionSaveAs" />
       <menuitem action="actionQuit" />
     </menu>
-    <menu action="actionMenuEdit">
+    <menu name="Edit" action="actionMenuEdit">
       <menuitem action="actionCut" />
       <menuitem action="actionCopy" />
       <menuitem action="actionPaste" />
@@ -21,14 +21,11 @@
       <menuitem action="actionTreeLoc" />
       <menuitem action="actionTextLoc" />
     </menu>
-    <menu action="actionMenuLanguages">
-      <menuitem action="actionLanguageAuto" />
-      <separator/>
-      <menuitem action="actionLanguageHaskell" />
-      <menuitem action="actionLanguageHaskellCore" />
-      <menuitem action="actionLanguagePython" />
+    <menu name="Languages" action="actionMenuLanguages">
+      <menuitem name="LangsAuto" action="actionLanguageAuto" />
+      <separator name="LangsSep"/>
     </menu>
-    <menu action="actionMenuHelp">
+    <menu name="Help" action="actionMenuHelp">
       <menuitem action="actionAbout" />
     </menu>
   </menubar>
