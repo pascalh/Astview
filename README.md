@@ -140,7 +140,7 @@ data SrcPos = SrcPos { line :: Int , column :: Int }
 data SrcSpan =  SrcSpan { begin :: SrcPos , end :: SrcPos }
 ```
 
-One can use the constructor functions `span`,`position` and `linear` to create special cases of source locations.
+One should use the smart constructor functions `span`,`position` and `linear` to create source locations, since they apply validity checks.
 
 Instead of the function `dataToAstSimpl` which does not support creation of source locations, we use
 

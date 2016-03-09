@@ -14,12 +14,14 @@ module Language.Astview.Language
   , AstNode(..)
   , Ast(..)
   , Error (..)
+  , SrcLocException(..)
   )
 where
 import Prelude hiding (span)
 import Data.Tree(Tree(..))
 import Data.Generics (Typeable,Data)
 import Test.QuickCheck
+import Control.Exception(Exception,throw)
 
 -- |'NodeType' distinguishes two kinds of nodes in arbitrary haskell terms:
 --
@@ -95,9 +97,8 @@ instance Arbitrary SrcPos where
 
 -- |specifies a source span in a text area consisting of a begin position
 -- and a end position.
---Use 'linear' and 'position' to create special source spans.
--- Both functions do not check validity of source spans, since we
--- assume that parsers return valid data.
+-- Use functions 'span', 'linear' and 'position' to create source spans, since
+-- they apply validity checks.
 data SrcSpan =  SrcSpan { begin :: SrcPos , end :: SrcPos }
   deriving (Eq,Typeable,Data)
 
@@ -112,10 +113,7 @@ instance Ord SrcSpan where
 -- |returns whether the given source span contains the position
 contains :: SrcSpan -> SrcPos -> Bool
 contains (SrcSpan (SrcPos br bc) (SrcPos er ec)) (SrcPos r c) =
-  (br == er && r == er && bc <= c && c <= ec) ||
-  (br < r && r < er) ||
-  (br == r && bc <= c && br < er) ||
-  (er == r && br < er && c <= ec)
+  let s = (r,c) in (br,bc) <= s && s <= (er,ec)
 
 instance Arbitrary SrcSpan where
   arbitrary =  do
@@ -124,20 +122,41 @@ instance Arbitrary SrcSpan where
     (NonNegative c') <- arbitrary
     return $ SrcSpan pos $ SrcPos (l+l') (c+c')
 
--- |a constructor for 'SrcSpan' with less structure than 'SrcSpan'.
+-- |a smart constructor for 'SrcSpan', which also applies validity checks.
+--
+-- >>> span 1 2 3 4
+-- SrcSpan (SrcPos 1 2) (SrcPos 3 4))
 span :: Int -> Int -> Int -> Int -> SrcSpan
-span bl bc el ec = SrcSpan (SrcPos bl bc) (SrcPos el ec)
+span bl bc el ec
+  | bl > el           = throw $ SrcLocException s
+  | bl == el && bc > ec = throw $ SrcLocException s
+  | otherwise = s where
+    s = SrcSpan (SrcPos bl bc) (SrcPos el ec)
 
 -- |a constructor for 'SrcSpan' to define an exact position.
+--
+-- >>> position 1 2
+-- SrcSpan (SrcPos 1 2) (SrcPos 1 2))
 position :: Int -- ^line
          -> Int -- ^row
          -> SrcSpan
 position line row = let p = SrcPos line row in SrcSpan p p
 
 -- |a constructor for 'SrcSpan' to define a span which ranges
--- over one specific line and more than one row.
+-- over one specific line and more than one row. Since 'linear'
+-- is implemented using 'span' validity of input is being checked.
+--
+-- >>> linear 1 3 12
+-- SrcSpan (SrcPos 1 3) (SrcPos 1 12))
 linear :: Int -- ^ line
      -> Int  -- ^ begin row
      -> Int  -- ^ end row
      -> SrcSpan
 linear line beginRow endRow = span line beginRow line endRow
+
+data SrcLocException = SrcLocException SrcSpan deriving (Eq)
+
+instance Show SrcLocException where
+  show (SrcLocException s) = "Source location "++show s++" is not valid."
+
+instance Exception SrcLocException
