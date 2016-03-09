@@ -154,7 +154,7 @@ linear :: Int -- ^ line
      -> SrcSpan
 linear line beginRow endRow = span line beginRow line endRow
 
-data SrcLocException = SrcLocException SrcSpan deriving (Eq)
+data SrcLocException = SrcLocException SrcSpan deriving (Eq,Typeable)
 
 instance Show SrcLocException where
   show (SrcLocException s) = "Source location "++show s++" is not valid."

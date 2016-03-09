@@ -18,6 +18,7 @@ feature requests:
   * implement searching idents and operations (in the ast)
   * display of raw ast could be valuable
   * when jumping to a path the other trees should be collapsed
+  * a menu bar should offer both navigations 
 
 misc:
 
