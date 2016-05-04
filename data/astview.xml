@@ -9,43 +9,20 @@
     <property name="default_width">600</property>
     <property name="default_height">400</property>
     <child>
-      <object class="GtkVBox" id="vboxMain">
+      <object class="GtkBox" id="vboxMain">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="border_width">4</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">4</property>
         <child>
-          <object class="GtkMenuBar" id="menubar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+          <placeholder/>
         </child>
         <child>
-          <object class="GtkHBox" id="hboxMain">
+          <object class="GtkBox" id="hboxMain">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="border_width">1</property>
             <property name="spacing">2</property>
             <property name="homogeneous">True</property>
-            <child>
-              <object class="GtkScrolledWindow" id="swSource">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
             <child>
               <object class="GtkScrolledWindow" id="swTree">
                 <property name="visible">True</property>
@@ -56,9 +33,23 @@
                     <property name="can_focus">True</property>
                     <property name="rules_hint">True</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection1"/>
+                      <object class="GtkTreeSelection" id="treeview-selection"/>
                     </child>
                   </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="swSource">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
