@@ -37,8 +37,9 @@ initMenu builder ref = do
                  Nothing -> error $ "Could not parse menu bar declaration from "
                                     ++ show menuDeclFile
                  Just m  -> m
-  vboxMain <- builderGetObjectStr builder castToVBox "vboxMain"
-  boxPackStart vboxMain menubar PackNatural 0
+  vboxMain <- builderGetObjectStr builder castToBox "vboxMain"
+  vboxMain `set` [ containerChild := menubar ]
+  boxReorderChild vboxMain menubar 0
 
 -- |creates a menu item for every element of 'knownLanguages' in menu "Languages".
 --
