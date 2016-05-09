@@ -24,6 +24,20 @@
             <property name="spacing">2</property>
             <property name="homogeneous">True</property>
             <child>
+              <object class="GtkScrolledWindow" id="swSource">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkScrolledWindow" id="swTree">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -40,20 +54,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow" id="swSource">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
