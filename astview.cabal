@@ -81,6 +81,7 @@ Executable         astview
                    , directory >= 1.2.0.0
                    , mtl >=2.1.2
                    , fclabels >= 2.0.0.5
+                   , free == 4.12.*
 
   extensions:        TemplateHaskell
                    , TypeOperators

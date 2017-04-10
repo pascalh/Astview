@@ -1,3 +1,5 @@
+{-#  LANGUAGE FlexibleContexts #-}
+
 {- contains the main gui functions
  -}
 
@@ -24,9 +26,62 @@ import Control.Applicative((<$>))
 import Graphics.UI.Gtk hiding (Language,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView
 
+import Control.Monad.Free
+{-
+http://dlaing.org/cofun/posts/free_and_cofree.html
+
+-}
+
+data TextBufferInstruction
+ = Clear
+ | SetText String
+
+data TextBufferAction next
+  = TextBufferAction TextBufferInstruction next
+  | TextBufferGetSelection ((Int,Int) -> next)
+
+textbufferclear :: Free TextBufferAction ()
+textbufferclear = liftF $ (TextBufferAction Clear) ()
+
+textbuffersettext :: String -> Free TextBufferAction ()
+textbuffersettext text = liftF $ (TextBufferAction $ SetText text) ()
+
+textbuffergetselection :: Free TextBufferAction (Int,Int)
+textbuffergetselection = liftF $ TextBufferGetSelection id
+
+
+interText :: Free TextBufferAction r -> IO ()
+interText (Pure _) = return ()
+interText (Free (TextBufferAction act next)) = case act of
+  Clear -> putStrLn "CLEAR" >> interText next
+  SetText str ->putStrLn str >> interText next
+interText (Free (TextBufferGetSelection next)) =
+  interText  $ next(1,1)
+
+textseeqqq :: Free TextBufferAction ()
+textseeqqq = do
+  textbuffersettext "ab"
+  (b,_) <- textbuffergetselection
+  textbuffersettext $ show b
+  textbufferclear
+
+{-TODO
+1) how to carry state in free?
+2) translate free to astaction
+-}
+
+toAstAction :: Free TextBufferAction r -> AstAction r
+toAstAction _ = undefined
+
+instance Functor TextBufferAction where
+  fmap f (TextBufferAction act next) = TextBufferAction act $ f next
+  fmap f (TextBufferGetSelection g) = TextBufferGetSelection (f . g)
+
 -- -------------------------------------------------------------------
 -- * filemenu menu actions
 -- -------------------------------------------------------------------
+
+
 
 clearTreeView :: TreeView -> IO ()
 clearTreeView t = do
