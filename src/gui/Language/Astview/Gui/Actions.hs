@@ -25,10 +25,16 @@ import Control.Applicative((<$>))
 
 import Graphics.UI.Gtk hiding (Language,response,bufferChanged)
 import Graphics.UI.Gtk.SourceView
-
-import Control.Monad.Free
+import qualified Control.Monad.State as SM
+import qualified Control.Monad.State.Strict as S
+import Control.Monad.Trans.Free
 {-
 http://dlaing.org/cofun/posts/free_and_cofree.html
+
+http://www.haskellforall.com/2012/06/you-could-have-invented-free-monads.html
+http://www.haskellforall.com/2012/07/free-monad-transformers.html
+
+https://hackage.haskell.org/package/transformers-free-1.0.1/docs/Control-Monad-Trans-Free.html#v:liftF
 
 -}
 
@@ -38,7 +44,54 @@ data TextBufferInstruction
 
 data TextBufferAction next
   = TextBufferAction TextBufferInstruction next
-  | TextBufferGetSelection ((Int,Int) -> next)
+  | TextBufferGetSelection (Int,Int) (String -> next)
+
+
+instance Functor TextBufferAction where
+  fmap f (TextBufferAction act next) = TextBufferAction act $ f next
+  fmap f (TextBufferGetSelection position next ) = TextBufferGetSelection position (f . next)
+
+type FreeAstview r = FreeT TextBufferAction (SM.State String) r
+
+clear :: FreeAstview ()
+clear = liftF $ (TextBufferAction Clear) ()
+
+setText :: String -> FreeAstview ()
+setText text = liftF $ (TextBufferAction (SetText text)) ()
+
+select :: (Int,Int) -> FreeAstview String
+select p = liftF $ (TextBufferGetSelection p) id
+
+-- TODO change to: FreeAstview r -> SM.StateT String IO  r
+interpret :: FreeAstview r -> SM.State String  r
+interpret t =  do
+  x <- runFreeT t
+  case x of
+
+    Pure r -> return r
+
+    Free (TextBufferGetSelection (begin,end) action) -> do
+      selection <- (drop begin . take end) <$> SM.get
+      interpret (action selection)
+
+    Free (TextBufferAction action next) ->
+      case action of
+                        Clear -> SM.put "" >> interpret next
+                        SetText txt -> SM.put txt >> interpret next
+
+-- an example
+program :: FreeAstview String
+program = do
+  clear
+  setText "hallo"
+  select (1,4)
+
+run :: String
+run = SM.evalState (interpret program) ""
+
+{-
+buffClear :: FreeF TextBufferAction a ()
+buffClear = liftF $ (TextBufferAction Clear) ()
 
 textbufferclear :: Free TextBufferAction ()
 textbufferclear = liftF $ (TextBufferAction Clear) ()
@@ -65,17 +118,13 @@ textseeqqq = do
   textbuffersettext $ show b
   textbufferclear
 
-{-TODO
+TODO
 1) how to carry state in free?
 2) translate free to astaction
 -}
 
 toAstAction :: Free TextBufferAction r -> AstAction r
 toAstAction _ = undefined
-
-instance Functor TextBufferAction where
-  fmap f (TextBufferAction act next) = TextBufferAction act $ f next
-  fmap f (TextBufferGetSelection g) = TextBufferGetSelection (f . g)
 
 -- -------------------------------------------------------------------
 -- * filemenu menu actions
