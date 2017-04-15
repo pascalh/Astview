@@ -51,7 +51,7 @@ instance Functor TextBufferAction where
   fmap f (TextBufferAction act next) = TextBufferAction act $ f next
   fmap f (TextBufferGetSelection position next ) = TextBufferGetSelection position (f . next)
 
-type FreeAstview r = FreeT TextBufferAction (SM.State String) r
+type FreeAstview r = FreeT TextBufferAction (SM.StateT String IO) r
 
 clear :: FreeAstview ()
 clear = liftF $ (TextBufferAction Clear) ()
@@ -62,22 +62,31 @@ setText text = liftF $ (TextBufferAction (SetText text)) ()
 select :: (Int,Int) -> FreeAstview String
 select p = liftF $ (TextBufferGetSelection p) id
 
--- TODO change to: FreeAstview r -> SM.StateT String IO  r
-interpret :: FreeAstview r -> SM.State String  r
-interpret t =  do
-  x <- runFreeT t
-  case x of
+interpret :: FreeAstview r -> SM.StateT String IO  r
+interpret (FreeT x) =  do
+  t <- x
+  let _t1 = t
+  case t of
 
     Pure r -> return r
+
+    Free (TextBufferAction action next) ->
+      case action of
+                        Clear -> do
+                          SM.put ""
+                          interpret next
+                          
+                        SetText txt -> do
+                          SM.put txt
+                          S.liftIO (putStrLn "da")
+                          interpret next
+
 
     Free (TextBufferGetSelection (begin,end) action) -> do
       selection <- (drop begin . take end) <$> SM.get
       interpret (action selection)
 
-    Free (TextBufferAction action next) ->
-      case action of
-                        Clear -> SM.put "" >> interpret next
-                        SetText txt -> SM.put txt >> interpret next
+
 
 -- an example
 program :: FreeAstview String
@@ -86,10 +95,10 @@ program = do
   setText "hallo"
   select (1,4)
 
-run :: String
-run = SM.evalState (interpret program) ""
+run :: IO String
+run = SM.evalStateT (interpret program) ""
 
-{-
+{-}
 buffClear :: FreeF TextBufferAction a ()
 buffClear = liftF $ (TextBufferAction Clear) ()
 
