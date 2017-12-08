@@ -46,14 +46,14 @@ dataToAst :: (Data t)
   -> t -> Ast
 dataToAst getSrcLoc pIgnore t = manual worker t where
 
-  worker :: (Data t,Typeable t) => t -> Tree (Maybe AstNode)
+  worker :: Data t => t -> Tree (Maybe AstNode)
   worker term | pIgnore term = Node Nothing []
               | otherwise    = (gdefault `extQ` atString) term where
 
       atString :: String -> Tree (Maybe AstNode)
       atString s = Node (Just $ AstNode s Nothing [] Identificator) []
 
-      gdefault :: (Typeable t,Data t) => t -> Tree (Maybe AstNode)
+      gdefault :: Data t => t -> Tree (Maybe AstNode)
       gdefault x = Node (Just n) cs where
 
         n :: AstNode
@@ -65,7 +65,7 @@ dataToAst getSrcLoc pIgnore t = manual worker t where
 -- annotations) from the ast. Just give one example value of the annotation
 -- type to this function and all values of this type are being discarded from
 -- the ast.
-dataToAstIgnoreByExample :: (Data t,Typeable t,Typeable ig,Data ig)
+dataToAstIgnoreByExample :: (Data t,Data ig)
        => (forall a . (Data a,Typeable a)  => a -> Maybe SrcSpan) -- ^ source location selector
        -> ig -- ^all values of this type will be missing in 'Ast'
        -> t -> Ast

@@ -18,7 +18,7 @@ Astview is under continuous development. The sources can be found at [Github](ht
 ### 1.1)Installing astview
 
 First of all download the sources of astview, which can be easily achieved by  `git clone https://github.com/pascalh/Astview`.
-To install astview, just run `cabal install` in the astview-directory.
+To install astview, just run `stack install` in the astview-directory.
 
 ### 1.2)Using Astview
 

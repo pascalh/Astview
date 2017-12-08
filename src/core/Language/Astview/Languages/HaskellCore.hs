@@ -1,28 +1,30 @@
 module Language.Astview.Languages.HaskellCore (haskellCore) where
-import Prelude hiding (span)
+import           Prelude                   hiding (span)
 
-import Data.Tree(Tree(Node))
-import Data.Generics (Data,Typeable,extQ,ext1Q,gmapQ,showConstr,toConstr,typeOf)
-import Data.Generics.Zipper(toZipper,down',query)
+import           Data.Generics             (Data, Typeable, ext1Q, extQ, gmapQ,
+                                            showConstr, toConstr, typeOf)
+import           Data.Generics.Zipper      (down', query, toZipper)
+import           Data.Tree                 (Tree (Node))
 
-import Language.Astview.Language hiding (parse)
-import Language.Astview.DataTree (manual)
+import           Language.Astview.DataTree (manual)
+import           Language.Astview.Language hiding (parse)
 
-import Parser
-import Lexer hiding (getDynFlags, getSrcLoc, buffer)
-import qualified DynFlags as GHC
-import Outputable
-import FastString
-import StringBuffer
+import qualified DynFlags                  as GHC
+import           FastString
 import qualified GHC
-import qualified SrcLoc as GHC
-import qualified Outputable as GHC
-import qualified RdrName as GHC
-import qualified OccName as GHC
+import           Lexer                     hiding (buffer, getDynFlags,
+                                            getSrcLoc)
+import qualified OccName                   as GHC
+import           Outputable
+import qualified Outputable                as GHC
+import           Parser
+import qualified RdrName                   as GHC
+import qualified SrcLoc                    as GHC
+import           StringBuffer
 
-import GHC.Paths (libdir)
+import           GHC.Paths                 (libdir)
 
-import System.IO.Unsafe
+import           System.IO.Unsafe
 
 haskellCore :: Language
 haskellCore = Language "HaskellCore" "Haskell" [".hs"] parsehs
@@ -90,10 +92,10 @@ coreToAst = manual worker where
       atOccName :: GHC.OccName -> Tree (Maybe AstNode)
       atOccName o = Node (Just $ AstNode (GHC.occNameString o) (getSrcLoc o) [] Identificator) []
 
-      atL :: (Typeable t, Data t) => GHC.GenLocated GHC.SrcSpan t -> Tree (Maybe AstNode)
+      atL :: Data t => GHC.GenLocated GHC.SrcSpan t -> Tree (Maybe AstNode)
       atL (GHC.L _ a) = worker a
 
-      gdefault :: (Typeable t,Data t) => t -> Tree (Maybe AstNode)
+      gdefault :: Data t => t -> Tree (Maybe AstNode)
       gdefault x = Node (Just n) cs where
 
         n :: AstNode
