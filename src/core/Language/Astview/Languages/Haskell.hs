@@ -1,23 +1,23 @@
 module Language.Astview.Languages.Haskell (haskellExts) where
-import Prelude hiding (span)
+import           Prelude                                hiding (span)
 
-import Language.Astview.Language hiding (parse)
-import Language.Astview.DataTree (dataToAstIgnoreByExample)
+import           Language.Astview.DataTree              (dataToAstIgnoreByExample)
+import           Language.Astview.Language              hiding (parse)
 
-import Data.Generics (Data,extQ)
-import Data.Generics.Zipper(toZipper,down',query)
+import           Data.Generics                          (Data, extQ)
+import           Data.Generics.Zipper                   (down', query, toZipper)
 
-import Language.Haskell.Exts.Parser
-import Language.Haskell.Exts.Annotated.Syntax
-import qualified Language.Haskell.Exts.SrcLoc as HsSrcLoc
+import           Language.Haskell.Exts.Annotated.Parser
+import           Language.Haskell.Exts.Parser           (ParseResult (..))
+import qualified Language.Haskell.Exts.SrcLoc           as HsSrcLoc
 
 haskellExts :: Language
 haskellExts = Language "Haskell" "Haskell" [".hs"] parsehs
 
 parsehs :: String -> Either Error Ast
-parsehs s = case parse s :: ParseResult (Module HsSrcLoc.SrcSpan) of
+parsehs s = case parseModule s of
   ParseOk t  -> Right $ dataToAstIgnoreByExample getSrcLoc
-                                                 (undefined::HsSrcLoc.SrcSpan)
+                                                 (undefined::HsSrcLoc.SrcSpanInfo)
                                                  t
   ParseFailed (HsSrcLoc.SrcLoc _ l c) m -> Left $ ErrLocation (position l c) m
 
@@ -27,5 +27,6 @@ getSrcLoc t = down' (toZipper t) >>= query (def `extQ` atSpan) where
   def :: a -> Maybe SrcSpan
   def _ = Nothing
 
-  atSpan :: HsSrcLoc.SrcSpan -> Maybe SrcSpan
-  atSpan (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) = Just $ span c1 c2 c3 c4
+  atSpan :: HsSrcLoc.SrcSpanInfo -> Maybe SrcSpan
+  atSpan (HsSrcLoc.SrcSpanInfo (HsSrcLoc.SrcSpan _ c1 c2 c3 c4) _) =
+    Just $ span c1 c2 c3 c4
