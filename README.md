@@ -15,14 +15,19 @@ Astview is under continuous development. The sources can be found at [Github](ht
 
 Developer documentation is located in the [wiki](https://github.com/pascalh/Astview/wiki/Deveoloper-guide).
 
-## 1) User guide
+## User guide
 
-### 1.1)Installing astview
+### Installing astview
 
-First of all download the sources of astview, which can be easily achieved by  `git clone https://github.com/pascalh/Astview`.
+First of all download the sources of astview, which can be easily achieved by  
+
+```Bash
+git clone https://github.com/pascalh/Astview
+```
+
 To install astview, just run `stack install` in the astview-directory.
 
-### 1.2)Using Astview
+### Using Astview
 
 You can open astview directly with a file by giving the filename at the command line:
 
@@ -43,7 +48,7 @@ The correspondent menu items can be found in menu `Edit`. You can use Ctrl-P to 
 
 #### Language and parser selection
 
-Astview can be easily extended by new languages (see section 2). Every language
+Astview can be easily extended by new languages (see [dev documentation](https://github.com/pascalh/Astview/wiki/Deveoloper-guide)). Every language
 can be associated with file extensions, which for example enables astview to directly apply the parser for
 Haskell if a file with extension ```hs``` is being opened. This automatic
 parser selection can be turned off by selecting a specific parser
