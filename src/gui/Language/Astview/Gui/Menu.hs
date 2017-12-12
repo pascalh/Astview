@@ -4,19 +4,20 @@ to the respective MenuItems.
 module Language.Astview.Gui.Menu (initMenu,connect,builderGetObjectStr) where
 
 import           Language.Astview.Gui.Actions
+import           Language.Astview.Gui.GtkActions
 import           Language.Astview.Gui.Types
 import           Language.Astview.Language
-import           Language.Astview.Languages   (languages)
+import           Language.Astview.Languages      (languages)
 
-import           Control.Monad                (forM_)
-import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad                   (forM_)
+import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Reader
-import           Data.List                    (intercalate)
-import           Data.Monoid                  ((<>))
-import           Graphics.UI.Gtk              hiding (Language)
-import           Paths_astview                (getDataFileName)
-import           System.FilePath              ((</>))
-import           System.Glib.UTFString        (stringToGlib)
+import           Data.List                       (intercalate)
+import           Data.Monoid                     ((<>))
+import           Graphics.UI.Gtk                 hiding (Language)
+import           Paths_astview                   (getDataFileName)
+import           System.FilePath                 ((</>))
+import           System.Glib.UTFString           (stringToGlib)
 
 -- |sets up the menu and binds menu items to logic
 initMenu :: Builder -> AstAction ()
@@ -70,7 +71,7 @@ menuActions = menuFile ++ menuEdit ++ menuNavigate where
   menuFile =
     [("actionNew",actionEmptyGUI)
     ,("actionSaveAs",actionSaveAs)
-    ,("actionOpen",actionDlgOpen)
+    ,("actionOpen",actionDlgOpen actionLoadHeadless)
     ,("actionSave",actionSave)
     ,("actionQuit",actionQuit)
     ]

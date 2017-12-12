@@ -5,20 +5,16 @@ function.
 module Language.Astview.Gui.Init(setupGui,hooks) where
 
 import           Language.Astview.Gui.Actions
+import           Language.Astview.Gui.GtkActions
 import           Language.Astview.Gui.Menu
 import           Language.Astview.Gui.Types
-import           Language.Astview.Languages   (languages)
+import           Language.Astview.Languages      (languages)
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans          (liftIO)
+import           Control.Monad.Trans             (liftIO)
 import           Data.IORef
 
-<<<<<<< 34651e0375c21059d8f26f0aea7afa4ce62f5f74
-=======
-
-
->>>>>>> Hide IORef in Reader monad #11
-import           Graphics.UI.Gtk              hiding (Language)
+import           Graphics.UI.Gtk                 hiding (Language)
 import           Graphics.UI.Gtk.SourceView
 
 setupGui :: Builder -> IO (IORef AstState)
