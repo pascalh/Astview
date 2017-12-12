@@ -4,6 +4,7 @@
 module Language.Astview.Gui.Types where
 import Data.Label
 import Data.IORef
+import Control.Monad.Reader
 
 import Graphics.UI.Gtk hiding (Language,get,set)
 import Graphics.UI.Gtk.SourceView (SourceBuffer)
@@ -13,7 +14,7 @@ import Language.Astview.Language(Language,SrcSpan,Path,position)
 class Default a where
   defaultValue :: a
 
-type AstAction a = IORef AstState -> IO a
+type AstAction a = ReaderT (IORef AstState) IO  a
 
 -- |union of internal program state and gui
 data AstState = AstState
@@ -74,55 +75,62 @@ mkLabels [ ''AstState
          , ''GUI
          ]
 
-getSourceBuffer :: AstAction SourceBuffer
-getSourceBuffer = fmap (sb . gui) . readIORef
 
-getTreeView :: AstAction TreeView
-getTreeView = fmap (tv . gui) . readIORef
 
 getAstState :: AstAction AstState
-getAstState = readIORef
+getAstState =  do
+  ioRef <- ask
+  liftIO (readIORef ioRef)
+
+getSourceBuffer :: AstAction SourceBuffer
+getSourceBuffer = (sb . gui) <$> getAstState
+
+getTreeView :: AstAction TreeView
+getTreeView = (tv . gui) <$> getAstState
 
 getGui :: AstAction GUI
-getGui = fmap gui . readIORef
+getGui = gui <$> getAstState
 
 getState :: AstAction State
-getState = fmap state . readIORef
+getState = state <$> getAstState
 
 getKnownLanguages :: AstAction [Language]
-getKnownLanguages = fmap (knownLanguages . state) . readIORef
+getKnownLanguages = (knownLanguages . state) <$> getAstState
 
 getChanged :: AstAction Bool
-getChanged = fmap (textchanged . state) . readIORef
+getChanged = (textchanged . state) <$> getAstState
 
 getCursor :: AstAction SrcSpan
-getCursor = fmap (lastSelectionInText . state) . readIORef
+getCursor = (lastSelectionInText . state) <$> getAstState
 
 getPath :: AstAction TreePath
-getPath = fmap (lastSelectionInTree. state) . readIORef
+getPath = (lastSelectionInTree . state) <$> getAstState
+
 
 getCurrentFile :: AstAction String
-getCurrentFile = fmap (currentFile . state) . readIORef
+getCurrentFile = (currentFile . state) <$> getAstState
 
 getActiveLanguage :: AstAction (Maybe Language)
-getActiveLanguage = fmap (activeLanguage . state) . readIORef
+getActiveLanguage = (activeLanguage . state) <$> getAstState
 
 getWindow :: AstAction Window
-getWindow = fmap (window . gui) . readIORef
+getWindow = (window . gui) <$> getAstState
 
 getFlattenLists :: AstAction Bool
-getFlattenLists = fmap (flattenLists . options) . readIORef
+getFlattenLists = (flattenLists . options) <$> getAstState
 
 getFontsize :: AstAction Int
-getFontsize = fmap (fsize . options) . readIORef
+getFontsize = (fsize . options) <$> getAstState
 
 -- * setter functions
 
 lensSetIoRef :: (AstState :-> a) -> (a :-> b) -> b -> AstAction ()
-lensSetIoRef outerLens innerLens value ref = modifyIORef ref m where
+lensSetIoRef outerLens innerLens value = do
+  ref <- ask
+  liftIO $ modifyIORef ref m where
 
-  m :: AstState -> AstState
-  m = modify outerLens (set innerLens value)
+    m :: AstState -> AstState
+    m = modify outerLens (set innerLens value)
 
 -- |stores the given cursor selection
 setCursor :: SrcSpan -> AstAction ()

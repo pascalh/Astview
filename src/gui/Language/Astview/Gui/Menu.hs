@@ -3,43 +3,46 @@ to the respective MenuItems.
 -}
 module Language.Astview.Gui.Menu (initMenu,connect,builderGetObjectStr) where
 
-import Language.Astview.Gui.Types
-import Language.Astview.Gui.Actions
-import Language.Astview.Languages(languages)
-import Language.Astview.Language
+import           Language.Astview.Gui.Actions
+import           Language.Astview.Gui.Types
+import           Language.Astview.Language
+import           Language.Astview.Languages   (languages)
 
-import Graphics.UI.Gtk hiding (Language)
-import Paths_astview (getDataFileName)
-import System.FilePath ((</>))
-import Data.List(intercalate)
-import Data.Monoid ((<>))
-import Control.Monad(forM_)
-import System.Glib.UTFString (stringToGlib)
+import           Control.Monad                (forM_)
+import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.Reader
+import           Data.List                    (intercalate)
+import           Data.Monoid                  ((<>))
+import           Graphics.UI.Gtk              hiding (Language)
+import           Paths_astview                (getDataFileName)
+import           System.FilePath              ((</>))
+import           System.Glib.UTFString        (stringToGlib)
 
 -- |sets up the menu and binds menu items to logic
 initMenu :: Builder -> AstAction ()
-initMenu builder ref = do
-  uiManager <- uiManagerNew
-  menuDeclFile <- getDataFileName ("data" </> "menu.xml")
-  uiManagerAddUiFromFile uiManager menuDeclFile
-  uiManagerBuildLanguagesMenu uiManager ref
+initMenu builder = do
+  uiManager <- liftIO uiManagerNew
+  menuDeclFile <- liftIO $ getDataFileName ("data" </> "menu.xml")
+  liftIO $ uiManagerAddUiFromFile uiManager menuDeclFile
+  uiManagerBuildLanguagesMenu uiManager
 
-  actionGroup <- actionGroupNew ("ActionGroup" :: String)
-  initMenuFile actionGroup ref
-  initMenuEdit actionGroup ref
-  initMenuNavigate actionGroup ref
-  initMenuLanguages actionGroup ref
-  initMenuHelp actionGroup builder ref
+  actionGroup <- liftIO $ actionGroupNew ("ActionGroup" :: String)
+  initMenuFile actionGroup
+  initMenuEdit actionGroup
+  initMenuNavigate actionGroup
+  initMenuLanguages actionGroup
+  initMenuHelp actionGroup builder
 
-  uiManagerInsertActionGroup uiManager actionGroup 0
-  maybeMenubar <- uiManagerGetWidget uiManager ("/ui/menubar" :: String)
-  let menubar = case maybeMenubar of
-                 Nothing -> error $ "Could not parse menu bar declaration from "
-                                    ++ show menuDeclFile
-                 Just m  -> m
-  vboxMain <- builderGetObjectStr builder castToBox "vboxMain"
-  vboxMain `set` [ containerChild := menubar ]
-  boxReorderChild vboxMain menubar 0
+  liftIO $ do
+    uiManagerInsertActionGroup uiManager actionGroup 0
+    maybeMenubar <- uiManagerGetWidget uiManager ("/ui/menubar" :: String)
+    let menubar = case maybeMenubar of
+                   Nothing -> error $ "Could not parse menu bar declaration from "
+                                      ++ show menuDeclFile
+                   Just m  -> m
+    vboxMain <- builderGetObjectStr builder castToBox "vboxMain"
+    vboxMain `set` [ containerChild := menubar ]
+    boxReorderChild vboxMain menubar 0
 
 -- |creates a menu item for every element of 'knownLanguages' in menu "Languages".
 --
@@ -48,16 +51,17 @@ initMenu builder ref = do
 -- new languages by just adding it to the list of languages without even
 -- touching any gui component.
 uiManagerBuildLanguagesMenu :: UIManager -> AstAction ()
-uiManagerBuildLanguagesMenu uiManager ref = do
-  langs <- getKnownLanguages ref
-  forM_ langs $ \lang -> do
-    mergeId <- uiManagerNewMergeId uiManager
-    let ident = "actionLanguage"++name lang
-    uiManagerAddUi uiManager mergeId "/ui/menubar/Languages/LangsSep"
-               (ident :: String)
-               (Just ident)
-               [UiManagerMenuitem]
-               False
+uiManagerBuildLanguagesMenu uiManager = do
+  langs <- getKnownLanguages
+  liftIO $ do
+    forM_ langs $ \lang -> do
+      mergeId <- uiManagerNewMergeId uiManager
+      let ident = "actionLanguage"++name lang
+      uiManagerAddUi uiManager mergeId "/ui/menubar/Languages/LangsSep"
+                 (ident :: String)
+                 (Just ident)
+                 [UiManagerMenuitem]
+                 False
 
 -- |the association between the gui functions from 'Actions'
 -- and the gtk identifier from xml file.
@@ -86,85 +90,108 @@ menuActions = menuFile ++ menuEdit ++ menuNavigate where
 -- |associate the menu action with the respective
 -- gui function from module Actions
 connect :: Action -> AstAction (ConnectId Action)
-connect action ref = do
-  name <- actionGetName action
-  case lookup name menuActions of
-    Nothing -> error $ "No action associated with "++ show name
-    Just f  -> action `on` actionActivated $ f ref
+connect action = do
+  st <- ask
+  liftIO $ do
+    name <- actionGetName action
+    case lookup name menuActions of
+      Nothing -> error $ "No action associated with "++ show name
+      Just f  -> action `on` actionActivated $ runReaderT f st
 
 
 -- * the menu File
 
 initMenuFile :: ActionGroup -> AstAction ()
-initMenuFile actionGroup ref = do
-  actionFile <- actionNewStr "actionMenuFile" "File" Nothing Nothing
+initMenuFile actionGroup = do
+  actions <- liftIO $ do
+    actionFile <- actionNewStr "actionMenuFile" "File" Nothing Nothing
 
-  actionNew <- actionNewStr "actionNew" "New" Nothing (Just stockNew)
-  actionOpen <- actionNewStr "actionOpen" "Open"  Nothing (Just stockOpen)
-  actionSave <- actionNewStr "actionSave" "Save"    Nothing (Just stockSave)
-  actionSaveAs <- actionNewStr "actionSaveAs" "Save As" Nothing (Just stockSaveAs)
-  actionQuit <- actionNewStr "actionQuit" "Quit"    Nothing (Just stockQuit)
-  actionGroupAddAction actionGroup actionFile
-  mapM_ (\action -> do {action `connect` ref ; addAction actionGroup action Nothing})
-        [actionNew,actionOpen,actionSave,actionSaveAs,actionQuit]
+    actionNew <- actionNewStr "actionNew" "New" Nothing (Just stockNew)
+    actionOpen <- actionNewStr "actionOpen" "Open"  Nothing (Just stockOpen)
+    actionSave <- actionNewStr "actionSave" "Save"    Nothing (Just stockSave)
+    actionSaveAs <- actionNewStr "actionSaveAs" "Save As" Nothing (Just stockSaveAs)
+    actionQuit <- actionNewStr "actionQuit" "Quit"    Nothing (Just stockQuit)
+    actionGroupAddAction actionGroup actionFile
+    return [actionNew,actionOpen,actionSave,actionSaveAs,actionQuit]
+
+  forM_  actions $ \action -> do
+    connect action
+    liftIO $ addAction actionGroup action Nothing
+
 
 -- * the menu Edit
 
 initMenuEdit :: ActionGroup -> AstAction ()
-initMenuEdit actionGroup ref = do
-  actionEdit <- actionNewStr "actionMenuEdit" "Edit" Nothing Nothing
+initMenuEdit actionGroup = do
 
-  actionCut <- actionNewStr "actionCut" "Cut" Nothing (Just stockCut)
-  actionCopy <- actionNewStr "actionCopy" "Copy"  Nothing (Just stockCopy)
-  actionPaste <- actionNewStr "actionPaste" "Paste"    Nothing (Just stockPaste)
-  actionDelete <- actionNewStr "actionDelete" "Delete" Nothing (Just stockRemove)
-  actionReparse <- actionNewStr "actionReparse" "Reparse"    Nothing (Just stockRefresh)
-  actionGroupAddAction actionGroup actionEdit
-  mapM_ (\action -> do {action `connect` ref ; addAction actionGroup action Nothing})
-        [actionCut,actionCopy,actionPaste,actionDelete,actionReparse]
+  actionReparse <- liftIO $ actionNewStr "actionReparse" "Reparse"    Nothing (Just stockRefresh)
+  actions <- liftIO $ do
+    actionEdit <- actionNewStr "actionMenuEdit" "Edit" Nothing Nothing
 
-  actionSetAccelPath actionReparse ("<Control>p" :: String)
-  initMenuItemFlatten actionGroup ref
+    actionCut <- actionNewStr "actionCut" "Cut" Nothing (Just stockCut)
+    actionCopy <- actionNewStr "actionCopy" "Copy"  Nothing (Just stockCopy)
+    actionPaste <- actionNewStr "actionPaste" "Paste"    Nothing (Just stockPaste)
+    actionDelete <- actionNewStr "actionDelete" "Delete" Nothing (Just stockRemove)
+    actionGroupAddAction actionGroup actionEdit
+    return [actionCut,actionCopy,actionPaste,actionDelete,actionReparse]
+
+  forM_ actions $ \action -> do
+    connect action
+    liftIO $ addAction actionGroup action Nothing
+
+  liftIO $ actionSetAccelPath actionReparse ("<Control>p" :: String)
+  initMenuItemFlatten actionGroup
 
 -- |bind the check menu for flattening lists to the boolean value in the state.
 initMenuItemFlatten :: ActionGroup -> AstAction ()
-initMenuItemFlatten actionGroup ref = do
-  isFlat <- getFlattenLists ref
+initMenuItemFlatten actionGroup = do
+  isFlat <- getFlattenLists
+  st <- ask
   let actionToggleFlatten = ToggleActionEntry "actionFlatten"
                                               "Flatten lists in tree?"
-                                               Nothing Nothing Nothing f isFlat
+                                               Nothing Nothing Nothing (runReaderT f st) isFlat
+
+      f :: AstAction ()
       f = do
-        isFlat <- getFlattenLists ref
-        setFlattenLists (not isFlat) ref
-        actionReparse ref
-  actionGroupAddToggleActions actionGroup [actionToggleFlatten]
+        isFlat <- getFlattenLists
+        setFlattenLists (not isFlat)
+        actionReparse
+
+  liftIO $ actionGroupAddToggleActions actionGroup [actionToggleFlatten]
 
 -- * the menu Navigate
 
 initMenuNavigate :: ActionGroup -> AstAction ()
-initMenuNavigate actionGroup ref = do
-  actionNavigate <- actionNewStr "actionMenuNavigate" "Navigate" Nothing Nothing
+initMenuNavigate actionGroup = do
+  actions <- liftIO $ do
+    actionNavigate <- actionNewStr "actionMenuNavigate" "Navigate" Nothing Nothing
 
-  actionTreeLoc <- actionNewStr "actionTreeLoc" ">>>" Nothing Nothing
-  actionTextLoc <- actionNewStr "actionTextLoc" "<<<"  Nothing Nothing
-  actionGroupAddAction actionGroup actionNavigate
-  mapM_ (\action -> do {action `connect` ref ; addAction actionGroup action Nothing})
-        [actionTreeLoc,actionTextLoc]
+    actionTreeLoc <- actionNewStr "actionTreeLoc" ">>>" Nothing Nothing
+    actionTextLoc <- actionNewStr "actionTextLoc" "<<<"  Nothing Nothing
+    actionGroupAddAction actionGroup actionNavigate
+    return [actionTreeLoc,actionTextLoc]
+
+  forM_ actions $ \action -> do
+    connect action
+    liftIO $ addAction actionGroup action Nothing
+
 
 -- * the menu Languages
 
 -- |sets up the menu @Languages@ and binds actions to the menu items.
 initMenuLanguages :: ActionGroup -> AstAction ()
-initMenuLanguages actionGroup ref = do
-  actionLangs <- actionNewStr "actionMenuLanguages" "Languages" Nothing Nothing
-  actionGroupAddAction actionGroup actionLangs
-  langs <- getKnownLanguages ref
-  let auto = RadioActionEntry
-               "actionLanguageAuto"
-               "Automatically select languages"
-               Nothing Nothing Nothing 0
-      raes = auto:languagesToRadioActionEntry langs
-  actionGroupAddRadioActions actionGroup raes 0 (`onRadioChange` ref)
+initMenuLanguages actionGroup = do
+  langs <- getKnownLanguages
+  st <- ask
+  liftIO $ do
+    actionLangs <- actionNewStr "actionMenuLanguages" "Languages" Nothing Nothing
+    actionGroupAddAction actionGroup actionLangs
+    let auto = RadioActionEntry
+                 "actionLanguageAuto"
+                 "Automatically select languages"
+                 Nothing Nothing Nothing 0
+        raes = auto:languagesToRadioActionEntry langs
+    actionGroupAddRadioActions actionGroup raes 0 (\a -> runReaderT (onRadioChange a) st)
 
 -- |creates a 'RadioActionEntry' for every language
 languagesToRadioActionEntry :: [Language] -> [RadioActionEntry]
@@ -177,15 +204,15 @@ languagesToRadioActionEntry languages = zipWith mkRadioActionEntry languages [1.
 
 -- |bind functionality to RadioAction
 onRadioChange :: RadioAction -> AstAction ()
-onRadioChange action ref = do
-  i <- radioActionGetCurrentValue action
+onRadioChange action = do
+  i <- liftIO $ radioActionGetCurrentValue action
   if i == 0
   then
-    setActiveLanguage Nothing ref
+    setActiveLanguage Nothing
   else
     let lang = languages !! (i-1) in
-    setActiveLanguage (Just lang) ref
-  actionReparse ref
+    setActiveLanguage (Just lang)
+  actionReparse
 
 -- |produces a string containing the languages' name and
 -- the associated file extensions
@@ -199,7 +226,7 @@ makeLanguageLabel language =
 -- * the language Help
 
 initMenuHelp :: ActionGroup -> Builder -> AstAction ()
-initMenuHelp actionGroup _ _ = do
+initMenuHelp actionGroup _ = liftIO $ do
   actionHelp <- actionNewStr "actionMenuHelp" "Help" Nothing Nothing
   actionAbout <- actionNewStr "actionAbout" "About"  Nothing (Just stockAbout)
   actionGroupAddAction actionGroup actionHelp
