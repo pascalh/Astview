@@ -67,7 +67,7 @@ data GUI = GUI
   }
 
 
--- * getter functions
+-- * getAstStateter functions
 
 mkLabels [ ''AstState
          , ''Options

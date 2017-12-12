@@ -13,6 +13,11 @@ import           Control.Monad.Reader
 import           Control.Monad.Trans          (liftIO)
 import           Data.IORef
 
+<<<<<<< 34651e0375c21059d8f26f0aea7afa4ce62f5f74
+=======
+
+
+>>>>>>> Hide IORef in Reader monad #11
 import           Graphics.UI.Gtk              hiding (Language)
 import           Graphics.UI.Gtk.SourceView
 
