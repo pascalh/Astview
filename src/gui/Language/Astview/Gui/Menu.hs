@@ -11,7 +11,6 @@ import           Language.Astview.Languages      (languages)
 
 import           Control.Monad                   (forM_)
 import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Reader
 import           Data.List                       (intercalate)
 import           Data.Monoid                     ((<>))
 import           Graphics.UI.Gtk                 hiding (Language)
@@ -92,12 +91,12 @@ menuActions = menuFile ++ menuEdit ++ menuNavigate where
 -- gui function from module Actions
 connect :: Action -> AstAction (ConnectId Action)
 connect action = do
-  st <- ask
+  runner <- ioRunner
   liftIO $ do
     name <- actionGetName action
     case lookup name menuActions of
       Nothing -> error $ "No action associated with "++ show name
-      Just f  -> action `on` actionActivated $ runReaderT f st
+      Just f  -> action `on` actionActivated $ runner f
 
 
 -- * the menu File
@@ -146,11 +145,14 @@ initMenuEdit actionGroup = do
 -- |bind the check menu for flattening lists to the boolean value in the state.
 initMenuItemFlatten :: ActionGroup -> AstAction ()
 initMenuItemFlatten actionGroup = do
+  run <- ioRunner
   isFlat <- getFlattenLists
-  st <- ask
-  let actionToggleFlatten = ToggleActionEntry "actionFlatten"
-                                              "Flatten lists in tree?"
-                                               Nothing Nothing Nothing (runReaderT f st) isFlat
+  let actionToggleFlatten =
+        ToggleActionEntry "actionFlatten"
+                          "Flatten lists in tree?"
+                          Nothing Nothing Nothing
+                          (run f)
+                          isFlat
 
       f :: AstAction ()
       f = do
@@ -183,7 +185,7 @@ initMenuNavigate actionGroup = do
 initMenuLanguages :: ActionGroup -> AstAction ()
 initMenuLanguages actionGroup = do
   langs <- getKnownLanguages
-  st <- ask
+  run <- ioRunner
   liftIO $ do
     actionLangs <- actionNewStr "actionMenuLanguages" "Languages" Nothing Nothing
     actionGroupAddAction actionGroup actionLangs
@@ -192,7 +194,7 @@ initMenuLanguages actionGroup = do
                  "Automatically select languages"
                  Nothing Nothing Nothing 0
         raes = auto:languagesToRadioActionEntry langs
-    actionGroupAddRadioActions actionGroup raes 0 (\a -> runReaderT (onRadioChange a) st)
+    actionGroupAddRadioActions actionGroup raes 0 $ \a -> run (onRadioChange a)
 
 -- |creates a 'RadioActionEntry' for every language
 languagesToRadioActionEntry :: [Language] -> [RadioActionEntry]

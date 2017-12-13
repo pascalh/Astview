@@ -14,12 +14,23 @@ import Language.Astview.Language(Language,SrcSpan,Path,position)
 class Default a where
   defaultValue :: a
 
-type AstAction a = ReaderT (IORef AstState) IO  a
+type AstAction a = ReaderT (IORef AstState) (ReaderT GUI IO)  a
 
--- |union of internal program state and gui
+-- |run a 'AstAction' by providing values for the reader monad.
+-- (in most cases 'ioRunner' is more useful)
+runAsIo :: GUI -> IORef AstState -> AstAction a -> IO a
+runAsIo gui st f = runReaderT (runReaderT f st) gui
+
+-- |returns a transformer from 'AstAction' to 'IO'
+ioRunner :: AstAction (AstAction a -> IO a)
+ioRunner = do
+  ioref <- ask
+  gui <- lift ask
+  return $ \f -> runAsIo gui ioref f
+
+-- |internal program state
 data AstState = AstState
   { state :: State -- ^ intern program state
-  , gui :: GUI -- ^ gtk data types
   , options :: Options -- ^ global program options
   }
 
@@ -58,8 +69,8 @@ instance Default State where
 -- |unsaved document
 unsavedDoc :: String
 unsavedDoc = "Unsaved document"
--- |main gui data type, contains gtk components
 
+-- |main gui data type, contains gtk components
 data GUI = GUI
   { window :: Window -- ^ main window
   , tv :: TreeView -- ^ treeview
@@ -83,13 +94,13 @@ getAstState =  do
   liftIO (readIORef ioRef)
 
 getSourceBuffer :: AstAction SourceBuffer
-getSourceBuffer = (sb . gui) <$> getAstState
+getSourceBuffer = sb <$> getGui
 
 getTreeView :: AstAction TreeView
-getTreeView = (tv . gui) <$> getAstState
+getTreeView = tv <$> getGui
 
 getGui :: AstAction GUI
-getGui = gui <$> getAstState
+getGui = lift ask
 
 getState :: AstAction State
 getState = state <$> getAstState
@@ -114,7 +125,7 @@ getActiveLanguage :: AstAction (Maybe Language)
 getActiveLanguage = (activeLanguage . state) <$> getAstState
 
 getWindow :: AstAction Window
-getWindow = (window . gui) <$> getAstState
+getWindow = window <$> getGui
 
 getFlattenLists :: AstAction Bool
 getFlattenLists = (flattenLists . options) <$> getAstState

@@ -8,7 +8,7 @@ import           System.FilePath              ((</>))
 
 import           Language.Astview.Gui.Actions (actionEmptyGUI,
                                                actionLoadHeadless)
-import           Language.Astview.Gui.Init    (hooks, setupGui)
+import           Language.Astview.Gui.Init    (hooks, setupAstState, setupGui)
 import           Language.Astview.Gui.Menu    (initMenu)
 import           Language.Astview.Gui.Types
 
@@ -19,12 +19,16 @@ import           Language.Astview.Gui.Types
 main :: IO ()
 main = do
   initGUI
+
   builder <- builderNew
   builderAddFromFile builder =<< getDataFileName ("data" </> "astview.xml")
-  ioref <- setupGui builder
+
+  gui <- setupGui builder
+  ioref <- setupAstState
 
   args <- getArgs
-  flip runReaderT ioref $ do
+
+  runAsIo gui ioref $ do
 
     initMenu builder
     hooks
