@@ -65,6 +65,7 @@ Executable         astview
                    -fno-warn-hi-shadowing
                    -fno-warn-name-shadowing
   Other-Modules:   Language.Astview.Gui.Actions
+                   Language.Astview.Gui.GtkActions
                    Language.Astview.Gui.Init
                    Language.Astview.Gui.Menu
                    Language.Astview.Gui.Types
