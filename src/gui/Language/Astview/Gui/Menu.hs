@@ -139,7 +139,6 @@ initMenuEdit actionGroup = do
     connect action
     liftIO $ addAction actionGroup action Nothing
 
-  liftIO $ actionSetAccelPath actionReparse ("<Control>p" :: String)
   initMenuItemFlatten actionGroup
 
 -- |bind the check menu for flattening lists to the boolean value in the state.
