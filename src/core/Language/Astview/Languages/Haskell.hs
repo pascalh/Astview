@@ -7,8 +7,7 @@ import           Language.Astview.Language              hiding (parse)
 import           Data.Generics                          (Data, extQ)
 import           Data.Generics.Zipper                   (down', query, toZipper)
 
-import           Language.Haskell.Exts.Annotated.Parser
-import           Language.Haskell.Exts.Parser           (ParseResult (..))
+import           Language.Haskell.Exts.Parser           (ParseResult (..),parseModule)
 import qualified Language.Haskell.Exts.SrcLoc           as HsSrcLoc
 
 haskellExts :: Language
