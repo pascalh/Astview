@@ -15,6 +15,7 @@ module Language.Astview.Language
   , Ast(..)
   , Error (..)
   , SrcLocException(..)
+  , Parser(..)
   )
 where
 import Prelude hiding (span)
@@ -59,6 +60,11 @@ instance Show AstNode where
 -- |An (untyped) abstract syntax tree is just a tree of 'AstNode's.
 newtype Ast = Ast { ast :: Tree AstNode }
 
+-- |A parser is a function which transforms a string into an untyped abstract
+-- syntax tree.
+data Parser = PureParser (String -> Either Error Ast)
+            | IoParser (String -> IO (Either Error Ast))
+
 -- |A value of 'Language' states how files (associated with this language by
 -- their file extentions 'exts') are being parsed.
 -- The file extentions of all languages known to astview may overlap, since
@@ -70,7 +76,7 @@ data Language = Language
   -- ^ (kate) syntax highlighter name. Use @[]@ if no highlighting is desired.
   , exts :: [String]
    -- ^ file extentions which should be associated with this language
-  , parse :: String -> Either Error Ast -- ^ parse function
+  , parser :: Parser -- ^ parse function
   }
 
 -- |Since parsers return different

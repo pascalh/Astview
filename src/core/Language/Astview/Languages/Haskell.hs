@@ -2,7 +2,7 @@ module Language.Astview.Languages.Haskell (haskellExts) where
 import           Prelude                                hiding (span)
 
 import           Language.Astview.DataTree              (dataToAstIgnoreByExample)
-import           Language.Astview.Language              hiding (parse)
+import           Language.Astview.Language
 
 import           Data.Generics                          (Data, extQ)
 import           Data.Generics.Zipper                   (down', query, toZipper)
@@ -11,7 +11,7 @@ import           Language.Haskell.Exts.Parser           (ParseResult (..),parseM
 import qualified Language.Haskell.Exts.SrcLoc           as HsSrcLoc
 
 haskellExts :: Language
-haskellExts = Language "Haskell" "Haskell" [".hs"] parsehs
+haskellExts = Language "Haskell" "Haskell" [".hs"] (PureParser parsehs)
 
 parsehs :: String -> Either Error Ast
 parsehs s = case parseModule s of

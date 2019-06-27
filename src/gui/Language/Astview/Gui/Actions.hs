@@ -58,7 +58,10 @@ actionGetAst :: Language -> AstAction (Either Error Ast)
 actionGetAst l = do
   plain <- getText
   flattening <- getFlattenLists
-  return $ (if flattening then flatten else id) <$> parse l plain
+  errOrAst <- case parser l of
+    PureParser p -> return $ p plain
+    IoParser p -> liftIO $ p plain
+  return $ (if flattening then flatten else id) <$> errOrAst
 
 -- | parses the contents of the sourceview with the selected language
 actionParse :: Language -> AstAction (Tree String)
