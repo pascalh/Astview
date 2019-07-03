@@ -7,7 +7,7 @@ import           Data.Generics.Zipper      (down', query, toZipper)
 import           Data.Tree                 (Tree (Node))
 
 import           Language.Astview.DataTree (manual)
-import           Language.Astview.Language hiding (parse)
+import           Language.Astview.Language
 
 import qualified DynFlags                  as GHC
 import           FastString
@@ -24,16 +24,16 @@ import           StringBuffer
 
 import           GHC.Paths                 (libdir)
 
-import           System.IO.Unsafe
-
 haskellCore :: Language
-haskellCore = Language "HaskellCore" "Haskell" [".hs"] parsehs
+haskellCore = Language "HaskellCore" "Haskell" [".hs"] (IoParser parsehs)
 
-parsehs :: String -> Either Error Ast
-parsehs s =
-  case runParser s parseModule of
-    POk _ parsed -> Right (coreToAst parsed)
-    PFailed ss msg -> Left $ makeError ss (showSDoc (unsafePerformIO getDynFlags) msg)
+parsehs :: String -> IO (Either Error Ast)
+parsehs s = do
+  dynFlags <- getDynFlags
+  return $
+    case runParser dynFlags s parseModule of
+      POk _ parsed -> Right (coreToAst parsed)
+      PFailed ss msg -> Left $ makeError ss (showSDoc dynFlags msg)
 
 makeError :: GHC.SrcSpan -> String -> Error
 makeError ss s =
@@ -51,13 +51,13 @@ ghcss2ss real
                    (GHC.srcLocLine end)
                    (GHC.srcLocCol end)
 
-runParser :: String -> P a -> ParseResult a
-runParser str parser = unP parser parseState
+runParser :: GHC.DynFlags -> String -> P a -> ParseResult a
+runParser flags str parser = unP parser parseState
     where
       filename = "<interactive>"
       location = GHC.mkRealSrcLoc (mkFastString filename) 1 1
       buffer = stringToStringBuffer str
-      parseState = mkPState (unsafePerformIO getDynFlags) buffer location
+      parseState = mkPState flags buffer location
 
 getDynFlags :: IO GHC.DynFlags
 getDynFlags =

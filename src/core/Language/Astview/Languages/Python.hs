@@ -10,7 +10,7 @@ import Data.Generics (Data,extQ)
 import Data.Generics.Zipper(toZipper,down,query)
 
 python :: Language
-python = Language "Python" "Python" [".py"] parsePy
+python = Language "Python" "Python" [".py"] (PureParser parsePy)
 
 parsePy :: String -> Either Error Ast
 parsePy s = case parseModule s [] of
